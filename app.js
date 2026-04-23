@@ -18,7 +18,15 @@ const app = {
     },
 
     async logout() {
-        await supabase.auth.signOut();
+        try {
+            await supabase.auth.signOut();
+            window.location.reload();
+        } catch(e) {
+            console.error('Logout error:', e);
+            // Fallback clear
+            localStorage.clear();
+            window.location.reload();
+        }
     },
 
     updateAuthUI() {
