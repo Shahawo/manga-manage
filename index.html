@@ -114,39 +114,45 @@
         <!-- Dashboard View -->
         <section id="view-dashboard" class="view active">
             <div class="view-header"
-                style="flex-wrap: wrap; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem;">
-                <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
-                    <h2 style="font-size: 1.5rem; margin: 0;">Bộ sưu tập</h2>
-                    <span id="this-month-books-count" class="badge hidden"
-                        style="background:#dcfce7; color:#16a34a; border: 1px solid #bbf7d0; font-weight: 600;"></span>
+                style="flex-wrap: nowrap; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem;">
+                <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: nowrap; flex-shrink: 1; min-width: 0; overflow: hidden;">
+                    <h2 style="font-size: 1.5rem; margin: 0; white-space: nowrap; flex-shrink: 0;">Bộ sưu tập</h2>
                     <span id="total-series-count" class="badge"
                         style="background:var(--surface); border: 1px solid var(--border);">0 series</span>
                     <span id="total-books-count" class="badge"
                         style="background:var(--surface); border: 1px solid var(--border);">0 cuốn</span>
                 </div>
 
-                <div class="view-actions" style="display: flex; gap: 0.75rem; align-items: center; margin-left: auto;">
-                    <div
-                        style="display: flex; align-items: center; gap: 0.5rem; background: var(--surface); padding: 0.25rem 0.25rem 0.25rem 0.75rem; border-radius: 99px; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
-                        <i data-feather="filter" style="color:var(--text-muted); width: 16px; height: 16px;"></i>
-                        <select id="filter-status"
-                            style="border:none; outline:none; background:transparent; font-size:0.85rem; font-weight: 500; font-family: inherit; color: var(--text-main); cursor:pointer; padding-right:0.5rem;"
-                            onchange="app.renderDashboard()">
-                            <option value="all">Tiến độ (Tất cả)</option>
-                            <option value="100">Đã đủ bộ (100%)</option>
-                            <option value="under100">Chưa đủ bộ (<100%)</option>
-                        </select>
+                <div class="view-actions" style="display: flex; gap: 0.75rem; align-items: center; margin-left: auto; flex-wrap: nowrap; flex-shrink: 0;">
+                    <div class="custom-select-container dropdown-wrapper">
+                        <button class="custom-select-btn" onclick="app.toggleCustomDropdown('filter-dropdown')">
+                            <i data-feather="filter" style="color:var(--text-muted); width: 16px; height: 16px;"></i>
+                            <span id="filter-status-label" style="font-size:0.85rem; font-weight: 500;">Tiến độ (Tất cả)</span>
+                            <i data-feather="chevron-down" style="width: 14px; height: 14px; color: var(--text-muted);"></i>
+                        </button>
+                        <div id="filter-dropdown" class="user-dropdown custom-select-menu hidden">
+                            <button class="udrop-item" onclick="app.setFilter('all', 'Tiến độ (Tất cả)')"><span>Tiến độ (Tất cả)</span></button>
+                            <button class="udrop-item" onclick="app.setFilter('100', 'Đã đủ bộ (100%)')"><span>Đã đủ bộ (100%)</span></button>
+                            <button class="udrop-item" onclick="app.setFilter('under100', 'Chưa đủ bộ (<100%)')"><span>Chưa đủ bộ (<100%)</span></button>
+                        </div>
+                        <input type="hidden" id="filter-status" value="all">
                     </div>
-                    <div
-                        style="display: flex; align-items: center; gap: 0.5rem; background: var(--surface); padding: 0.25rem 0.25rem 0.25rem 0.75rem; border-radius: 99px; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
-                        <i data-feather="bar-chart-2" style="color:var(--text-muted); width: 16px; height: 16px;"></i>
-                        <select id="sort-order"
-                            style="border:none; outline:none; background:transparent; font-size:0.85rem; font-weight: 500; font-family: inherit; color: var(--text-main); cursor:pointer; padding-right:0.5rem;"
-                            onchange="app.renderDashboard()">
-                            <option value="az">A → Z</option>
-                            <option value="za">Z → A</option>
-                        </select>
+                    <div class="custom-select-container dropdown-wrapper">
+                        <button class="custom-select-btn" onclick="app.toggleCustomDropdown('sort-dropdown')">
+                            <i data-feather="bar-chart-2" style="color:var(--text-muted); width: 16px; height: 16px;"></i>
+                            <span id="sort-order-label" style="font-size:0.85rem; font-weight: 500;">A → Z</span>
+                            <i data-feather="chevron-down" style="width: 14px; height: 14px; color: var(--text-muted);"></i>
+                        </button>
+                        <div id="sort-dropdown" class="user-dropdown custom-select-menu hidden">
+                            <button class="udrop-item" onclick="app.setSort('az', 'A → Z')"><span>A → Z</span></button>
+                            <button class="udrop-item" onclick="app.setSort('za', 'Z → A')"><span>Z → A</span></button>
+                        </div>
+                        <input type="hidden" id="sort-order" value="az">
                     </div>
+                    <button class="btn btn-icon" onclick="app.toggleViewMode()" id="btn-view-mode" title="Đổi chế độ hiển thị"
+                        style="display: flex; align-items: center; justify-content: center; background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow-sm); border-radius: 99px; padding: 0 1rem; color: var(--text-muted); height: 34px;">
+                        <i data-feather="list" id="icon-view-mode" style="width: 16px; height: 16px;"></i>
+                    </button>
                 </div>
             </div>
             <div id="series-grid" class="series-grid">
