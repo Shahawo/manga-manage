@@ -4,6 +4,7 @@ const app = {
     data: [],
     currentSeries: null,
     user: null,
+    viewMode: localStorage.getItem('viewMode') || 'grid',
 
     
 
@@ -102,13 +103,21 @@ const app = {
         // Apply saved settings
         const savedCols = localStorage.getItem('gridCols') || '6';
         const grid = document.getElementById('series-grid');
-        if (grid) grid.style.gridTemplateColumns = `repeat(${savedCols}, 1fr)`;
+        if (grid && this.viewMode === 'grid') {
+            grid.style.gridTemplateColumns = `repeat(${savedCols}, 1fr)`;
+        }
         const savedFontSize = localStorage.getItem('fontSize') || 'normal';
         this.applyFontSize(savedFontSize);
         const savedSort = localStorage.getItem('defaultSort');
         if (savedSort) {
             const sortEl = document.getElementById('sort-order');
-            if (sortEl) sortEl.value = savedSort;
+            if (sortEl) {
+                sortEl.value = savedSort;
+                const labelEl = document.getElementById('sort-order-label');
+                if (labelEl) {
+                    labelEl.textContent = savedSort === 'za' ? 'Z → A' : 'A → Z';
+                }
+            }
         }
         
         document.addEventListener('click', (e) => {
@@ -117,6 +126,13 @@ const app = {
             if (wrapper && menu && !wrapper.contains(e.target)) {
                 menu.classList.add('hidden');
             }
+            // Close custom dropdowns
+            document.querySelectorAll('.custom-select-container').forEach(container => {
+                if (!container.contains(e.target)) {
+                    const dropdown = container.querySelector('.user-dropdown');
+                    if (dropdown) dropdown.classList.add('hidden');
+                }
+            });
         });
 
         this.updateSeriesSuggestions();
@@ -599,6 +615,19 @@ const app = {
             thisMonthBadge.classList.toggle('hidden', thisMonthCount === 0);
         }
 
+        if (this.viewMode === 'list') {
+            grid.classList.add('list-view');
+            grid.style.gridTemplateColumns = '';
+            const icon = document.getElementById('icon-view-mode');
+            if (icon) icon.setAttribute('data-feather', 'grid');
+        } else {
+            grid.classList.remove('list-view');
+            const savedCols = localStorage.getItem('gridCols') || '6';
+            grid.style.gridTemplateColumns = `repeat(${savedCols}, 1fr)`;
+            const icon = document.getElementById('icon-view-mode');
+            if (icon) icon.setAttribute('data-feather', 'list');
+        }
+
         seriesList.forEach(sg => {
             const coverUrl = sg.latestVolume.coverUrl || 'https://via.placeholder.com/200x300.png?text=No+Cover';
             const percentColor = sg.percent < 100 ? '#ea580c' : 'var(--primary)';
@@ -621,6 +650,36 @@ const app = {
             grid.appendChild(card);
         });
         if (window.feather) feather.replace();
+    },
+
+    toggleViewMode() {
+        this.viewMode = this.viewMode === 'grid' ? 'list' : 'grid';
+        localStorage.setItem('viewMode', this.viewMode);
+        this.renderDashboard();
+    },
+
+    toggleCustomDropdown(id) {
+        // Close others first
+        document.querySelectorAll('.custom-select-container .user-dropdown').forEach(d => {
+            if (d.id !== id) d.classList.add('hidden');
+        });
+        const menu = document.getElementById(id);
+        if (menu) menu.classList.toggle('hidden');
+    },
+
+    setFilter(value, label) {
+        document.getElementById('filter-status').value = value;
+        document.getElementById('filter-status-label').textContent = label;
+        document.getElementById('filter-dropdown').classList.add('hidden');
+        this.renderDashboard();
+    },
+
+    setSort(value, label) {
+        document.getElementById('sort-order').value = value;
+        document.getElementById('sort-order-label').textContent = label;
+        document.getElementById('sort-dropdown').classList.add('hidden');
+        localStorage.setItem('defaultSort', value);
+        this.renderDashboard();
     },
 
     // ─── SERIES DETAIL ────────────────────────────────────────────────────────
