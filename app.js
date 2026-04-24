@@ -63,9 +63,45 @@ const app = {
         }
     },
 
+    // ─── CÀI ĐẶT (SETTINGS) ──────────────────────────────────────────────────
+    settings: {
+        gridCols: localStorage.getItem('setting_gridCols') || '6',
+        fontSize: localStorage.getItem('setting_fontSize') || 'normal'
+    },
+
+    setSetting(key, value) {
+        this.settings[key] = value;
+        localStorage.setItem(`setting_${key}`, value);
+        this.applySettings();
+    },
+
+    applySettings() {
+        // Cột Grid
+        document.documentElement.style.setProperty('--grid-cols', this.settings.gridCols);
+        document.querySelectorAll('.settings-chip[id^="chip-"]').forEach(el => {
+            if(!el.id.includes('fs')) el.classList.remove('active');
+        });
+        const chipGrid = document.getElementById(`chip-${this.settings.gridCols}`);
+        if(chipGrid) chipGrid.classList.add('active');
+
+        // Cỡ chữ
+        let fsValue = '1rem';
+        if(this.settings.fontSize === 'small') fsValue = '14px';
+        if(this.settings.fontSize === 'large') fsValue = '18px';
+        if(this.settings.fontSize === 'xlarge') fsValue = '20px';
+        if(this.settings.fontSize === 'normal') fsValue = '16px';
+        document.documentElement.style.fontSize = fsValue;
+        document.documentElement.style.setProperty('--fs-base', fsValue);
+        
+        document.querySelectorAll('.settings-chip[id^="chip-fs-"]').forEach(el => el.classList.remove('active'));
+        const chipFs = document.getElementById(`chip-fs-${this.settings.fontSize}`);
+        if(chipFs) chipFs.classList.add('active');
+    },
+
     // ─── KHỞI ĐỘNG ────────────────────────────────────────────────────────────
     async init() {
         this.loadTheme();
+        this.applySettings();
         
         // Khôi phục session từ localStorage ngay khi khởi động (tránh phải đăng nhập lại sau F5)
         const { data: { session: existingSession } } = await supabase.auth.getSession();
@@ -617,13 +653,10 @@ const app = {
 
         if (this.viewMode === 'list') {
             grid.classList.add('list-view');
-            grid.style.gridTemplateColumns = '';
             const icon = document.getElementById('icon-view-mode');
             if (icon) icon.setAttribute('data-feather', 'grid');
         } else {
             grid.classList.remove('list-view');
-            const savedCols = localStorage.getItem('gridCols') || '6';
-            grid.style.gridTemplateColumns = `repeat(${savedCols}, 1fr)`;
             const icon = document.getElementById('icon-view-mode');
             if (icon) icon.setAttribute('data-feather', 'list');
         }
@@ -643,7 +676,7 @@ const app = {
                     <h3 class="series-title" title="${sg.title}">${sg.title}</h3>
                     <div class="series-meta">
                         <span><i data-feather="book" style="width:12px;height:12px;margin-right:4px;"></i>${sg.count}/${sg.total} tập</span>
-                        <span style="font-weight:700; color:${percentColor}; background:${percentBg}; padding:0.15rem 0.5rem; border-radius:99px; font-size:0.75rem;">${sg.percent}%</span>
+                        <span class="progress-badge" style="font-weight:700; color:${percentColor}; background:${percentBg}; padding:0.15rem 0.5rem; border-radius:99px; font-size:0.75rem;">${sg.percent}%</span>
                     </div>
                 </div>
             `;
@@ -974,10 +1007,10 @@ const app = {
             const filePath = `covers/${fileName}`;
 
             this.showLoading('Đang tải ảnh lên...');
-            const { error: uploadError } = await supabase.storage.from('covers').upload(filePath, file);
+            const { error: uploadError } = await supabase.storage.from('manga_covers').upload(filePath, file);
             if (uploadError) throw uploadError;
 
-            const { data } = supabase.storage.from('covers').getPublicUrl(filePath);
+            const { data } = supabase.storage.from('manga_covers').getPublicUrl(filePath);
             
             document.getElementById('coverUrl').value = data.publicUrl;
             this.previewImage(data.publicUrl, 'cover');
@@ -1027,10 +1060,10 @@ const app = {
                 const fileName = `${Math.random()}.${fileExt}`;
                 const filePath = `gifts/${fileName}`;
                 
-                const { error: uploadError } = await supabase.storage.from('covers').upload(filePath, file);
+                const { error: uploadError } = await supabase.storage.from('manga_covers').upload(filePath, file);
                 if (uploadError) throw uploadError;
 
-                const { data } = supabase.storage.from('covers').getPublicUrl(filePath);
+                const { data } = supabase.storage.from('manga_covers').getPublicUrl(filePath);
                 lines.push(data.publicUrl);
                 lastUrl = data.publicUrl;
             }
@@ -1100,7 +1133,8 @@ const app = {
                 this.renderGiftThumbnails();
             });
             wrap.innerHTML = `
-                <img src="${url.trim()}" style="width:100%;height:100%;object-fit:contain;pointer-events:none;" onerror="this.src='https://via.placeholder.com/60x80.png?text=Lỗi'">
+                <img src="${url.trim()}" style="width:100%;height:100%;object-fit:contain;pointer-events:none;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                <div style="display:none; width:100%; height:100%; background:#fee2e2; color:#ef4444; align-items:center; justify-content:center; font-size:0.75rem; text-align:center; padding:2px; font-weight:600;">Lỗi</div>
                 <button type="button" class="delete-gift-btn" style="width:18px;height:18px;top:2px;right:2px;" onclick="event.stopPropagation();app.removeGiftUrl(${index})" title="Xoá">
                     <i data-feather="x" style="width:10px;height:10px;"></i>
                 </button>
