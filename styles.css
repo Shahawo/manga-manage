@@ -308,22 +308,30 @@ a {
     align-items: center;
     gap: 1rem;
     margin-bottom: 2rem;
+    flex-wrap: nowrap;
 }
 
 .view-actions {
     margin-left: auto;
     display: flex;
-    gap: 1rem;
+    gap: 0.75rem;
     align-items: center;
+    flex-shrink: 0;
+    flex-wrap: nowrap;
 }
 
 .badge {
     background: #e4e4e7;
     color: var(--text-main);
-    padding: 0.25rem 0.75rem;
+    padding: 0 0.8rem;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     border-radius: 99px;
     font-size: 0.85rem;
     font-weight: 500;
+    white-space: nowrap;
 }
 
 .highlight {
@@ -345,6 +353,9 @@ a {
     transition: var(--transition);
     cursor: pointer;
     border: 1px solid #f4f4f5;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
 }
 
 .series-card:hover {
@@ -373,6 +384,9 @@ a {
 
 .series-info {
     padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
 }
 
 .series-title {
@@ -394,6 +408,47 @@ a {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-top: auto;
+}
+
+/* List View overrides */
+.series-grid.list-view {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.series-grid.list-view .series-card {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    border-radius: var(--radius-sm);
+}
+
+.series-grid.list-view .series-cover {
+    width: 60px;
+    height: 90px;
+    flex-shrink: 0;
+    border-right: 1px solid var(--border);
+}
+
+.series-grid.list-view .series-info {
+    flex: 1;
+    padding: 0.5rem 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.series-grid.list-view .series-title {
+    font-size: 1rem;
+    margin-bottom: 0.2rem;
+}
+
+.series-grid.list-view .series-meta {
+    margin-top: 0.2rem;
+    justify-content: flex-start;
+    gap: 1rem;
 }
 
 /* Empty State */
@@ -1043,6 +1098,12 @@ label {
     animation: dropIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+[data-theme='dark'] .user-dropdown {
+    background: #1a2e24;
+    border-color: #2a4233;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+}
+
 @keyframes dropIn {
     from {
         opacity: 0;
@@ -1062,12 +1123,11 @@ label {
     align-items: center;
     gap: 0.75rem;
     background: #bbf7d0;
-    /* Màu nền người dùng yêu cầu */
 }
 
-.dark-mode .udrop-header {
-    background: #14532d;
-    /* Màu fallback tối cho nền sáng */
+[data-theme='dark'] .udrop-header {
+    background: #0f1f17;
+    border-bottom-color: #2a4233;
 }
 
 .udrop-header img {
@@ -1097,6 +1157,61 @@ label {
     margin: 0.25rem 0;
 }
 
+.custom-select-container {
+    position: relative;
+}
+
+.custom-select-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--surface);
+    height: 34px;
+    padding: 0 0.75rem 0 1rem;
+    border-radius: 99px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+    cursor: pointer;
+    color: var(--text-main);
+    font-family: inherit;
+    transition: background 0.15s;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.custom-select-btn:hover {
+    background: var(--background);
+}
+
+.custom-select-menu {
+    top: 100%;
+    margin-top: 2px;
+    left: 0;
+    right: 0;
+    min-width: unset;
+    background: #ffffff;
+    padding: 0.25rem;
+}
+
+[data-theme='dark'] .custom-select-menu {
+    background: var(--surface);
+}
+
+.custom-select-menu .udrop-item {
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+    background: transparent;
+}
+
+.custom-select-menu .udrop-item:hover {
+    background: #f0fdf4;
+    color: var(--primary);
+}
+
+[data-theme='dark'] .custom-select-menu .udrop-item:hover {
+    background: rgba(34, 197, 94, 0.1);
+}
+
 .udrop-item {
     display: flex;
     align-items: center;
@@ -1114,7 +1229,12 @@ label {
 }
 
 .udrop-item:hover {
-    background: var(--background);
+    background: #dcfce7;
+}
+
+[data-theme='dark'] .udrop-item:hover {
+    background: #2a4233;
+    color: #ecfdf5;
 }
 
 .udrop-item svg {
@@ -1153,6 +1273,10 @@ label {
 
 .udrop-danger:hover {
     background: #fef2f2 !important;
+}
+
+[data-theme='dark'] .udrop-danger:hover {
+    background: rgba(248, 113, 113, 0.12) !important;
 }
 
 .udrop-toggle {
