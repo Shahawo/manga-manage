@@ -202,6 +202,13 @@ a {
     min-width: 100px;
 }
 
+.btn-icon {
+    padding: 0;
+    min-width: unset;
+    width: 34px;
+    height: 34px;
+}
+
 .btn-primary {
     background: var(--primary);
     color: white;
@@ -1188,9 +1195,11 @@ label {
     margin-top: 2px;
     left: 0;
     right: 0;
-    min-width: unset;
+    width: 100%;
+    min-width: unset !important;
     background: #ffffff;
     padding: 0.25rem;
+    box-sizing: border-box;
 }
 
 [data-theme='dark'] .custom-select-menu {
