@@ -63,6 +63,8 @@ CREATE TABLE IF NOT EXISTS catalog (
   size         TEXT,
   price        INT,
   cover_url    TEXT,
+  note         TEXT,
+  gift_urls    TEXT[] DEFAULT '{}',
   created_at   TIMESTAMPTZ DEFAULT NOW(),
   updated_at   TIMESTAMPTZ DEFAULT NOW()
 );
@@ -104,6 +106,7 @@ CREATE TABLE IF NOT EXISTS pending_catalog (
   price           INT,
   cover_url       TEXT,
   note            TEXT,
+  gift_urls       TEXT[] DEFAULT '{}',
   status          TEXT DEFAULT 'pending',  -- 'pending' | 'approved' | 'rejected'
   reject_note     TEXT,
   created_at      TIMESTAMPTZ DEFAULT NOW()
@@ -216,12 +219,12 @@ BEGIN
   END IF;
 
   -- Thêm vào catalog
-  INSERT INTO catalog (series, title, volume, isbns, author, translator, publisher, distributor, publish_date, pages, size, price, cover_url)
+  INSERT INTO catalog (series, title, volume, isbns, author, translator, publisher, distributor, publish_date, pages, size, price, cover_url, note, gift_urls)
   VALUES (
     COALESCE((updated_data->>'series')::TEXT, p.series),
     COALESCE((updated_data->>'title')::TEXT, p.title),
     COALESCE((updated_data->>'volume')::FLOAT, p.volume),
-    ARRAY[COALESCE((updated_data->>'isbn')::TEXT, p.isbn)],
+    ARRAY(SELECT trim(x) FROM unnest(regexp_split_to_array(COALESCE((updated_data->>'isbn')::TEXT, p.isbn), '[,;|/\s\n]+')) AS x WHERE trim(x) <> ''),
     COALESCE((updated_data->>'author')::TEXT, p.author),
     COALESCE((updated_data->>'translator')::TEXT, p.translator),
     COALESCE((updated_data->>'publisher')::TEXT, p.publisher),
@@ -230,7 +233,9 @@ BEGIN
     COALESCE((updated_data->>'pages')::INT, p.pages),
     COALESCE((updated_data->>'size')::TEXT, p.size),
     COALESCE((updated_data->>'price')::INT, p.price),
-    COALESCE((updated_data->>'cover_url')::TEXT, p.cover_url)
+    COALESCE((updated_data->>'cover_url')::TEXT, p.cover_url),
+    COALESCE((updated_data->>'note')::TEXT, p.note),
+    CASE WHEN (updated_data->'gift_urls') IS NOT NULL THEN ARRAY(SELECT jsonb_array_elements_text(updated_data->'gift_urls')) ELSE p.gift_urls END
   ) RETURNING id INTO new_catalog_id;
 
   -- Cập nhật trạng thái pending
@@ -277,10 +282,14 @@ BEGIN
   SELECT * INTO p FROM pending_catalog WHERE id = pending_id;
   IF NOT FOUND THEN RAISE EXCEPTION 'Pending not found'; END IF;
 
-  -- Gộp ISBN vào catalog
+  -- Gộp ISBN vào catalog (loại bỏ trùng lặp)
   UPDATE catalog
-  SET isbns = array_append(isbns, COALESCE(p.isbn, p.scanned_isbn))
-  WHERE id = target_catalog_id AND NOT (COALESCE(p.isbn, p.scanned_isbn) = ANY(isbns));
+  SET isbns = ARRAY(
+    SELECT DISTINCT unnest(isbns || ARRAY(
+      SELECT trim(x) FROM unnest(regexp_split_to_array(COALESCE(p.isbn, p.scanned_isbn), '[,;|/\s\n]+')) AS x WHERE trim(x) <> ''
+    ))
+  )
+  WHERE id = target_catalog_id;
 
   -- Đánh dấu approved
   UPDATE pending_catalog SET status = 'approved', catalog_id = target_catalog_id WHERE id = pending_id;
