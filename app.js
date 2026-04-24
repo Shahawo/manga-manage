@@ -1705,15 +1705,14 @@ const app = {
                             alt="Cover"
                             style="width:100%; aspect-ratio:2/3; object-fit:cover; border-radius:8px; border:1px solid var(--border);">
                     </div>
-
-                    ${p.giftUrls && p.giftUrls.length > 0 ? \`
+                    ${p.giftUrls && p.giftUrls.length > 0 ? `
                     <!-- Ảnh quà tặng -->
                     <div class="form-group" style="margin-bottom:1rem;">
-                        <label>Ảnh quà tặng đính kèm (\${p.giftUrls.length})</label>
+                        <label>Ảnh quà tặng đính kèm (${p.giftUrls.length})</label>
                         <div style="display:flex; gap:0.5rem; overflow-x:auto; padding-bottom:0.5rem; scrollbar-width:thin;">
-                            \${p.giftUrls.map(url => \`<img src="\${url}" style="width:60px; height:80px; object-fit:cover; border-radius:4px; border:1px solid var(--border); background:var(--surface);" title="Quà tặng">\`).join('')}
+                            ${p.giftUrls.map(url => `<img src="${url}" style="width:60px; height:80px; object-fit:cover; border-radius:4px; border:1px solid var(--border); background:var(--surface);" title="Quà tặng">`).join('')}
                         </div>
-                    </div>\` : ''}
+                    </div>` : ''}
 
                     <!-- Gộp ISBN -->
                     <div style="background: var(--background); border:1px solid var(--border); border-radius:10px; padding:1rem;">
