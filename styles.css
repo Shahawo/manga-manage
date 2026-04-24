@@ -379,9 +379,13 @@ a {
     font-weight: 600;
     font-size: 1rem;
     margin-bottom: 0.25rem;
-    white-space: nowrap;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: normal;
+    line-height: 1.3;
 }
 
 .series-meta {
@@ -1562,4 +1566,42 @@ label {
     height: 2px;
     background: var(--primary);
     border-radius: 2px 2px 0 0;
+}
+
+/* =========================================================
+   RESPONSIVE & MOBILE OPTIMIZATIONS
+   ========================================================= */
+@media (max-width: 1024px) {
+    .series-grid, .detail-grid {
+        grid-template-columns: repeat(4, 1fr) !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .series-grid, .detail-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .series-grid, .detail-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.8rem;
+    }
+    
+    .series-title {
+        font-size: 0.95rem; /* Giảm nhẹ font size trên mobile */
+    }
+    
+    /* Ghi đè các style inline white-space nowrap trên các thẻ khác nếu có */
+    .vol-title {
+        white-space: normal !important;
+        display: -webkit-box !important;
+        -webkit-line-clamp: 2 !important;
+        -webkit-box-orient: vertical !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        line-height: 1.3 !important;
+    }
 }
