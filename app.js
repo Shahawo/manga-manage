@@ -18,15 +18,7 @@ const app = {
     },
 
     async logout() {
-        try {
-            await supabase.auth.signOut();
-            window.location.reload();
-        } catch(e) {
-            console.error('Logout error:', e);
-            // Fallback clear
-            localStorage.clear();
-            window.location.reload();
-        }
+        await supabase.auth.signOut();
     },
 
     updateAuthUI() {
@@ -1182,6 +1174,12 @@ const app = {
                 if (res.price) {
                     document.getElementById('price').value = new Intl.NumberFormat('vi-VN').format(res.price);
                 }
+                if (res.note) document.getElementById('note').value = res.note;
+                if (res.gift_urls && res.gift_urls.length > 0) {
+                    document.getElementById('giftUrls').value = res.gift_urls.join('\n');
+                    this.renderGiftThumbnails();
+                    this.previewGiftImage(res.gift_urls[res.gift_urls.length - 1]);
+                }
                 this.showToast('Đã điền tự động dữ liệu chung của Series!');
             } else {
                 this.showToast('Chưa có dữ liệu tham khảo cho Series này.', 'info');
@@ -1467,6 +1465,12 @@ const app = {
         setVal('distributor', book.distributor);
         setVal('size', book.size);
         setVal('coverUrl', book.coverUrl);
+        setVal('note', book.note);
+        if (book.gift_urls && book.gift_urls.length > 0) {
+            setVal('giftUrls', book.gift_urls.join('\n'));
+            this.renderGiftThumbnails();
+            this.previewGiftImage(book.gift_urls[book.gift_urls.length - 1]);
+        }
         
         document.getElementById('manga-form').dataset.catalogId = book.id;
     },
@@ -1493,7 +1497,8 @@ const app = {
                 size: mangaData.size,
                 price: mangaData.price,
                 cover_url: mangaData.cover_url,
-                note: mangaData.note
+                note: mangaData.note,
+                gift_urls: mangaData.gift_urls
             });
         } catch(e) { console.error('Failed to submit pending', e); }
     },
@@ -1512,7 +1517,7 @@ const app = {
         try {
             const { data, error } = await supabase.rpc('get_all_pending');
             if (error) throw error;
-            const list = data.map(p => ({...p, coverUrl: p.cover_url}));
+            const list = data.map(p => ({...p, coverUrl: p.cover_url, giftUrls: p.gift_urls}));
             this.adminCache = list;
             this.renderPendingList(list);
             
@@ -1700,6 +1705,15 @@ const app = {
                             alt="Cover"
                             style="width:100%; aspect-ratio:2/3; object-fit:cover; border-radius:8px; border:1px solid var(--border);">
                     </div>
+
+                    ${p.giftUrls && p.giftUrls.length > 0 ? \`
+                    <!-- Ảnh quà tặng -->
+                    <div class="form-group" style="margin-bottom:1rem;">
+                        <label>Ảnh quà tặng đính kèm (\${p.giftUrls.length})</label>
+                        <div style="display:flex; gap:0.5rem; overflow-x:auto; padding-bottom:0.5rem; scrollbar-width:thin;">
+                            \${p.giftUrls.map(url => \`<img src="\${url}" style="width:60px; height:80px; object-fit:cover; border-radius:4px; border:1px solid var(--border); background:var(--surface);" title="Quà tặng">\`).join('')}
+                        </div>
+                    </div>\` : ''}
 
                     <!-- Gộp ISBN -->
                     <div style="background: var(--background); border:1px solid var(--border); border-radius:10px; padding:1rem;">
