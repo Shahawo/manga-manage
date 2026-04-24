@@ -334,6 +334,8 @@ a {
     white-space: nowrap;
 }
 
+
+
 .highlight {
     color: var(--primary);
 }
@@ -647,7 +649,7 @@ a {
 }
 
 .modal-header h3 {
-    color: var(--card-text);
+    color: inherit;
     margin: 0;
     font-size: 1.25rem;
     font-weight: 700;
