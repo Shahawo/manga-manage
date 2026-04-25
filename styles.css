@@ -655,18 +655,28 @@ a {
     font-weight: 700;
 }
 
-/* Pending Modal — sử dụng nền sáng giống phần còn lại của app */
+/* Pending Modal và Feedback Modal */
 #pending-modal .modal-content {
     background: var(--surface);
+}
+#feedback-modal .modal-content {
+    background: var(--background);
+    min-height: 603px;
 }
 #pending-modal .modal-header {
     background: var(--surface);
     border-bottom: 1px solid var(--border);
 }
-#pending-modal .modal-header h3 {
+#feedback-modal .modal-header {
+    background: var(--background);
+    border-bottom: 1px solid var(--border);
+}
+#pending-modal .modal-header h3,
+#feedback-modal .modal-header h3 {
     color: var(--text-main);
 }
-#pending-modal .btn-close svg {
+#pending-modal .btn-close svg,
+#feedback-modal .btn-close svg {
     color: var(--text-muted);
 }
 
