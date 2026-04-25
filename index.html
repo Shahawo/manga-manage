@@ -15,7 +15,7 @@
     <!-- Flatpickr for Date formatting -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <link rel="stylesheet" href="styles.css?v=1.4.4">
+    <link rel="stylesheet" href="styles.css?v=1.4.11">
 </head>
 
 <body>
@@ -273,7 +273,7 @@
                             <div class="form-row">
                                 <div class="form-group">
                                     <label for="volume">Tập số *</label>
-                                    <input type="number" id="volume" class="input-ctrl" required min="0" step="0.5"
+                                    <input type="number" id="volume" class="input-ctrl" required min="0" max="10000" step="0.5" onkeydown="if(event.key==='-') event.preventDefault();" oninvalid="this.setCustomValidity('Vui lòng nhập Tập số hợp lệ')" oninput="this.setCustomValidity('')"
                                         placeholder="Ví dụ: 1, 2, 1.5">
                                 </div>
                                 <div class="form-group">
@@ -327,7 +327,7 @@
                                 </div>
                                 <div class="form-group">
                                     <label for="pages">Số trang</label>
-                                    <input type="number" id="pages" class="input-ctrl" min="1" placeholder="200">
+                                    <input type="number" id="pages" class="input-ctrl" min="1" max="100000" onkeydown="if(event.key==='-') event.preventDefault();" oninvalid="this.setCustomValidity('Số trang phải từ 1 trở lên')" oninput="this.setCustomValidity('')" placeholder="200">
                                 </div>
                             </div>
 
@@ -602,32 +602,32 @@
 
         <!-- Feedback Modal -->
         <div id="feedback-modal" class="modal-overlay" onclick="if(event.target===this)app.closeFeedbackModal()">
-            <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-content">
                 <div class="modal-header">
-                    <h3>Gửi góp ý cho Admin</h3>
+                    <h3>Gửi góp ý & Báo lỗi</h3>
                     <button class="btn-close" onclick="app.closeFeedbackModal()"><i data-feather="x"></i></button>
                 </div>
-                <div class="modal-body" style="padding: 1.5rem; display: flex; flex-direction: column;">
-                    <div class="form-group" style="margin-bottom: 1.25rem;">
+                <div class="modal-body" style="padding: 1.5rem; display: flex; flex-direction: column; align-items: stretch; width: 100%;">
+                    <div class="form-group" style="margin-bottom: 1.25rem; width: 100%;">
                         <label for="fb-title">Tiêu đề (không bắt buộc)</label>
                         <input type="text" id="fb-title" class="input-ctrl" placeholder="VD: Góp ý tính năng mới, Báo lỗi...">
                     </div>
-                    <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <div class="form-group" style="margin-bottom: 0.5rem; width: 100%; flex: 1;">
                         <label for="fb-content">Nội dung góp ý *</label>
-                        <textarea id="fb-content" class="input-ctrl" rows="5" placeholder="Mô tả chi tiết ý kiến của bạn để Admin cải thiện nhé!"></textarea>
+                        <textarea id="fb-content" class="input-ctrl" rows="12" placeholder="Mô tả chi tiết ý kiến của bạn để Admin cải thiện nhé!"></textarea>
                     </div>
-                    <div style="display:flex; gap: 0.75rem;">
-                        <button class="btn btn-primary" onclick="app.submitFeedback()" style="flex:1; justify-content:center;">
-                            <i data-feather="send"></i> Gửi góp ý
-                        </button>
-                        <button class="btn btn-secondary" onclick="app.closeFeedbackModal()">Hủy</button>
-                    </div>
+                </div>
+                <div style="padding:0 1.5rem 1.5rem; display:flex; justify-content:flex-end; gap: 0.75rem;">
+                    <button class="btn btn-secondary" onclick="app.closeFeedbackModal()">Hủy bỏ</button>
+                    <button class="btn btn-primary" onclick="app.submitFeedback()">
+                        <i data-feather="send"></i> Gửi góp ý
+                    </button>
                 </div>
             </div>
         </div>
     </main>
 
-    <script type="module" src="app.js?v=1.4.5"></script>
+    <script type="module" src="app.js?v=1.4.13"></script>
     
 </body>
 
