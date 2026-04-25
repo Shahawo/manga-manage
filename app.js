@@ -971,8 +971,8 @@ const app = {
         if (window.feather) feather.replace();
     },
 
-    // ─── COMPRESS IMAGE ───────────────────────────────────────────────────────
-    compressImage(file) {
+    // ─── COMPRESS IMAGE TO BLOB ───────────────────────────────────────────────
+    compressImageToBlob(file) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
@@ -991,7 +991,7 @@ const app = {
                     canvas.width = width;
                     canvas.height = height;
                     canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-                    resolve(canvas.toDataURL('image/jpeg', 0.7));
+                    canvas.toBlob(blob => resolve(blob), 'image/jpeg', 0.8);
                 };
             };
             reader.onerror = error => reject(error);
@@ -1002,12 +1002,13 @@ const app = {
         if (!inputElem.files || inputElem.files.length === 0) return;
         try {
             const file = inputElem.files[0];
-            const fileExt = file.name.split('.').pop();
+            const fileExt = 'jpg'; // always jpeg after compression
             const fileName = `${Math.random()}.${fileExt}`;
             const filePath = `covers/${fileName}`;
 
-            this.showLoading('Đang tải ảnh lên...');
-            const { error: uploadError } = await supabase.storage.from('manga_covers').upload(filePath, file);
+            this.showLoading('Đang nén và tải ảnh lên...');
+            const compressedBlob = await this.compressImageToBlob(file);
+            const { error: uploadError } = await supabase.storage.from('manga_covers').upload(filePath, compressedBlob, { contentType: 'image/jpeg' });
             if (uploadError) throw uploadError;
 
             const { data } = supabase.storage.from('manga_covers').getPublicUrl(filePath);
@@ -1049,18 +1050,19 @@ const app = {
     async handleGiftFileUpload(inputElem) {
         if (!inputElem.files || inputElem.files.length === 0) return;
         try {
-            this.showLoading('Đang tải quà tặng lên...');
+            this.showLoading('Đang nén và tải quà tặng lên...');
             const urlsObj = document.getElementById('giftUrls');
             const lines = urlsObj.value.trim() ? urlsObj.value.trim().split('\n') : [];
             let lastUrl = null;
             
             for (let i = 0; i < inputElem.files.length; i++) {
                 const file = inputElem.files[i];
-                const fileExt = file.name.split('.').pop();
+                const fileExt = 'jpg';
                 const fileName = `${Math.random()}.${fileExt}`;
                 const filePath = `gifts/${fileName}`;
                 
-                const { error: uploadError } = await supabase.storage.from('manga_covers').upload(filePath, file);
+                const compressedBlob = await this.compressImageToBlob(file);
+                const { error: uploadError } = await supabase.storage.from('manga_covers').upload(filePath, compressedBlob, { contentType: 'image/jpeg' });
                 if (uploadError) throw uploadError;
 
                 const { data } = supabase.storage.from('manga_covers').getPublicUrl(filePath);
@@ -1199,12 +1201,58 @@ const app = {
         this.showLoading(editId ? 'Đang cập nhật...' : 'Đang lưu...');
         try {
             if (editId) {
-                const { error } = await supabase.from('manga').update(mangaData).eq('id', editId);
+                const { data, error } = await supabase.from('manga').update(mangaData).eq('id', editId).select().single();
                 if (error) throw error;
+                // Update local cache
+                const idx = this.data.findIndex(m => m.id === editId);
+                if (idx !== -1) {
+                    this.data[idx] = {
+                        id: data.id,
+                        series: data.series,
+                        title: data.title,
+                        volume: data.volume,
+                        isbn: data.isbn,
+                        author: data.author,
+                        translator: data.translator,
+                        publisher: data.publisher,
+                        distributor: data.distributor,
+                        publishDate: data.publish_date,
+                        pages: data.pages,
+                        size: data.size,
+                        price: data.price,
+                        note: data.note,
+                        coverUrl: data.cover_url,
+                        giftUrls: data.gift_urls || [],
+                        catalogId: data.catalog_id,
+                        addedAt: data.added_at
+                    };
+                }
             } else {
                 const { data, error } = await supabase.from('manga').insert(mangaData).select().single();
                 if (error) throw error;
                 
+                // Add to local cache
+                this.data.unshift({
+                    id: data.id,
+                    series: data.series,
+                    title: data.title,
+                    volume: data.volume,
+                    isbn: data.isbn,
+                    author: data.author,
+                    translator: data.translator,
+                    publisher: data.publisher,
+                    distributor: data.distributor,
+                    publishDate: data.publish_date,
+                    pages: data.pages,
+                    size: data.size,
+                    price: data.price,
+                    note: data.note,
+                    coverUrl: data.cover_url,
+                    giftUrls: data.gift_urls || [],
+                    catalogId: data.catalog_id,
+                    addedAt: data.added_at
+                });
+
                 // Submit to pending if new and no catalogId
                 if (!mangaData.catalog_id) {
                     const pendingData = { ...mangaData, scanned_isbn: formEl.dataset.pendingIsbn || mangaData.isbn, linked_manga_id: data.id };
@@ -1216,7 +1264,8 @@ const app = {
             delete formEl.dataset.catalogId;
             delete formEl.dataset.pendingIsbn;
 
-            await this.loadData();
+            // Skip full reload to save time, just update UI
+            this.updateSeriesSuggestions();
             this.showToast(editId ? 'Đã cập nhật thành công!' : 'Đã thêm sách thành công! 🎉');
 
             if (this.currentSeries === mangaData.series) {
@@ -1240,6 +1289,7 @@ const app = {
             if (!val) { this.value = ''; return; }
             let num = parseInt(val, 10);
             if (num < 1000 && num > 0) num = num * 1000;
+            if (num > 2000000000) num = 2000000000; // Ngăn lỗi Supabase (Integer limit)
             this.value = new Intl.NumberFormat('vi-VN').format(num);
         });
         priceInput.addEventListener('focus', function () {
@@ -1725,7 +1775,7 @@ const app = {
                     <div class="form-row">
                         <div class="form-group">
                             <label>Tập số</label>
-                            <input type="number" id="edit-volume-${p.id}" class="input-ctrl" value="${p.volume || ''}" min="0" step="0.5">
+                            <input type="number" id="edit-volume-${p.id}" class="input-ctrl" value="${p.volume || ''}" min="0" max="10000" step="0.5" onkeydown="if(event.key==='-') event.preventDefault();" oninvalid="this.setCustomValidity('Vui lòng nhập Tập số hợp lệ')" oninput="this.setCustomValidity('')">
                         </div>
                         <div class="form-group">
                             <label>ISBN <span style="font-size:0.8rem; color:var(--primary); font-weight:600;">${p.scannedIsbn ? '(Quét: ' + p.scannedIsbn + ')' : ''}</span></label>
@@ -1759,7 +1809,7 @@ const app = {
                         </div>
                         <div class="form-group">
                             <label>Số trang</label>
-                            <input type="number" id="edit-pages-${p.id}" class="input-ctrl" value="${p.pages || ''}">
+                            <input type="number" id="edit-pages-${p.id}" class="input-ctrl" value="${p.pages || ''}" min="1" max="100000" onkeydown="if(event.key==='-') event.preventDefault();" oninvalid="this.setCustomValidity('Số trang phải từ 1 trở lên')" oninput="this.setCustomValidity('')">
                         </div>
                     </div>
                     <div class="form-row">
@@ -1769,7 +1819,7 @@ const app = {
                         </div>
                         <div class="form-group">
                             <label>Giá tiền (VNĐ)</label>
-                            <input type="number" id="edit-price-${p.id}" class="input-ctrl" value="${p.price || ''}">
+                            <input type="number" id="edit-price-${p.id}" class="input-ctrl" value="${p.price || ''}" min="0" max="2000000000" onkeydown="if(event.key==='-') event.preventDefault();" oninvalid="this.setCustomValidity('Giá bìa không được vượt quá 2 tỷ')" oninput="this.setCustomValidity('')">
                         </div>
                     </div>
                     <div class="form-group">
@@ -1862,6 +1912,57 @@ const app = {
         };
         await supabase.from('pending_catalog').update(payload).eq('id', id);
         return payload;
+    },
+
+    // ─── FEEDBACK ─────────────────────────────────────────────────────────────
+    showFeedbackModal() {
+        const modal = document.getElementById('feedback-modal');
+        if(modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('show');
+            document.getElementById('fb-title').value = '';
+            document.getElementById('fb-content').value = '';
+        }
+    },
+
+    closeFeedbackModal() {
+        const modal = document.getElementById('feedback-modal');
+        if(modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('show');
+        }
+    },
+
+    async submitFeedback() {
+        const title = document.getElementById('fb-title').value.trim();
+        const body = document.getElementById('fb-content').value.trim();
+        
+        if(!body) {
+            this.showToast('Vui lòng nhập nội dung góp ý!', 'error');
+            return;
+        }
+
+        const content = title ? `[${title}]\n${body}` : body;
+
+        const payload = {
+            user_id: this.user ? this.user.id : null,
+            user_name: this.user ? this.user.user_metadata?.full_name : 'Khách',
+            user_email: this.user ? this.user.email : '',
+            content: content
+        };
+
+        this.showLoading('Đang gửi góp ý...');
+        try {
+            const { error } = await supabase.from('feedback').insert(payload);
+            if (error) throw error;
+            this.showToast('Cảm ơn bạn đã góp ý! 🎉');
+            this.closeFeedbackModal();
+        } catch (e) {
+            console.error('Lỗi khi gửi góp ý:', e);
+            this.showToast('Đã có lỗi xảy ra, vui lòng thử lại sau.', 'error');
+        } finally {
+            this.hideLoading();
+        }
     },
 
     // --- ADMIN TABS & FEEDBACK VIEW ---
