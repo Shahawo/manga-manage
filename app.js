@@ -42,7 +42,7 @@ const app = {
                 if(nameEl) nameEl.textContent = meta.full_name || meta.name || this.user.email || 'User';
                 if(emailEl) emailEl.textContent = this.user.email || '';
             }
-            if (window.feather) feather.replace();
+            if (window.feather) { try { feather.replace(); } catch(e) { console.warn('Feather error:', e); } }
             authElements.forEach(el => el.classList.remove('hidden'));
             
             // Xử lý nút Admin
@@ -258,7 +258,7 @@ const app = {
             themeIcon.setAttribute('data-feather', theme === 'dark' ? 'sun' : 'moon');
         }
         if (themeSwitchSettings) themeSwitchSettings.classList.toggle('active', theme === 'dark');
-        if (window.feather) feather.replace();
+        if (window.feather) { try { feather.replace(); } catch(e) { console.warn('Feather error:', e); } }
     },
 
     // ─── USER MENU ────────────────────────────────────────────────────
@@ -286,7 +286,7 @@ const app = {
             const progressSwitch = document.getElementById('progress-switch');
             if (progressSwitch) progressSwitch.classList.toggle('active', showProgress);
 
-            if (window.feather) feather.replace();
+            if (window.feather) { try { feather.replace(); } catch(e) { console.warn('Feather error:', e); } }
         }
     },
     closeSettings() {
@@ -508,7 +508,7 @@ const app = {
             if (v.id === `view-${viewId}`) v.classList.add('active');
             else v.classList.add('hidden');
         });
-        if (window.feather) feather.replace();
+        if (window.feather) { try { feather.replace(); } catch(e) { console.warn('Feather error:', e); } }
 
         if (viewId === 'dashboard') {
             this.renderDashboard();
@@ -517,18 +517,18 @@ const app = {
             document.getElementById('manga-form').reset();
             document.getElementById('edit-id').value = '';
             document.querySelector('#view-form h2').textContent = 'Thêm sách mới';
-            this.previewImage('', 'cover');
-            const giftUrls = document.getElementById('giftUrls');
+            this.previewImage('', 'cover', 'main-');
+            const giftUrls = document.getElementById('main-giftUrls');
             if (giftUrls) giftUrls.value = '';
-            const giftInput = document.getElementById('giftUrlInput');
+            const giftInput = document.getElementById('main-giftUrlInput');
             if (giftInput) giftInput.value = '';
-            const thumbs = document.getElementById('gift-thumbnails');
+            const thumbs = document.getElementById('main-gift-thumbnails');
             if (thumbs) thumbs.innerHTML = '';
-            this.previewGiftImage('');
-            this.switchImgTab('cover');
+            this.previewGiftImage('', 'main-');
+            this.switchImgTab('cover', 'main-');
             const datePicker = document.querySelector("#publishDate");
             if (datePicker && datePicker._flatpickr) datePicker._flatpickr.clear();
-            if (window.feather) feather.replace();
+            if (window.feather) { try { feather.replace(); } catch(e) { console.warn('Feather error:', e); } }
         }
     },
 
@@ -603,7 +603,7 @@ const app = {
             countBadge.textContent = '0 series';
             if (booksBadge) booksBadge.textContent = '0 cuốn';
             if (thisMonthBadge) thisMonthBadge.classList.add('hidden');
-            if (window.feather) feather.replace();
+            if (window.feather) { try { feather.replace(); } catch(e) { console.warn('Feather error:', e); } }
             return;
         }
 
@@ -621,7 +621,7 @@ const app = {
             countBadge.textContent = '0 series';
             if (booksBadge) booksBadge.textContent = '0 cuốn';
             if (thisMonthBadge) thisMonthBadge.classList.add('hidden');
-            if (window.feather) feather.replace();
+            if (window.feather) { try { feather.replace(); } catch(e) { console.warn('Feather error:', e); } }
             return;
         }
 
@@ -682,7 +682,7 @@ const app = {
             `;
             grid.appendChild(card);
         });
-        if (window.feather) feather.replace();
+        if (window.feather) { try { feather.replace(); } catch(e) { console.warn('Feather error:', e); } }
     },
 
     toggleViewMode() {
@@ -745,14 +745,20 @@ const app = {
         list.innerHTML = '';
 
         volumes.forEach(v => {
-            const coverUrl = v.coverUrl || 'https://via.placeholder.com/200x300.png?text=No+Cover';
+            const hasCover = v.coverUrl && v.coverUrl.trim() !== '';
+            const coverHtml = hasCover
+                ? `<img src="${v.coverUrl}" alt="Cover" loading="lazy" style="width:100%;height:100%;object-fit:cover;">`
+                : `<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.5rem;color:#86efac;font-size:0.75rem;font-weight:500;background:#0f3d21;text-align:center;padding:0.75rem;">
+                       <i data-feather="image" style="width:32px;height:32px;opacity:0.5;"></i>
+                       <span>Không có ảnh bìa</span>
+                   </div>`;
             const editionBadge = this.getEditionBadge(v.title);
 
             const item = document.createElement('div');
             item.className = 'volume-card';
             item.innerHTML = `
                 <div class="vol-cover" onclick="app.showModal('${v.id}')">
-                    <img src="${coverUrl}" alt="Cover" loading="lazy">
+                    ${coverHtml}
                     ${editionBadge}
                 </div>
                 <div class="vol-info">
@@ -774,7 +780,7 @@ const app = {
         });
 
         this.showView('detail');
-        if (window.feather) feather.replace();
+        if (window.feather) { try { feather.replace(); } catch(e) { console.warn('Feather error:', e); } }
     },
 
     getEditionBadge(title) {
@@ -840,7 +846,7 @@ const app = {
             </div>
         `;
         document.getElementById('volume-modal').classList.add('show');
-        if (window.feather) feather.replace();
+        if (window.feather) { try { feather.replace(); } catch(e) { console.warn('Feather error:', e); } }
 
         this.currentModalImages = allImages;
         this.currentModalImageIndex = 0;
@@ -884,20 +890,20 @@ const app = {
         setVal('size', manga.size);
         setVal('price', manga.price ? new Intl.NumberFormat('vi-VN').format(manga.price) : '');
         setVal('note', manga.note);
-        setVal('coverUrl', manga.coverUrl);
+        setVal('main-coverUrl', manga.coverUrl);
 
         const giftsArray = Array.isArray(manga.giftUrls)
             ? manga.giftUrls
             : (manga.giftUrl ? [manga.giftUrl] : []);
-        setVal('giftUrls', giftsArray.join('\n'));
+        setVal('main-giftUrls', giftsArray.join('\n'));
 
-        this.previewImage(manga.coverUrl, 'cover');
-        const giftInput = document.getElementById('giftUrlInput');
+        this.previewImage(manga.coverUrl, 'cover', 'main-');
+        const giftInput = document.getElementById('main-giftUrlInput');
         if (giftInput) giftInput.value = '';
-        this.renderGiftThumbnails();
-        if (giftsArray.length > 0) this.previewGiftImage(giftsArray[0]);
-        else this.previewGiftImage('');
-        this.switchImgTab('cover');
+        this.renderGiftThumbnails('main-');
+        if (giftsArray.length > 0) this.previewGiftImage(giftsArray[0], 'main-');
+        else this.previewGiftImage('', 'main-');
+        this.switchImgTab('cover', 'main-');
     },
 
     // ─── DELETE ───────────────────────────────────────────────────────────────
@@ -906,73 +912,78 @@ const app = {
         if (!manga) return;
         if (!confirm(`Xóa "${manga.title} - Tập ${manga.volume}"?\nHành động này không thể hoàn tác.`)) return;
 
-        this.showLoading('Đang xóa...');
+        // Optimistic UI Update: Xóa khỏi mảng cục bộ ngay lập tức
+        this.data = this.data.filter(m => m.id !== id);
+        this.updateSeriesSuggestions();
+
+        const isSearchView = document.getElementById('view-search').classList.contains('active');
+        const isDetailView = document.getElementById('view-detail').classList.contains('active');
+        
+        if (isSearchView) {
+            this.renderSearch(document.getElementById('searchInput').value);
+        } else if (isDetailView) {
+            const remaining = this.data.filter(m => m.series === manga.series);
+            if (remaining.length > 0) this.openSeriesDetail(manga.series);
+            else this.showView('dashboard');
+        } else {
+            this.showView('dashboard');
+        }
         try {
             const { error } = await supabase.from('manga').delete().eq('id', id);
             if (error) throw error;
-            this.data = this.data.filter(m => m.id !== id);
-            this.updateSeriesSuggestions();
-
-            const isSearchView = document.getElementById('view-search').classList.contains('active');
-            const isDetailView = document.getElementById('view-detail').classList.contains('active');
-            
-            if (isSearchView) {
-                this.renderSearch(document.getElementById('searchInput').value);
-            } else if (isDetailView) {
-                const remaining = this.data.filter(m => m.series === manga.series);
-                if (remaining.length > 0) this.openSeriesDetail(manga.series);
-                else this.showView('dashboard');
-            } else {
-                this.showView('dashboard');
-            }
             this.showToast('Đã xóa thành công!');
-        } catch {
-            this.showToast('Lỗi khi xóa!', 'error');
-        } finally {
-            this.hideLoading();
+        } catch (error) {
+            console.error('Lỗi khi xóa:', error);
+            this.showToast('Lỗi đồng bộ khi xóa, đang tải lại dữ liệu!', 'error');
+            this.loadData(true);
         }
     },
 
-    // ─── SWITCH TAB ───────────────────────────────────────────────────────────
-    switchImgTab(tab) {
-        document.querySelectorAll('.img-tab-content').forEach(el => el.classList.add('hidden'));
-        document.querySelectorAll('.img-tab-btn').forEach(btn => btn.classList.remove('active'));
-        const btn = document.querySelector(`.img-tab-btn[onclick="app.switchImgTab('${tab}')"]`);
-        if (btn) btn.classList.add('active');
-        const content = document.getElementById(`tab-${tab}`);
-        if (content) content.classList.remove('hidden');
+    // ─── XỬ LÝ ẢNH (BÌA & QUÀ TẶNG) ──────────────────────────────────────────
+    switchImgTab(tabId, prefix = 'main-') {
+        // Find the tabs container related to this prefix
+        const coverTabBtn = document.querySelector(`[onclick="app.switchImgTab('cover', '${prefix}')"]`);
+        const giftTabBtn = document.querySelector(`[onclick="app.switchImgTab('gift', '${prefix}')"]`);
+        if (coverTabBtn && giftTabBtn) {
+            coverTabBtn.classList.remove('active');
+            giftTabBtn.classList.remove('active');
+        }
+        
+        const btn = document.querySelector(`[onclick="app.switchImgTab('${tabId}', '${prefix}')"]`);
+        if(btn) btn.classList.add('active');
+
+        const coverTab = document.getElementById(`${prefix}tab-cover`);
+        const giftTab = document.getElementById(`${prefix}tab-gift`);
+        if (coverTab && giftTab) {
+            coverTab.classList.remove('active');
+            coverTab.classList.add('hidden');
+            giftTab.classList.remove('active');
+            giftTab.classList.add('hidden');
+
+            const activeTab = document.getElementById(`${prefix}tab-${tabId}`);
+            if(activeTab) {
+                activeTab.classList.remove('hidden');
+                activeTab.classList.add('active');
+            }
+        }
     },
 
-    // ─── PREVIEW ──────────────────────────────────────────────────────────────
-    previewImage(url, type) {
-        const box = document.getElementById(`${type}-preview-box`);
+    previewImage(url, type = 'cover', prefix = 'main-') {
+        const boxId = type === 'cover' ? `${prefix}cover-preview-box` : `${prefix}gift-preview-box`;
+        const box = document.getElementById(boxId);
         if (!box) return;
+
         if (url && (url.startsWith('http') || url.startsWith('data:'))) {
-            box.innerHTML = `
-                <img src="${url}" alt="Preview" onerror="this.onerror=null;this.parentElement.innerHTML='<p style=color:var(--danger)>Lỗi tải ảnh</p>'">
-                ${type === 'cover' ? `
-                <button type="button" class="delete-gift-btn" style="top:8px;right:8px;" onclick="app.clearCoverImage()" title="Xoá ảnh bìa">
-                    <i data-feather="x" style="width:14px;height:14px;"></i>
-                </button>` : ''}
-            `;
-            if (window.feather) feather.replace();
+            box.innerHTML = `<img src="${url}" alt="Preview" onerror="this.onerror=null;this.parentElement.innerHTML='<p style=color:var(--danger)>Lỗi tải ảnh</p>'">`;
         } else {
-            const icon = type === 'cover' ? 'image' : 'gift';
-            const txt = type === 'cover' ? 'ảnh bìa' : 'ảnh quà tặng';
-            box.innerHTML = `<i data-feather="${icon}"></i><span>Xem trước ${txt}</span>`;
-            if (window.feather) feather.replace();
+            box.innerHTML = type === 'cover'
+                ? `<i data-feather="image"></i><span>Xem trước ảnh bìa</span>`
+                : `<i data-feather="gift"></i><span>Xem trước quà tặng</span>`;
+            if (window.feather) { try { feather.replace(); } catch(e) { console.warn('Feather error:', e); } }
         }
     },
 
-    clearCoverImage() {
-        document.getElementById('coverUrl').value = '';
-        const box = document.getElementById('cover-preview-box');
-        box.innerHTML = `<i data-feather="image"></i><span>Xem trước ảnh bìa</span>`;
-        if (window.feather) feather.replace();
-    },
-
-    // ─── COMPRESS IMAGE TO BLOB ───────────────────────────────────────────────
-    compressImageToBlob(file) {
+    compressImageToBlob(file, quality = 0.8) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
@@ -981,24 +992,27 @@ const app = {
                 img.src = event.target.result;
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    let { width, height } = img;
-                    const maxSize = 800;
+                    let width = img.width;
+                    let height = img.height;
+                    const max_size = 1200;
                     if (width > height) {
-                        if (width > maxSize) { height *= maxSize / width; width = maxSize; }
+                        if (width > max_size) { height *= max_size / width; width = max_size; }
                     } else {
-                        if (height > maxSize) { width *= maxSize / height; height = maxSize; }
+                        if (height > max_size) { width *= max_size / height; height = max_size; }
                     }
                     canvas.width = width;
                     canvas.height = height;
-                    canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-                    canvas.toBlob(blob => resolve(blob), 'image/jpeg', 0.8);
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    canvas.toBlob(blob => resolve(blob), 'image/jpeg', quality);
                 };
+                img.onerror = () => reject(new Error('Không thể đọc file ảnh này. File có thể bị lỗi.'));
             };
             reader.onerror = error => reject(error);
         });
     },
 
-    async handleFileUpload(inputElem, type) {
+    async handleFileUpload(inputElem, type, prefix = 'main-') {
         if (!inputElem.files || inputElem.files.length === 0) return;
         try {
             const file = inputElem.files[0];
@@ -1008,50 +1022,59 @@ const app = {
 
             this.showLoading('Đang nén và tải ảnh lên...');
             const compressedBlob = await this.compressImageToBlob(file);
-            const { error: uploadError } = await supabase.storage.from('manga_covers').upload(filePath, compressedBlob, { contentType: 'image/jpeg' });
+            
+            const timeout = (ms) => new Promise((_, reject) => setTimeout(() => reject(new Error('Yêu cầu tải ảnh quá hạn (Timeout)')), ms));
+            
+            const { error: uploadError } = await Promise.race([
+                supabase.storage.from('manga_covers').upload(filePath, compressedBlob, { contentType: 'image/jpeg' }),
+                timeout(15000)
+            ]);
+            
             if (uploadError) throw uploadError;
 
             const { data } = supabase.storage.from('manga_covers').getPublicUrl(filePath);
             
-            document.getElementById('coverUrl').value = data.publicUrl;
-            this.previewImage(data.publicUrl, 'cover');
+            const targetInput = document.getElementById(`${prefix}coverUrl`);
+            if (targetInput) targetInput.value = data.publicUrl;
+            this.previewImage(data.publicUrl, 'cover', prefix);
         } catch (e) {
-            console.error(e);
-            alert('Lỗi tải ảnh lên server');
+            console.error('Lỗi tải ảnh:', e);
+            this.showToast(e.message === 'Yêu cầu tải ảnh quá hạn (Timeout)' ? 'Lỗi mạng: Thời gian tải ảnh quá lâu!' : 'Lỗi tải ảnh lên server!', 'error');
         } finally {
             this.hideLoading();
         }
         inputElem.value = '';
     },
 
-    addGiftUrl() {
-        const input = document.getElementById('giftUrlInput');
+    addGiftUrl(prefix = 'main-') {
+        const input = document.getElementById(`${prefix}giftUrlInput`);
         const url = input ? input.value.trim() : '';
         if (!url) return;
-        const urlsObj = document.getElementById('giftUrls');
+        const urlsObj = document.getElementById(`${prefix}giftUrls`);
+        if(!urlsObj) return;
         const existing = urlsObj.value.trim();
         urlsObj.value = existing ? existing + '\n' + url : url;
         input.value = '';
-        this.renderGiftThumbnails();
-        this.previewGiftImage(url);
+        this.renderGiftThumbnails(prefix);
+        this.previewGiftImage(url, prefix);
     },
 
-    previewGiftImage(url) {
-        const box = document.getElementById('gift-preview-box');
+    previewGiftImage(url, prefix = 'main-') {
+        const box = document.getElementById(`${prefix}gift-preview-box`);
         if (!box) return;
         if (url && (url.startsWith('http') || url.startsWith('data:'))) {
             box.innerHTML = `<img src="${url}" alt="Gift preview" onerror="this.onerror=null;this.parentElement.innerHTML='<p style=color:var(--danger)>Lỗi tải ảnh</p>'">`;
         } else {
             box.innerHTML = `<i data-feather="gift"></i><span>Xem trước quà tặng</span>`;
-            if (window.feather) feather.replace();
+            if (window.feather) { try { feather.replace(); } catch(e) { console.warn('Feather error:', e); } }
         }
     },
 
-    async handleGiftFileUpload(inputElem) {
+    async handleGiftFileUpload(inputElem, prefix = 'main-') {
         if (!inputElem.files || inputElem.files.length === 0) return;
         try {
             this.showLoading('Đang nén và tải quà tặng lên...');
-            const urlsObj = document.getElementById('giftUrls');
+            const urlsObj = document.getElementById(`${prefix}giftUrls`);
             const lines = urlsObj.value.trim() ? urlsObj.value.trim().split('\n') : [];
             let lastUrl = null;
             
@@ -1062,7 +1085,11 @@ const app = {
                 const filePath = `gifts/${fileName}`;
                 
                 const compressedBlob = await this.compressImageToBlob(file);
-                const { error: uploadError } = await supabase.storage.from('manga_covers').upload(filePath, compressedBlob, { contentType: 'image/jpeg' });
+                const timeout = (ms) => new Promise((_, reject) => setTimeout(() => reject(new Error('Yêu cầu tải ảnh quá hạn (Timeout)')), ms));
+                const { error: uploadError } = await Promise.race([
+                    supabase.storage.from('manga_covers').upload(filePath, compressedBlob, { contentType: 'image/jpeg' }),
+                    timeout(15000)
+                ]);
                 if (uploadError) throw uploadError;
 
                 const { data } = supabase.storage.from('manga_covers').getPublicUrl(filePath);
@@ -1070,32 +1097,32 @@ const app = {
                 lastUrl = data.publicUrl;
             }
             urlsObj.value = lines.join('\n');
-            this.renderGiftThumbnails();
-            if (lastUrl) this.previewGiftImage(lastUrl);
+            this.renderGiftThumbnails(prefix);
+            if (lastUrl) this.previewGiftImage(lastUrl, prefix);
         } catch (e) {
-            console.error(e);
-            alert('Lỗi tải ảnh lên server');
+            console.error('Lỗi tải quà tặng:', e);
+            this.showToast(e.message === 'Yêu cầu tải ảnh quá hạn (Timeout)' ? 'Lỗi mạng: Thời gian tải ảnh quá lâu!' : 'Lỗi tải ảnh quà tặng lên server!', 'error');
         } finally {
             this.hideLoading();
         }
         inputElem.value = '';
     },
 
-    removeGiftUrl(index) {
-        const urlsObj = document.getElementById('giftUrls');
+    removeGiftUrl(index, prefix = 'main-') {
+        const urlsObj = document.getElementById(`${prefix}giftUrls`);
         if (!urlsObj) return;
         const urls = urlsObj.value.trim().split('\n').filter(u => u.trim() !== '');
         urls.splice(index, 1);
         urlsObj.value = urls.join('\n');
-        this.renderGiftThumbnails();
-        if (urls.length > 0) this.previewGiftImage(urls[urls.length - 1]);
-        else this.previewGiftImage('');
+        this.renderGiftThumbnails(prefix);
+        if (urls.length > 0) this.previewGiftImage(urls[urls.length - 1], prefix);
+        else this.previewGiftImage('', prefix);
     },
 
-    renderGiftThumbnails() {
-        const container = document.getElementById('gift-thumbnails');
+    renderGiftThumbnails(prefix = 'main-') {
+        const container = document.getElementById(`${prefix}gift-thumbnails`);
         if (!container) return;
-        const urlsObj = document.getElementById('giftUrls');
+        const urlsObj = document.getElementById(`${prefix}giftUrls`);
         if (!urlsObj) return;
         const urls = urlsObj.value.trim().split('\n').filter(u => u.trim() !== '');
         container.innerHTML = '';
@@ -1107,7 +1134,7 @@ const app = {
             wrap.draggable = true;
             wrap.dataset.index = index;
             wrap.title = 'Nhấn để xem lớn | Kéo để sắp xếp';
-            wrap.addEventListener('click', () => this.previewGiftImage(url));
+            wrap.addEventListener('click', () => this.previewGiftImage(url, prefix));
             wrap.addEventListener('dragstart', e => {
                 dragSrcIndex = index;
                 e.dataTransfer.effectAllowed = 'move';
@@ -1132,18 +1159,18 @@ const app = {
                 allUrls.splice(index, 0, moved);
                 urlsObj.value = allUrls.join('\n');
                 dragSrcIndex = null;
-                this.renderGiftThumbnails();
+                this.renderGiftThumbnails(prefix);
             });
             wrap.innerHTML = `
                 <img src="${url.trim()}" style="width:100%;height:100%;object-fit:contain;pointer-events:none;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
                 <div style="display:none; width:100%; height:100%; background:#fee2e2; color:#ef4444; align-items:center; justify-content:center; font-size:0.75rem; text-align:center; padding:2px; font-weight:600;">Lỗi</div>
-                <button type="button" class="delete-gift-btn" style="width:18px;height:18px;top:2px;right:2px;" onclick="event.stopPropagation();app.removeGiftUrl(${index})" title="Xoá">
+                <button type="button" class="delete-gift-btn" style="width:18px;height:18px;top:2px;right:2px;" onclick="event.stopPropagation();app.removeGiftUrl(${index}, '${prefix}')" title="Xoá">
                     <i data-feather="x" style="width:10px;height:10px;"></i>
                 </button>
             `;
             container.appendChild(wrap);
         });
-        if (window.feather) feather.replace();
+        if (window.feather) { try { feather.replace(); } catch(e) { console.warn('Feather error:', e); } }
     },
 
     previewManyImages() { this.renderGiftThumbnails(); },
@@ -1169,8 +1196,8 @@ const app = {
             size: getVal('size'),
             price: parseInt(getVal('price').replace(/[^\d]/g, '')) || null,
             note: getVal('note'),
-            cover_url: getVal('coverUrl'),
-            gift_urls: getVal('giftUrls').split('\n').map(s => s.trim()).filter(s => s !== '')
+            cover_url: getVal('main-coverUrl'),
+            gift_urls: getVal('main-giftUrls').split('\n').map(s => s.trim()).filter(s => s !== '')
         };
 
         const formEl = document.getElementById('manga-form');
@@ -1200,62 +1227,82 @@ const app = {
 
         this.showLoading(editId ? 'Đang cập nhật...' : 'Đang lưu...');
         try {
+            // Hàm tiện ích tạo timeout 15 giây
+            const timeout = (ms) => new Promise((_, reject) => setTimeout(() => reject(new Error('Yêu cầu quá hạn (Timeout)')), ms));
+
             if (editId) {
-                const { data, error } = await supabase.from('manga').update(mangaData).eq('id', editId).select().single();
+                // Sử dụng Promise.race để tự động ngắt nếu mạng treo
+                const { data, error } = await Promise.race([
+                    supabase.from('manga').update(mangaData).eq('id', editId).select(),
+                    timeout(15000)
+                ]);
+                
                 if (error) throw error;
+                if (!data || data.length === 0) throw new Error('Không tìm thấy bản ghi để cập nhật');
+                
+                const updatedRow = data[0];
+                
                 // Update local cache
                 const idx = this.data.findIndex(m => m.id === editId);
                 if (idx !== -1) {
                     this.data[idx] = {
-                        id: data.id,
-                        series: data.series,
-                        title: data.title,
-                        volume: data.volume,
-                        isbn: data.isbn,
-                        author: data.author,
-                        translator: data.translator,
-                        publisher: data.publisher,
-                        distributor: data.distributor,
-                        publishDate: data.publish_date,
-                        pages: data.pages,
-                        size: data.size,
-                        price: data.price,
-                        note: data.note,
-                        coverUrl: data.cover_url,
-                        giftUrls: data.gift_urls || [],
-                        catalogId: data.catalog_id,
-                        addedAt: data.added_at
+                        id: updatedRow.id,
+                        series: updatedRow.series,
+                        title: updatedRow.title,
+                        volume: updatedRow.volume,
+                        isbn: updatedRow.isbn,
+                        author: updatedRow.author,
+                        translator: updatedRow.translator,
+                        publisher: updatedRow.publisher,
+                        distributor: updatedRow.distributor,
+                        publishDate: updatedRow.publish_date,
+                        pages: updatedRow.pages,
+                        size: updatedRow.size,
+                        price: updatedRow.price,
+                        note: updatedRow.note,
+                        coverUrl: updatedRow.cover_url,
+                        giftUrls: updatedRow.gift_urls || [],
+                        catalogId: updatedRow.catalog_id,
+                        addedAt: updatedRow.added_at
                     };
                 }
             } else {
-                const { data, error } = await supabase.from('manga').insert(mangaData).select().single();
+                // Sử dụng Promise.race cho thêm mới
+                const { data, error } = await Promise.race([
+                    supabase.from('manga').insert(mangaData).select(),
+                    timeout(15000)
+                ]);
+                
                 if (error) throw error;
+                if (!data || data.length === 0) throw new Error('Không có dữ liệu trả về sau khi thêm');
+                
+                const insertedRow = data[0];
                 
                 // Add to local cache
                 this.data.unshift({
-                    id: data.id,
-                    series: data.series,
-                    title: data.title,
-                    volume: data.volume,
-                    isbn: data.isbn,
-                    author: data.author,
-                    translator: data.translator,
-                    publisher: data.publisher,
-                    distributor: data.distributor,
-                    publishDate: data.publish_date,
-                    pages: data.pages,
-                    size: data.size,
-                    price: data.price,
-                    note: data.note,
-                    coverUrl: data.cover_url,
-                    giftUrls: data.gift_urls || [],
-                    catalogId: data.catalog_id,
-                    addedAt: data.added_at
+                    id: insertedRow.id,
+                    series: insertedRow.series,
+                    title: insertedRow.title,
+                    volume: insertedRow.volume,
+                    isbn: insertedRow.isbn,
+                    author: insertedRow.author,
+                    translator: insertedRow.translator,
+                    publisher: insertedRow.publisher,
+                    distributor: insertedRow.distributor,
+                    publishDate: insertedRow.publish_date,
+                    pages: insertedRow.pages,
+                    size: insertedRow.size,
+                    price: insertedRow.price,
+                    note: insertedRow.note,
+                    coverUrl: insertedRow.cover_url,
+                    giftUrls: insertedRow.gift_urls || [],
+                    catalogId: insertedRow.catalog_id,
+                    addedAt: insertedRow.added_at
                 });
 
                 // Submit to pending if new and no catalogId
                 if (!mangaData.catalog_id) {
-                    const pendingData = { ...mangaData, scanned_isbn: formEl.dataset.pendingIsbn || mangaData.isbn, linked_manga_id: data.id };
+                    const pendingData = { ...mangaData, scanned_isbn: formEl.dataset.pendingIsbn || mangaData.isbn, linked_manga_id: insertedRow.id };
                     this.submitPendingBook(pendingData);
                 }
             }
@@ -1273,8 +1320,9 @@ const app = {
             } else {
                 this.showView('dashboard');
             }
-        } catch {
-            this.showToast('Lỗi khi lưu dữ liệu!', 'error');
+        } catch (err) {
+            console.error('Lỗi khi lưu form:', err);
+            this.showToast(err.message === 'Yêu cầu quá hạn (Timeout)' ? 'Lỗi mạng: Thời gian phản hồi quá lâu!' : 'Lỗi khi lưu dữ liệu!', 'error');
         } finally {
             this.hideLoading();
         }
@@ -1317,12 +1365,7 @@ const app = {
                 if (res.price) {
                     document.getElementById('price').value = new Intl.NumberFormat('vi-VN').format(res.price);
                 }
-                if (res.note) document.getElementById('note').value = res.note;
-                if (res.gift_urls && res.gift_urls.length > 0) {
-                    document.getElementById('giftUrls').value = res.gift_urls.join('\n');
-                    this.renderGiftThumbnails();
-                    this.previewGiftImage(res.gift_urls[res.gift_urls.length - 1]);
-                }
+                // Không tự động điền "chú thích" (note) và "quà tặng" (gift_urls) vì chúng thường dành riêng cho từng tập
                 this.showToast('Đã điền tự động dữ liệu chung của Series!');
             } else {
                 this.showToast('Chưa có dữ liệu tham khảo cho Series này.', 'info');
@@ -1413,7 +1456,7 @@ const app = {
             list.appendChild(item);
         });
         this.showView('search');
-        if (window.feather) feather.replace();
+        if (window.feather) { try { feather.replace(); } catch(e) { console.warn('Feather error:', e); } }
     }
 ,
     // ─── ADD METHOD & SCANNER ────────────────────────────────────────────────
@@ -1421,6 +1464,7 @@ const app = {
     codeReader: null,
     scannedBookCache: null,
     adminCache: [],
+    adminCatalogCache: [],
 
     showAddMethod() {
         this.showView('add-method');
@@ -1607,12 +1651,15 @@ const app = {
         setVal('publisher', book.publisher);
         setVal('distributor', book.distributor);
         setVal('size', book.size);
-        setVal('coverUrl', book.coverUrl);
+        setVal('main-coverUrl', book.coverUrl);
         setVal('note', book.note);
+        if (book.coverUrl) {
+            this.previewImage(book.coverUrl, 'cover', 'main-');
+        }
         if (book.gift_urls && book.gift_urls.length > 0) {
-            setVal('giftUrls', book.gift_urls.join('\n'));
-            this.renderGiftThumbnails();
-            this.previewGiftImage(book.gift_urls[book.gift_urls.length - 1]);
+            setVal('main-giftUrls', book.gift_urls.join('\n'));
+            this.renderGiftThumbnails('main-');
+            this.previewGiftImage(book.gift_urls[book.gift_urls.length - 1], 'main-');
         }
         
         document.getElementById('manga-form').dataset.catalogId = book.id;
@@ -1660,7 +1707,7 @@ const app = {
         try {
             const { data, error } = await supabase.rpc('get_all_pending');
             if (error) throw error;
-            const list = data.map(p => ({...p, coverUrl: p.cover_url, giftUrls: p.gift_urls}));
+            const list = data.map(p => ({...p, coverUrl: p.cover_url, giftUrls: p.gift_urls, publishDate: p.publish_date, submittedName: p.submitted_name}));
             this.adminCache = list;
             this.renderPendingList(list);
             
@@ -1694,7 +1741,14 @@ const app = {
         }
 
         list.forEach(p => {
-            const coverUrl = p.coverUrl || 'https://via.placeholder.com/200x300.png?text=No+Cover';
+            const hasCover = p.coverUrl && p.coverUrl.trim() !== '';
+            const coverHtml = hasCover
+                ? `<img src="${p.coverUrl}" alt="${p.title}" loading="lazy" style="width:100%;height:100%;object-fit:cover;">`
+                : `<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.5rem;color:#86efac;font-size:0.75rem;font-weight:500;background:#0f3d21;text-align:center;padding:0.75rem;">
+                       <i data-feather="image" style="width:32px;height:32px;opacity:0.5;"></i>
+                       <span>Không có ảnh bìa</span>
+                   </div>`;
+
             const item = document.createElement('div');
             item.className = 'volume-card';
 
@@ -1702,22 +1756,27 @@ const app = {
                 ? `<span class="edition-badge" style="background:#f59e0b; color:white; font-size:0.65rem; padding:2px 7px; border-radius:6px;">📷 ISBN</span>`
                 : '';
 
+            const editionBadge = this.getEditionBadge(p.title);
+
             item.innerHTML = `
                 <div class="vol-cover" onclick="app.openPendingModal('${p.id}')">
-                    <img src="${coverUrl}" alt="${p.title}" loading="lazy">
+                    ${coverHtml}
                     ${cameraBadge}
+                    ${editionBadge}
                 </div>
-                <div class="vol-info" style="padding:0.5rem 0.6rem;">
-                    <div class="vol-top" style="margin-bottom:0.15rem;">
-                        <h4 class="vol-title" style="font-size:0.88rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${p.series || p.title}</h4>
-                    </div>
-                    <div style="font-size:0.8rem; color:white; font-weight:600;" onclick="app.openPendingModal('${p.id}')">Tập ${p.volume}</div>
+                <div class="vol-info" style="padding:0.5rem 0.65rem 0.6rem;">
+                    <h4 style="font-size:1rem; font-weight:600; color:var(--card-text); margin:0 0 0.25rem 0; line-height:1.3;
+                                display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+                                cursor:pointer;"
+                        onclick="app.openPendingModal('${p.id}')"
+                        title="${p.series || p.title}">${p.series || p.title}</h4>
+                    <div style="font-size:0.8rem; color:var(--card-note); font-weight:500;" onclick="app.openPendingModal('${p.id}')">Tập ${p.volume}</div>
                 </div>
             `;
             container.appendChild(item);
         });
 
-        if (window.feather) feather.replace();
+        if (window.feather) { try { feather.replace(); } catch(e) { console.warn('Feather error:', e); } }
     },
 
     async openPendingModal(id) {
@@ -1726,14 +1785,16 @@ const app = {
 
         this._pendingActiveId = id;
         const title = document.getElementById('pending-modal-title');
-        if(title) title.textContent = `${p.series || ''} — Tập ${p.volume}`;
+        // Dùng dấu "-" thống nhất thay vì "—" để tránh thừa khi series đã có "-"
+        const seriesLabel = (p.series || '').trim();
+        if(title) title.textContent = seriesLabel ? `${seriesLabel} - Tập ${p.volume}` : `Tập ${p.volume}`;
 
         const modalBody = document.getElementById('pending-modal-body');
         modalBody.innerHTML = '<div style="text-align:center; padding:3rem;"><i data-feather="loader" class="spin" style="width:32px;height:32px;"></i></div>';
         const modal = document.getElementById('pending-modal');
         modal.classList.remove('hidden');
         modal.classList.add('show');
-        if (window.feather) feather.replace();
+        if (window.feather) { try { feather.replace(); } catch(e) { console.warn('Feather error:', e); } }
 
         const duplicates = await this.checkDuplicate(p);
         const coverUrl = p.coverUrl || '';
@@ -1795,11 +1856,17 @@ const app = {
                     <div class="form-row">
                         <div class="form-group">
                             <label>Nhà xuất bản</label>
-                            <input type="text" id="edit-publisher-${p.id}" class="input-ctrl" value="${p.publisher || ''}">
+                            <select id="edit-publisher-${p.id}" class="input-ctrl">
+                                <option value="">-- Chọn NXB --</option>
+                                ${["Hồng Đức", "Kim Đồng", "Lao động", "Trẻ", "Văn học"].map(o => `<option value="${o}" ${p.publisher === o ? 'selected' : ''}>${o}</option>`).join('')}
+                            </select>
                         </div>
                         <div class="form-group">
                             <label>Nhà phát hành</label>
-                            <input type="text" id="edit-distributor-${p.id}" class="input-ctrl" value="${p.distributor || ''}">
+                            <select id="edit-distributor-${p.id}" class="input-ctrl">
+                                <option value="">-- Chọn NPH --</option>
+                                ${["IPM", "Kim Đồng", "Trẻ"].map(o => `<option value="${o}" ${p.distributor === o ? 'selected' : ''}>${o}</option>`).join('')}
+                            </select>
                         </div>
                     </div>
                     <div class="form-row">
@@ -1815,7 +1882,10 @@ const app = {
                     <div class="form-row">
                         <div class="form-group">
                             <label>Kích thước</label>
-                            <input type="text" id="edit-size-${p.id}" class="input-ctrl" value="${p.size || ''}">
+                            <select id="edit-size-${p.id}" class="input-ctrl">
+                                <option value="">-- Chọn kích thước --</option>
+                                ${["11.3 x 17.6 cm", "12 x 18 cm", "13 x 18 cm", "14.5 x 20.5 cm"].map(o => `<option value="${o}" ${p.size === o ? 'selected' : ''}>${o}</option>`).join('')}
+                            </select>
                         </div>
                         <div class="form-group">
                             <label>Giá tiền (VNĐ)</label>
@@ -1833,29 +1903,68 @@ const app = {
                 </div>
 
                 <!-- Cột PHẢI: ảnh bìa + Gộp ISBN -->
+                <!-- Cột PHẢI: ảnh bìa + Gộp ISBN -->
                 <div class="form-cols cover-col" style="width:280px; flex-shrink:0;">
-                    <!-- Ảnh bìa -->
-                    <div class="form-group">
-                        <label>Link ảnh bìa</label>
-                        <div style="display:flex; gap:0.5rem; align-items:center;">
-                            <input type="text" id="edit-cover-${p.id}" class="input-ctrl" value="${coverUrl}"
-                                oninput="document.getElementById('pending-cover-preview').src = this.value || 'https://via.placeholder.com/200x290.png?text=No+Cover'">
+                    <div class="image-tabs">
+                        <button type="button" class="img-tab-btn active" onclick="app.switchImgTab('cover', 'pending-')">Ảnh bìa</button>
+                        <button type="button" class="img-tab-btn" onclick="app.switchImgTab('gift', 'pending-')">Quà tặng kèm</button>
+                    </div>
+
+                    <!-- Tab Ảnh bìa -->
+                    <div id="pending-tab-cover" class="img-tab-content active">
+                        <div class="form-group">
+                            <div style="display:flex; gap:0.5rem; align-items:center;">
+                                <input type="text" id="pending-coverUrl" class="input-ctrl"
+                                    placeholder="https://... hoặc tải File" value="${coverUrl}"
+                                    oninput="app.previewImage(this.value, 'cover', 'pending-')">
+                                <input type="file" id="pending-coverFile" accept="image/*" style="display:none"
+                                    onchange="app.handleFileUpload(this, 'cover', 'pending-')">
+                                <button type="button" class="btn btn-outline"
+                                    style="padding:0.6rem 1rem; flex-shrink:0;" title="Tải ảnh lên từ máy"
+                                    onclick="document.getElementById('pending-coverFile').click()">
+                                    <i data-feather="upload"></i>
+                                </button>
+                            </div>
+                            <p class="help-text">Dán link hoặc tải file ảnh bìa.</p>
+                        </div>
+                        <div class="cover-preview-box" id="pending-cover-preview-box" style="position:relative;">
+                            <i data-feather="image"></i>
+                            <span>Xem trước ảnh bìa</span>
                         </div>
                     </div>
-                    <div style="position:relative; margin-bottom:1rem;">
-                        <img id="pending-cover-preview"
-                            src="${coverUrl || 'https://via.placeholder.com/200x290.png?text=No+Cover'}"
-                            alt="Cover"
-                            style="width:100%; aspect-ratio:2/3; object-fit:cover; border-radius:8px; border:1px solid var(--border);">
-                    </div>
-                    ${p.giftUrls && p.giftUrls.length > 0 ? `
-                    <!-- Ảnh quà tặng -->
-                    <div class="form-group" style="margin-bottom:1rem;">
-                        <label>Ảnh quà tặng đính kèm (${p.giftUrls.length})</label>
-                        <div style="display:flex; gap:0.5rem; overflow-x:auto; padding-bottom:0.5rem; scrollbar-width:thin;">
-                            ${p.giftUrls.map(url => `<img src="${url}" style="width:60px; height:80px; object-fit:cover; border-radius:4px; border:1px solid var(--border); background:var(--surface);" title="Quà tặng">`).join('')}
+
+                    <!-- Tab Quà tặng -->
+                    <div id="pending-tab-gift" class="img-tab-content hidden">
+                        <div class="form-group">
+                            <div style="display:flex; gap:0.5rem; align-items:center;">
+                                <input type="text" id="pending-giftUrlInput" class="input-ctrl"
+                                    placeholder="https://... hoặc tải File">
+                                <input type="file" id="pending-giftFiles" accept="image/*" multiple style="display:none"
+                                    onchange="app.handleGiftFileUpload(this, 'pending-')">
+                                <button type="button" class="btn btn-outline"
+                                    style="padding:0.6rem 1rem; flex-shrink:0;" title="Tải ảnh lên từ máy"
+                                    onclick="document.getElementById('pending-giftFiles').click()">
+                                    <i data-feather="upload"></i>
+                                </button>
+                                <button type="button" class="btn btn-primary"
+                                    style="padding:0.6rem 1rem; flex-shrink:0;" title="Thêm ảnh này"
+                                    onclick="app.addGiftUrl('pending-')">
+                                    <i data-feather="plus"></i>
+                                </button>
+                            </div>
+                            <p class="help-text">Dán link hoặc tải file, rồi nhấn + để thêm.</p>
                         </div>
-                    </div>` : ''}
+                        <!-- Ảnh xem trước lớn -->
+                        <div class="cover-preview-box" id="pending-gift-preview-box" style="position:relative;">
+                            <i data-feather="gift"></i>
+                            <span>Xem trước quà tặng</span>
+                        </div>
+                        <!-- Danh sách thumbnail -->
+                        <div id="pending-gift-thumbnails"
+                            style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-top:1rem;"></div>
+                        <!-- Ẩn text chứa mảng URL -->
+                        <textarea id="pending-giftUrls" class="hidden">${p.giftUrls ? p.giftUrls.join('\n') : ''}</textarea>
+                    </div>
 
                     <!-- Gộp ISBN -->
                     <div style="background: var(--background); border:1px solid var(--border); border-radius:10px; padding:1rem;">
@@ -1871,7 +1980,16 @@ const app = {
             </div>
         `;
 
-        if (window.feather) feather.replace();
+        if (window.feather) { try { feather.replace(); } catch(e) { console.warn('Feather error:', e); } }
+
+        // Khởi tạo hiển thị ảnh bìa và quà tặng
+        this.previewImage(coverUrl, 'cover', 'pending-');
+        if (p.giftUrls && p.giftUrls.length > 0) {
+            this.renderGiftThumbnails('pending-');
+            this.previewGiftImage(p.giftUrls[p.giftUrls.length - 1], 'pending-');
+        } else {
+            this.previewGiftImage('', 'pending-');
+        }
     },
 
     _runAdminApprove() {
@@ -1893,7 +2011,21 @@ const app = {
         this._pendingActiveId = null;
     },
 
+    _removePendingFromUI(id) {
+        if (!this.adminCache) return;
+        this.adminCache = this.adminCache.filter(x => x.id !== id);
+        this.renderPendingList(this.adminCache);
+        const badge = document.getElementById('nav-admin-badge');
+        if(badge) {
+            badge.textContent = this.adminCache.length;
+            badge.style.display = this.adminCache.length > 0 ? 'inline-block' : 'none';
+        }
+    },
+
     async _updatePendingDataBeforeAction(id) {
+        const giftStr = document.getElementById('pending-giftUrls')?.value || '';
+        const giftUrls = giftStr.split('\n').map(s => s.trim()).filter(s => s !== '');
+
         const payload = {
             series: document.getElementById(`edit-series-${id}`).value,
             title: document.getElementById(`edit-title-${id}`).value,
@@ -1907,12 +2039,88 @@ const app = {
             pages: parseInt(document.getElementById(`edit-pages-${id}`).value) || 0,
             size: document.getElementById(`edit-size-${id}`).value,
             price: parseInt(document.getElementById(`edit-price-${id}`).value) || 0,
-            cover_url: document.getElementById(`edit-cover-${id}`).value,
-            note: document.getElementById(`edit-note-${id}`).value
+            cover_url: document.getElementById(`pending-coverUrl`).value,
+            note: document.getElementById(`edit-note-${id}`).value,
+            gift_urls: giftUrls
         };
         await supabase.from('pending_catalog').update(payload).eq('id', id);
         return payload;
     },
+
+    async adminApprove(id) {
+        if(!confirm('Duyệt và thêm sách này vào kho chung?')) return;
+        this.showLoading('Đang xử lý...');
+        try {
+            const payload = await this._updatePendingDataBeforeAction(id);
+            const { error: rpcErr } = await supabase.rpc('admin_approve_pending', {
+                pending_id: id,
+                updated_data: payload
+            });
+            if (rpcErr) throw rpcErr;
+
+            this.showToast('Đã duyệt và thêm vào kho!');
+            this.closePendingModal();
+            this._removePendingFromUI(id);
+        } catch(e) {
+            console.error(e);
+            this.showToast('Lỗi khi duyệt sách!', 'error');
+        } finally {
+            this.hideLoading();
+        }
+    },
+
+    async adminReject(id) {
+        if(!confirm('Từ chối và xóa bản ghi này?')) return;
+        this.showLoading('Đang xử lý...');
+        try {
+            const { error: rpcErr } = await supabase.rpc('admin_reject_pending', {
+                pending_id: id,
+                reason: null
+            });
+            if(rpcErr) throw rpcErr;
+
+            this.showToast('Đã từ chối bản ghi!');
+            this.closePendingModal();
+            this._removePendingFromUI(id);
+        } catch(e) {
+            console.error(e);
+            this.showToast('Lỗi khi xóa bản ghi!', 'error');
+        } finally {
+            this.hideLoading();
+        }
+    },
+
+    async quickMerge(pendingId, catalogId) {
+        if(!confirm('Gộp ISBN vào bản ghi có sẵn này?')) return;
+        this.showLoading('Đang gộp...');
+        try {
+            // Sử dụng RPC admin_merge_isbn để tránh lỗi RLS khi update trực tiếp bảng catalog
+            const { error: rpcErr } = await supabase.rpc('admin_merge_isbn', {
+                pending_id: pendingId,
+                target_catalog_id: catalogId
+            });
+            if(rpcErr) throw rpcErr;
+            
+            this.showToast('Đã gộp ISBN thành công!');
+            this.closePendingModal();
+            this._removePendingFromUI(pendingId);
+        } catch(e) {
+            console.error(e);
+            this.showToast('Lỗi khi gộp!', 'error');
+        } finally {
+            this.hideLoading();
+        }
+    },
+
+    async adminMerge(pendingId) {
+        const inputVal = document.getElementById('merge-search-input').value;
+        if(!inputVal) {
+            alert('Vui lòng chọn hoặc nhập ID của sách để gộp!');
+            return;
+        }
+        this.quickMerge(pendingId, inputVal);
+    },
+
 
     // ─── FEEDBACK ─────────────────────────────────────────────────────────────
     showFeedbackModal() {
@@ -1980,6 +2188,339 @@ const app = {
 
         if(tabId === 'feedback') this.fetchAdminFeedback();
         else if(tabId === 'pending') this.fetchPendingBooks();
+        else if(tabId === 'catalog') this.searchAdminCatalog(); // Auto load all when switching tab
+    },
+
+    // ─── ADMIN CATALOG MANAGER ───────────────────────────────────────────────
+    async searchAdminCatalog() {
+        const input = document.getElementById('admin-catalog-search');
+        if (!input) return;
+        const query = input.value.trim();
+
+        const container = document.getElementById('admin-catalog-list');
+        container.innerHTML = '<div style="text-align:center; padding:3rem; grid-column:1/-1;"><i data-feather="loader" class="spin" style="width:32px;height:32px;"></i></div>';
+        if (window.feather) { try { feather.replace(); } catch(e) { console.warn('Feather error:', e); } }
+
+        try {
+            let supabaseQuery = supabase.from('catalog').select('*').order('created_at', { ascending: false }).limit(100);
+            
+            if (query) {
+                supabaseQuery = supabase.from('catalog').select('*')
+                    .or(`series.ilike.%${query}%,title.ilike.%${query}%`)
+                    .order('series', { ascending: true })
+                    .order('volume', { ascending: true })
+                    .limit(100);
+            }
+            
+            const { data, error } = await supabaseQuery;
+            
+            if (error) throw error;
+            this.adminCatalogCache = data;
+            this.renderAdminCatalogList(data);
+        } catch (e) {
+            console.error('Lỗi tìm kiếm catalog:', e);
+            container.innerHTML = '<p style="text-align:center; color:var(--danger); padding:2rem; grid-column:1/-1;">Lỗi khi tải dữ liệu từ Kho chung.</p>';
+        }
+    },
+
+    renderAdminCatalogList(list) {
+        const container = document.getElementById('admin-catalog-list');
+        if(!container) return;
+        container.innerHTML = '';
+        if(list.length === 0) {
+            container.innerHTML = '<p style="text-align:center; color:var(--text-muted); padding:2rem; grid-column:1/-1;">Không tìm thấy bản ghi nào khớp với từ khóa.</p>';
+            return;
+        }
+
+        list.forEach(c => {
+            const hasCover = c.cover_url && c.cover_url.trim() !== '';
+            const coverHtml = hasCover
+                ? `<img src="${c.cover_url}" alt="${c.title}" loading="lazy" style="width:100%;height:100%;object-fit:cover;">`
+                : `<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.5rem;color:#86efac;font-size:0.75rem;font-weight:500;background:#0f3d21;text-align:center;padding:0.75rem;">
+                       <i data-feather="image" style="width:32px;height:32px;opacity:0.5;"></i>
+                       <span>Không có ảnh bìa</span>
+                   </div>`;
+
+            const item = document.createElement('div');
+            item.className = 'volume-card';
+            const editionBadge = this.getEditionBadge(c.title);
+
+            item.innerHTML = `
+                <div class="vol-cover" onclick="app.openCatalogModal('${c.id}')">
+                    ${coverHtml}
+                    ${editionBadge}
+                </div>
+                <div class="vol-info" style="padding:0.5rem 0.65rem 0.6rem;">
+                    <h4 style="font-size:1rem; font-weight:600; color:var(--card-text); margin:0 0 0.25rem 0; line-height:1.3;
+                                display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+                                cursor:pointer;"
+                        onclick="app.openCatalogModal('${c.id}')"
+                        title="${c.series || c.title}">${c.series || c.title}</h4>
+                    <div style="font-size:0.85rem; font-weight:600; color:var(--primary); margin-bottom:0.25rem;">Tập ${c.volume || 0}</div>
+                    <div style="font-size:0.75rem; color:var(--card-note); margin-bottom:0.15rem; display:flex; align-items:center; gap:0.25rem;">
+                        <i data-feather="database" style="width:10px;height:10px;"></i>
+                        Kho chung
+                    </div>
+                </div>
+            `;
+            container.appendChild(item);
+        });
+        if (window.feather) { try { feather.replace(); } catch(e) { console.warn('Feather error:', e); } }
+    },
+
+    openCatalogModal(id) {
+        const c = this.adminCatalogCache.find(x => x.id === id);
+        if(!c) return;
+
+        const modal = document.getElementById('catalog-modal');
+        if(modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('show');
+        }
+
+        const title = document.getElementById('catalog-modal-title');
+        const seriesLabel = (c.series || '').trim();
+        if(title) title.textContent = seriesLabel ? `Sửa: ${seriesLabel} - Tập ${c.volume || 0}` : `Sửa: Tập ${c.volume || 0}`;
+
+        const modalBody = document.getElementById('catalog-modal-body');
+        const coverUrl = c.cover_url || '';
+        const isbnsText = c.isbns ? c.isbns.join(', ') : '';
+
+        modalBody.innerHTML = `
+            <div class="form-grid" style="display:flex; gap:2rem; align-items:flex-start;">
+                <!-- Cột TRÁI: Form chỉnh sửa -->
+                <div class="form-cols" style="flex:1; min-width:0;">
+                    <input type="hidden" id="edit-cat-id" value="${c.id}">
+                    <div class="form-group">
+                        <label>Series</label>
+                        <input type="text" id="edit-cat-series" class="input-ctrl" value="${c.series || ''}">
+                    </div>
+                    <div class="form-group">
+                        <label>Tên sách cụ thể</label>
+                        <input type="text" id="edit-cat-title" class="input-ctrl" value="${c.title || ''}">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Tập số</label>
+                            <input type="number" id="edit-cat-volume" class="input-ctrl" value="${c.volume || ''}" min="0" max="10000" step="0.5">
+                        </div>
+                        <div class="form-group">
+                            <label>ISBN</label>
+                            <textarea id="edit-cat-isbn" class="input-ctrl" rows="2">${isbnsText}</textarea>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Tác giả</label>
+                            <textarea id="edit-cat-author" class="input-ctrl" rows="2">${c.author || ''}</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Dịch giả</label>
+                            <input type="text" id="edit-cat-translator" class="input-ctrl" value="${c.translator || ''}">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Nhà xuất bản</label>
+                            <select id="edit-cat-publisher" class="input-ctrl">
+                                <option value="">-- Chọn NXB --</option>
+                                ${["Hồng Đức", "Kim Đồng", "Lao động", "Trẻ", "Văn học"].map(o => `<option value="${o}" ${c.publisher === o ? 'selected' : ''}>${o}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Nhà phát hành</label>
+                            <select id="edit-cat-distributor" class="input-ctrl">
+                                <option value="">-- Chọn NPH --</option>
+                                ${["IPM", "Kim Đồng", "Trẻ"].map(o => `<option value="${o}" ${c.distributor === o ? 'selected' : ''}>${o}</option>`).join('')}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Ngày phát hành</label>
+                            <input type="date" id="edit-cat-publishDate" class="input-ctrl" value="${c.publish_date || ''}">
+                        </div>
+                        <div class="form-group">
+                            <label>Số trang</label>
+                            <input type="number" id="edit-cat-pages" class="input-ctrl" value="${c.pages || ''}" min="1" max="100000">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Kích thước</label>
+                            <select id="edit-cat-size" class="input-ctrl">
+                                <option value="">-- Chọn kích thước --</option>
+                                ${["11.3 x 17.6 cm", "12 x 18 cm", "13 x 18 cm", "14.5 x 20.5 cm"].map(o => `<option value="${o}" ${c.size === o ? 'selected' : ''}>${o}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Giá tiền (VNĐ)</label>
+                            <input type="number" id="edit-cat-price" class="input-ctrl" value="${c.price || ''}" min="0" max="2000000000">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Ghi chú</label>
+                        <textarea id="edit-cat-note" class="input-ctrl" rows="2">${c.note || ''}</textarea>
+                    </div>
+                </div>
+
+                <!-- Cột PHẢI: ảnh bìa -->
+                <div class="form-cols cover-col" style="width:280px; flex-shrink:0;">
+                    <div class="image-tabs">
+                        <button type="button" class="img-tab-btn active" onclick="app.switchImgTab('cover', 'cat-')">Ảnh bìa</button>
+                        <button type="button" class="img-tab-btn" onclick="app.switchImgTab('gift', 'cat-')">Quà tặng kèm</button>
+                    </div>
+
+                    <!-- Tab Ảnh bìa -->
+                    <div id="cat-tab-cover" class="img-tab-content active">
+                        <div class="form-group">
+                            <div style="display:flex; gap:0.5rem; align-items:center;">
+                                <input type="text" id="cat-coverUrl" class="input-ctrl"
+                                    placeholder="https://... hoặc tải File" value="${coverUrl}"
+                                    oninput="app.previewImage(this.value, 'cover', 'cat-')">
+                                <input type="file" id="cat-coverFile" accept="image/*" style="display:none"
+                                    onchange="app.handleFileUpload(this, 'cover', 'cat-')">
+                                <button type="button" class="btn btn-outline"
+                                    style="padding:0.6rem 1rem; flex-shrink:0;" title="Tải ảnh lên từ máy"
+                                    onclick="document.getElementById('cat-coverFile').click()">
+                                    <i data-feather="upload"></i>
+                                </button>
+                            </div>
+                            <p class="help-text">Dán link hoặc tải file ảnh bìa.</p>
+                        </div>
+                        <div class="cover-preview-box" id="cat-cover-preview-box" style="position:relative;">
+                            <i data-feather="image"></i>
+                            <span>Xem trước ảnh bìa</span>
+                        </div>
+                    </div>
+
+                    <!-- Tab Quà tặng -->
+                    <div id="cat-tab-gift" class="img-tab-content hidden">
+                        <div class="form-group">
+                            <div style="display:flex; gap:0.5rem; align-items:center;">
+                                <input type="text" id="cat-giftUrlInput" class="input-ctrl"
+                                    placeholder="https://... hoặc tải File">
+                                <input type="file" id="cat-giftFiles" accept="image/*" multiple style="display:none"
+                                    onchange="app.handleGiftFileUpload(this, 'cat-')">
+                                <button type="button" class="btn btn-outline"
+                                    style="padding:0.6rem 1rem; flex-shrink:0;" title="Tải ảnh lên từ máy"
+                                    onclick="document.getElementById('cat-giftFiles').click()">
+                                    <i data-feather="upload"></i>
+                                </button>
+                                <button type="button" class="btn btn-primary"
+                                    style="padding:0.6rem 1rem; flex-shrink:0;" title="Thêm ảnh này"
+                                    onclick="app.addGiftUrl('cat-')">
+                                    <i data-feather="plus"></i>
+                                </button>
+                            </div>
+                            <p class="help-text">Dán link hoặc tải file, rồi nhấn + để thêm.</p>
+                        </div>
+                        <!-- Ảnh xem trước lớn -->
+                        <div class="cover-preview-box" id="cat-gift-preview-box" style="position:relative;">
+                            <i data-feather="gift"></i>
+                            <span>Xem trước quà tặng</span>
+                        </div>
+                        <!-- Danh sách thumbnail -->
+                        <div id="cat-gift-thumbnails"
+                            style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-top:1rem;"></div>
+                        <!-- Ẩn text chứa mảng URL -->
+                        <textarea id="cat-giftUrls" class="hidden">${c.gift_urls ? c.gift_urls.join('\n') : ''}</textarea>
+                    </div>
+                </div>
+            </div>
+        `;
+        if (window.feather) { try { feather.replace(); } catch(e) { console.warn('Feather error:', e); } }
+
+        // Khởi tạo hiển thị ảnh bìa và quà tặng
+        this.previewImage(coverUrl, 'cover', 'cat-');
+        if (c.gift_urls && c.gift_urls.length > 0) {
+            this.renderGiftThumbnails('cat-');
+            this.previewGiftImage(c.gift_urls[c.gift_urls.length - 1], 'cat-');
+        } else {
+            this.previewGiftImage('', 'cat-');
+        }
+    },
+
+    closeCatalogModal() {
+        const modal = document.getElementById('catalog-modal');
+        if(modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('show');
+        }
+    },
+
+    async adminUpdateCatalog() {
+        if(!confirm('Lưu thay đổi vào Kho chung? Dữ liệu này sẽ áp dụng cho tất cả người dùng dùng tính năng Tự động điền.')) return;
+        const id = document.getElementById('edit-cat-id').value;
+        if(!id) return;
+
+        const giftStr = document.getElementById('cat-giftUrls')?.value || '';
+        const giftUrls = giftStr.split('\n').map(s => s.trim()).filter(s => s !== '');
+        
+        const isbnStr = document.getElementById('edit-cat-isbn').value;
+        const isbns = isbnStr.split(/[,;|\/\s\n]+/).map(s => s.trim()).filter(s => s !== '');
+
+        const payload = {
+            series: document.getElementById(`edit-cat-series`).value,
+            title: document.getElementById(`edit-cat-title`).value,
+            volume: parseFloat(document.getElementById(`edit-cat-volume`).value) || 0,
+            isbns: isbns,
+            author: document.getElementById(`edit-cat-author`).value,
+            translator: document.getElementById(`edit-cat-translator`).value,
+            publisher: document.getElementById(`edit-cat-publisher`).value,
+            distributor: document.getElementById(`edit-cat-distributor`).value,
+            publish_date: document.getElementById(`edit-cat-publishDate`).value || null,
+            pages: parseInt(document.getElementById(`edit-cat-pages`).value) || 0,
+            size: document.getElementById(`edit-cat-size`).value,
+            price: parseInt(document.getElementById(`edit-cat-price`).value) || 0,
+            cover_url: document.getElementById(`cat-coverUrl`).value,
+            note: document.getElementById(`edit-cat-note`).value,
+            gift_urls: giftUrls
+        };
+
+        this.showLoading('Đang cập nhật Kho chung...');
+        try {
+            const { error: rpcErr } = await supabase.rpc('admin_update_catalog', {
+                catalog_id: id,
+                updated_data: payload
+            });
+            if(rpcErr) throw rpcErr;
+
+            this.showToast('Cập nhật Kho chung thành công!');
+            this.closeCatalogModal();
+            // Refresh list
+            this.searchAdminCatalog();
+        } catch(e) {
+            console.error(e);
+            this.showToast('Lỗi khi cập nhật Kho chung!', 'error');
+        } finally {
+            this.hideLoading();
+        }
+    },
+
+    async adminDeleteCatalog() {
+        if(!confirm('Xóa vĩnh viễn sách này khỏi Kho chung? Các sách của người dùng đã thêm sẽ không bị ảnh hưởng, nhưng họ không thể dùng Tự động điền sách này nữa.')) return;
+        const id = document.getElementById('edit-cat-id').value;
+        if(!id) return;
+
+        this.showLoading('Đang xóa khỏi Kho...');
+        try {
+            const { error: rpcErr } = await supabase.rpc('admin_delete_catalog', {
+                catalog_id: id
+            });
+            if(rpcErr) throw rpcErr;
+
+            this.showToast('Đã xóa sách khỏi Kho chung!');
+            this.closeCatalogModal();
+            // Remove from cache and re-render
+            this.adminCatalogCache = this.adminCatalogCache.filter(c => c.id !== id);
+            this.renderAdminCatalogList(this.adminCatalogCache);
+        } catch(e) {
+            console.error(e);
+            this.showToast('Lỗi khi xóa khỏi Kho chung!', 'error');
+        } finally {
+            this.hideLoading();
+        }
     },
 
     async fetchAdminFeedback() {
@@ -2027,7 +2568,7 @@ const app = {
                 </div>
             `;
         }).join('');
-        if (window.feather) feather.replace();
+        if (window.feather) { try { feather.replace(); } catch(e) { console.warn('Feather error:', e); } }
     },
 
     async deleteFeedback(id) {
