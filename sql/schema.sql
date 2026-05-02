@@ -238,8 +238,8 @@ BEGIN
     CASE WHEN (updated_data->'gift_urls') IS NOT NULL THEN ARRAY(SELECT jsonb_array_elements_text(updated_data->'gift_urls')) ELSE p.gift_urls END
   ) RETURNING id INTO new_catalog_id;
 
-  -- Cập nhật trạng thái pending
-  UPDATE pending_catalog SET status = 'approved', catalog_id = new_catalog_id WHERE id = pending_id;
+  -- Xoá khỏi pending
+  DELETE FROM pending_catalog WHERE id = pending_id;
 
   RETURN jsonb_build_object('success', true, 'catalog_id', new_catalog_id);
 END;
@@ -252,7 +252,10 @@ BEGIN
   IF NOT is_admin() THEN
     RAISE EXCEPTION 'Access denied';
   END IF;
-  UPDATE pending_catalog SET status = 'rejected', reject_note = reason WHERE id = pending_id;
+  
+  -- Xoá khỏi pending
+  DELETE FROM pending_catalog WHERE id = pending_id;
+  
   RETURN jsonb_build_object('success', true);
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -291,8 +294,54 @@ BEGIN
   )
   WHERE id = target_catalog_id;
 
-  -- Đánh dấu approved
-  UPDATE pending_catalog SET status = 'approved', catalog_id = target_catalog_id WHERE id = pending_id;
+  -- Xoá khỏi pending
+  DELETE FROM pending_catalog WHERE id = pending_id;
+
+  RETURN jsonb_build_object('success', true);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 13. RPC: Admin update catalog
+CREATE OR REPLACE FUNCTION admin_update_catalog(catalog_id UUID, updated_data JSONB)
+RETURNS JSONB AS $$
+BEGIN
+  IF NOT is_admin() THEN
+    RAISE EXCEPTION 'Access denied';
+  END IF;
+
+  UPDATE catalog
+  SET
+    series       = COALESCE((updated_data->>'series')::TEXT, series),
+    title        = COALESCE((updated_data->>'title')::TEXT, title),
+    volume       = COALESCE((updated_data->>'volume')::FLOAT, volume),
+    isbns        = CASE WHEN (updated_data->'isbns') IS NOT NULL THEN ARRAY(SELECT jsonb_array_elements_text(updated_data->'isbns')) ELSE isbns END,
+    author       = COALESCE((updated_data->>'author')::TEXT, author),
+    translator   = COALESCE((updated_data->>'translator')::TEXT, translator),
+    publisher    = COALESCE((updated_data->>'publisher')::TEXT, publisher),
+    distributor  = COALESCE((updated_data->>'distributor')::TEXT, distributor),
+    publish_date = CASE WHEN (updated_data->>'publish_date') IS NOT NULL THEN (updated_data->>'publish_date')::DATE ELSE publish_date END,
+    pages        = COALESCE((updated_data->>'pages')::INT, pages),
+    size         = COALESCE((updated_data->>'size')::TEXT, size),
+    price        = COALESCE((updated_data->>'price')::INT, price),
+    cover_url    = COALESCE((updated_data->>'cover_url')::TEXT, cover_url),
+    note         = COALESCE((updated_data->>'note')::TEXT, note),
+    gift_urls    = CASE WHEN (updated_data->'gift_urls') IS NOT NULL THEN ARRAY(SELECT jsonb_array_elements_text(updated_data->'gift_urls')) ELSE gift_urls END,
+    updated_at   = NOW()
+  WHERE id = catalog_id;
+
+  RETURN jsonb_build_object('success', true);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 14. RPC: Admin delete catalog
+CREATE OR REPLACE FUNCTION admin_delete_catalog(catalog_id UUID)
+RETURNS JSONB AS $$
+BEGIN
+  IF NOT is_admin() THEN
+    RAISE EXCEPTION 'Access denied';
+  END IF;
+
+  DELETE FROM catalog WHERE id = catalog_id;
 
   RETURN jsonb_build_object('success', true);
 END;
