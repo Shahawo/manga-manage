@@ -691,6 +691,12 @@ const app = {
         this.renderDashboard();
     },
 
+    toggleDetailViewMode() {
+        this.detailViewMode = this.detailViewMode === 'grid' ? 'list' : 'grid';
+        localStorage.setItem('detailViewMode', this.detailViewMode);
+        this.openSeriesDetail(this.currentSeries);
+    },
+
     toggleCustomDropdown(id) {
         // Close others first
         document.querySelectorAll('.custom-select-container .user-dropdown').forEach(d => {
@@ -716,14 +722,15 @@ const app = {
     },
 
     // ─── SERIES DETAIL ────────────────────────────────────────────────────────
-    openSeriesDetail(seriesName) {
+    openSeriesDetail(seriesName, page = 1) {
+        if (typeof page !== 'number') page = 1;
         this.currentSeries = seriesName;
         document.getElementById('detail-series-title').textContent = seriesName;
 
         const specialKeywords = /bản đặc biệt|đặc biệt|giới hạn|sưu tầm|collector|limited|special/i;
         const isSpecial = (title) => specialKeywords.test(title || '');
 
-        const volumes = this.data
+        const allVolumes = this.data
             .filter(m => m.series === seriesName)
             .sort((a, b) => {
                 const volDiff = (Number(a.volume) || 0) - (Number(b.volume) || 0);
@@ -732,7 +739,7 @@ const app = {
                 return isSpecial(a.title) - isSpecial(b.title);
             });
 
-        const uniqueVolNumbers = new Set(volumes.map(v => Number(v.volume) || 0));
+        const uniqueVolNumbers = new Set(allVolumes.map(v => Number(v.volume) || 0));
         const maxVol = Math.max(0, ...uniqueVolNumbers);
         const owned = uniqueVolNumbers.size;
         const total = Math.max(owned, Math.ceil(maxVol));
@@ -740,11 +747,22 @@ const app = {
 
         document.getElementById('detail-volume-count').textContent = `Sở hữu ${owned}/${total} tập (${percent}%)`;
 
+        if (!this.detailViewMode) this.detailViewMode = localStorage.getItem('detailViewMode') || 'grid';
+
         const list = document.getElementById('volumes-list');
-        list.className = 'detail-grid';
+        list.className = this.detailViewMode === 'list' ? 'detail-grid list-view' : 'detail-grid';
+        
+        const icon = document.getElementById('icon-detail-view-mode');
+        if (icon) icon.setAttribute('data-feather', this.detailViewMode === 'list' ? 'grid' : 'list');
+
         list.innerHTML = '';
 
-        volumes.forEach(v => {
+        const limit = 100;
+        const totalItems = allVolumes.length;
+        const start = (page - 1) * limit;
+        const pagedVolumes = allVolumes.slice(start, start + limit);
+
+        pagedVolumes.forEach(v => {
             const hasCover = v.coverUrl && v.coverUrl.trim() !== '';
             const coverHtml = hasCover
                 ? `<img src="${v.coverUrl}" alt="Cover" loading="lazy" style="width:100%;height:100%;object-fit:cover;">`
@@ -759,11 +777,13 @@ const app = {
             item.innerHTML = `
                 <div class="vol-cover" onclick="app.showModal('${v.id}')">
                     ${coverHtml}
-                    ${editionBadge}
                 </div>
                 <div class="vol-info">
                     <div class="vol-top">
-                        <h4 class="vol-title">Tập ${v.volume}</h4>
+                        <div style="display:flex; align-items:center;">
+                            <h4 class="vol-title">Tập ${v.volume}</h4>
+                            ${editionBadge}
+                        </div>
                         <div style="display:flex; gap:0.25rem;">
                             <button class="btn-dots btn-edit" onclick="event.stopPropagation(); app.editVolume('${v.id}')" title="Sửa">
                                 <i data-feather="edit-2" style="width:14px;height:14px"></i>
@@ -778,6 +798,28 @@ const app = {
             `;
             list.appendChild(item);
         });
+
+        const pagination = document.getElementById('series-detail-pagination');
+        if (pagination) {
+            if (totalItems > limit) {
+                const totalPages = Math.ceil(totalItems / limit);
+                // Handle single quote in seriesName by escaping it for HTML attribute if needed. 
+                // Since it's passed as a string, let's use backticks or replace quotes to avoid syntax errors in the inline handler.
+                // A safer way is to store it globally or escape it properly:
+                const safeSeriesName = seriesName.replace(/'/g, "\\'");
+                pagination.innerHTML = `
+                    <button class="btn btn-outline" style="padding: 0.5rem 1rem;" onclick="app.openSeriesDetail('${safeSeriesName}', ${page - 1})" ${page <= 1 ? 'disabled' : ''}>
+                        <i data-feather="chevron-left"></i> Trước
+                    </button>
+                    <span style="color:var(--text-main); font-weight:500;">Trang ${page} / ${totalPages}</span>
+                    <button class="btn btn-outline" style="padding: 0.5rem 1rem;" onclick="app.openSeriesDetail('${safeSeriesName}', ${page + 1})" ${page >= totalPages ? 'disabled' : ''}>
+                        Sau <i data-feather="chevron-right"></i>
+                    </button>
+                `;
+            } else {
+                pagination.innerHTML = '';
+            }
+        }
 
         this.showView('detail');
         if (window.feather) { try { feather.replace(); } catch(e) { console.warn('Feather error:', e); } }
@@ -2188,84 +2230,114 @@ const app = {
 
         if(tabId === 'feedback') this.fetchAdminFeedback();
         else if(tabId === 'pending') this.fetchPendingBooks();
-        else if(tabId === 'catalog') this.searchAdminCatalog(); // Auto load all when switching tab
+        else if(tabId === 'catalog') this.searchAdminCatalog(1); // Auto load all when switching tab
     },
 
     // ─── ADMIN CATALOG MANAGER ───────────────────────────────────────────────
-    async searchAdminCatalog() {
+    async searchAdminCatalog(page = 1) {
+        if (typeof page !== 'number') page = 1;
+        
         const input = document.getElementById('admin-catalog-search');
         if (!input) return;
         const query = input.value.trim();
 
         const container = document.getElementById('admin-catalog-list');
+        const pagination = document.getElementById('admin-catalog-pagination');
         container.innerHTML = '<div style="text-align:center; padding:3rem; grid-column:1/-1;"><i data-feather="loader" class="spin" style="width:32px;height:32px;"></i></div>';
+        if (pagination) pagination.innerHTML = '';
         if (window.feather) { try { feather.replace(); } catch(e) { console.warn('Feather error:', e); } }
 
         try {
-            let supabaseQuery = supabase.from('catalog').select('*').order('created_at', { ascending: false }).limit(100);
+            const limit = 100;
+            const start = (page - 1) * limit;
+            const end = start + limit - 1;
+
+            let supabaseQuery = supabase.from('catalog').select('*', { count: 'exact' })
+                .order('series', { ascending: true })
+                .order('volume', { ascending: true })
+                .range(start, end);
             
             if (query) {
-                supabaseQuery = supabase.from('catalog').select('*')
+                supabaseQuery = supabase.from('catalog').select('*', { count: 'exact' })
                     .or(`series.ilike.%${query}%,title.ilike.%${query}%`)
                     .order('series', { ascending: true })
                     .order('volume', { ascending: true })
-                    .limit(100);
+                    .range(start, end);
             }
             
-            const { data, error } = await supabaseQuery;
+            const { data, error, count } = await supabaseQuery;
             
             if (error) throw error;
             this.adminCatalogCache = data;
-            this.renderAdminCatalogList(data);
+            this.renderAdminCatalogList(data, count, page);
         } catch (e) {
             console.error('Lỗi tìm kiếm catalog:', e);
             container.innerHTML = '<p style="text-align:center; color:var(--danger); padding:2rem; grid-column:1/-1;">Lỗi khi tải dữ liệu từ Kho chung.</p>';
         }
     },
 
-    renderAdminCatalogList(list) {
+    renderAdminCatalogList(list, count = 0, page = 1) {
         const container = document.getElementById('admin-catalog-list');
+        const pagination = document.getElementById('admin-catalog-pagination');
         if(!container) return;
         container.innerHTML = '';
+        if(pagination) pagination.innerHTML = '';
+
         if(list.length === 0) {
             container.innerHTML = '<p style="text-align:center; color:var(--text-muted); padding:2rem; grid-column:1/-1;">Không tìm thấy bản ghi nào khớp với từ khóa.</p>';
             return;
         }
 
-        list.forEach(c => {
-            const hasCover = c.cover_url && c.cover_url.trim() !== '';
-            const coverHtml = hasCover
-                ? `<img src="${c.cover_url}" alt="${c.title}" loading="lazy" style="width:100%;height:100%;object-fit:cover;">`
-                : `<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.5rem;color:#86efac;font-size:0.75rem;font-weight:500;background:#0f3d21;text-align:center;padding:0.75rem;">
-                       <i data-feather="image" style="width:32px;height:32px;opacity:0.5;"></i>
-                       <span>Không có ảnh bìa</span>
-                   </div>`;
+        container.style.columns = '2';
+        container.style.columnGap = '1.5rem';
 
-            const item = document.createElement('div');
-            item.className = 'volume-card';
+        list.forEach(c => {
             const editionBadge = this.getEditionBadge(c.title);
+            const item = document.createElement('div');
+            item.className = 'catalog-list-item';
+            item.style.breakInside = 'avoid';
+            item.style.marginBottom = '0.75rem';
+            item.style.padding = '0.75rem';
+            item.style.border = '1px solid var(--border)';
+            item.style.borderRadius = '8px';
+            item.style.background = 'var(--surface)';
+            item.style.cursor = 'pointer';
+            item.style.display = 'flex';
+            item.style.alignItems = 'center';
+            item.style.justifyContent = 'space-between';
+            item.onclick = () => this.openCatalogModal(c.id);
+
+            const coverHtml = (c.cover_url && c.cover_url.trim() !== '') 
+                ? `<img src="${c.cover_url}" alt="Cover" style="width:32px;height:45px;object-fit:cover;border-radius:4px;flex-shrink:0;border:1px solid var(--border);">`
+                : `<div style="width:32px;height:45px;border-radius:4px;flex-shrink:0;background:var(--bg-lighter);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;"><i data-feather="image" style="width:16px;height:16px;opacity:0.5;"></i></div>`;
 
             item.innerHTML = `
-                <div class="vol-cover" onclick="app.openCatalogModal('${c.id}')">
+                <div style="flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:flex; align-items:center; gap:0.75rem;">
                     ${coverHtml}
-                    ${editionBadge}
-                </div>
-                <div class="vol-info" style="padding:0.5rem 0.65rem 0.6rem;">
-                    <h4 style="font-size:1rem; font-weight:600; color:var(--card-text); margin:0 0 0.25rem 0; line-height:1.3;
-                                display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
-                                cursor:pointer;"
-                        onclick="app.openCatalogModal('${c.id}')"
-                        title="${c.series || c.title}">${c.series || c.title}</h4>
-                    <div style="font-size:0.85rem; font-weight:600; color:var(--primary); margin-bottom:0.25rem;">Tập ${c.volume || 0}</div>
-                    <div style="font-size:0.75rem; color:var(--card-note); margin-bottom:0.15rem; display:flex; align-items:center; gap:0.25rem;">
-                        <i data-feather="database" style="width:10px;height:10px;"></i>
-                        Kho chung
+                    <div style="display:flex; flex-direction:column; justify-content:center; overflow:hidden;">
+                        <span style="color:var(--text-main); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size: 0.95rem;">${c.title || 'Không có tiêu đề'}</span>
+                        ${editionBadge ? `<div style="margin-top:0.25rem;">${editionBadge}</div>` : ''}
                     </div>
                 </div>
+                <i data-feather="edit-2" style="width:16px;height:16px; color:var(--text-muted); flex-shrink:0; margin-left:0.5rem;"></i>
             `;
             container.appendChild(item);
         });
         if (window.feather) { try { feather.replace(); } catch(e) { console.warn('Feather error:', e); } }
+
+        if (pagination && count > 0) {
+            const totalPages = Math.ceil(count / 100);
+            pagination.innerHTML = `
+                <button class="btn btn-outline" style="padding: 0.5rem 1rem;" onclick="app.searchAdminCatalog(${page - 1})" ${page <= 1 ? 'disabled' : ''}>
+                    <i data-feather="chevron-left"></i> Trước
+                </button>
+                <span style="color:var(--text-main); font-weight:500;">Trang ${page} / ${totalPages}</span>
+                <button class="btn btn-outline" style="padding: 0.5rem 1rem;" onclick="app.searchAdminCatalog(${page + 1})" ${page >= totalPages ? 'disabled' : ''}>
+                    Sau <i data-feather="chevron-right"></i>
+                </button>
+            `;
+            if (window.feather) { try { feather.replace(); } catch(e) { console.warn('Feather error:', e); } }
+        }
     },
 
     openCatalogModal(id) {
