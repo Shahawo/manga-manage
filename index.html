@@ -11,7 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/feather-icons"></script>
     <script src="https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js"></script>
-    
+
     <!-- Flatpickr for Date formatting -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -42,8 +42,18 @@
 
                 <!-- Avatar / Đăng nhập -->
                 <div id="google-btn-wrapper" style="display:flex; align-items:center;">
-                    <button id="btn-google-signin" onclick="app.signInWithGoogle()" style="display:flex;align-items:center;gap:0.5rem;padding:0.5rem 1.25rem;border:1px solid #dadce0;border-radius:99px;background:#fff;cursor:pointer;font-size:0.9rem;font-weight:500;font-family:inherit;color:#3c4043;transition:all 0.2s;">
-                        <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.36-8.16 2.36-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+                    <button id="btn-google-signin" onclick="app.signInWithGoogle()"
+                        style="display:flex;align-items:center;gap:0.5rem;padding:0.5rem 1.25rem;border:1px solid #dadce0;border-radius:99px;background:#fff;cursor:pointer;font-size:0.9rem;font-weight:500;font-family:inherit;color:#3c4043;transition:all 0.2s;">
+                        <svg width="18" height="18" viewBox="0 0 48 48">
+                            <path fill="#EA4335"
+                                d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+                            <path fill="#4285F4"
+                                d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+                            <path fill="#FBBC05"
+                                d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+                            <path fill="#34A853"
+                                d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.36-8.16 2.36-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+                        </svg>
                         Đăng nhập
                     </button>
                 </div>
@@ -115,7 +125,8 @@
         <section id="view-dashboard" class="view active">
             <div class="view-header"
                 style="margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem;">
-                <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: nowrap; flex-shrink: 0; overflow: visible;">
+                <div
+                    style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: nowrap; flex-shrink: 0; overflow: visible;">
                     <h2 style="font-size: 1.5rem; margin: 0; white-space: nowrap; flex-shrink: 0;">Bộ sưu tập</h2>
                     <span id="total-series-count" class="badge"
                         style="background:var(--surface); border: 1px solid var(--border);">0 series</span>
@@ -123,25 +134,34 @@
                         style="background:var(--surface); border: 1px solid var(--border);">0 cuốn</span>
                 </div>
 
-                <div class="view-actions" style="display: flex; gap: 0.75rem; align-items: center; margin-left: auto; flex-wrap: nowrap; flex-shrink: 0;">
+                <div class="view-actions"
+                    style="display: flex; gap: 0.75rem; align-items: center; margin-left: auto; flex-wrap: nowrap; flex-shrink: 0;">
                     <div class="custom-select-container dropdown-wrapper">
                         <button class="custom-select-btn" onclick="app.toggleCustomDropdown('filter-dropdown')">
                             <i data-feather="filter" style="color:var(--text-muted); width: 16px; height: 16px;"></i>
-                            <span id="filter-status-label" style="font-size:0.85rem; font-weight: 500;">Tiến độ (Tất cả)</span>
-                            <i data-feather="chevron-down" style="width: 14px; height: 14px; color: var(--text-muted);"></i>
+                            <span id="filter-status-label" style="font-size:0.85rem; font-weight: 500;">Tiến độ (Tất
+                                cả)</span>
+                            <i data-feather="chevron-down"
+                                style="width: 14px; height: 14px; color: var(--text-muted);"></i>
                         </button>
                         <div id="filter-dropdown" class="user-dropdown custom-select-menu hidden">
-                            <button class="udrop-item" onclick="app.setFilter('all', 'Tiến độ (Tất cả)')"><span>Tiến độ (Tất cả)</span></button>
-                            <button class="udrop-item" onclick="app.setFilter('100', 'Đã đủ bộ (100%)')"><span>Đã đủ bộ (100%)</span></button>
-                            <button class="udrop-item" onclick="app.setFilter('under100', 'Chưa đủ bộ (<100%)')"><span>Chưa đủ bộ (<100%)</span></button>
+                            <button class="udrop-item" onclick="app.setFilter('all', 'Tiến độ (Tất cả)')"><span>Tiến độ
+                                    (Tất cả)</span></button>
+                            <button class="udrop-item" onclick="app.setFilter('100', 'Đã đủ bộ (100%)')"><span>Đã đủ bộ
+                                    (100%)</span></button>
+                            <button class="udrop-item"
+                                onclick="app.setFilter('under100', 'Chưa đủ bộ (<100%)')"><span>Chưa đủ bộ (<100%)<
+                                        /span></button>
                         </div>
                         <input type="hidden" id="filter-status" value="all">
                     </div>
                     <div class="custom-select-container dropdown-wrapper">
                         <button class="custom-select-btn" onclick="app.toggleCustomDropdown('sort-dropdown')">
-                            <i data-feather="bar-chart-2" style="color:var(--text-muted); width: 16px; height: 16px;"></i>
+                            <i data-feather="bar-chart-2"
+                                style="color:var(--text-muted); width: 16px; height: 16px;"></i>
                             <span id="sort-order-label" style="font-size:0.85rem; font-weight: 500;">A → Z</span>
-                            <i data-feather="chevron-down" style="width: 14px; height: 14px; color: var(--text-muted);"></i>
+                            <i data-feather="chevron-down"
+                                style="width: 14px; height: 14px; color: var(--text-muted);"></i>
                         </button>
                         <div id="sort-dropdown" class="user-dropdown custom-select-menu hidden">
                             <button class="udrop-item" onclick="app.setSort('az', 'A → Z')"><span>A → Z</span></button>
@@ -149,7 +169,8 @@
                         </div>
                         <input type="hidden" id="sort-order" value="az">
                     </div>
-                    <button class="btn btn-icon" onclick="app.toggleViewMode()" id="btn-view-mode" title="Đổi chế độ hiển thị"
+                    <button class="btn btn-icon" onclick="app.toggleViewMode()" id="btn-view-mode"
+                        title="Đổi chế độ hiển thị"
                         style="display: flex; align-items: center; justify-content: center; background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow-sm); border-radius: 99px; width: 34px; height: 34px; min-width: unset; padding: 0; flex-shrink: 0; color: var(--text-muted);">
                         <i data-feather="list" id="icon-view-mode" style="width: 16px; height: 16px;"></i>
                     </button>
@@ -211,14 +232,18 @@
         <!-- Admin Panel View -->
         <section id="view-admin" class="view hidden">
             <div class="view-header">
-                <button class="btn btn-icon" onclick="app.showView('dashboard')"><i data-feather="arrow-left"></i> 
+                <button class="btn btn-icon" onclick="app.showView('dashboard')"><i data-feather="arrow-left"></i>
                     <span style="margin-left:0.5rem;">Quay lại</span></button>
                 <h2>Hệ thống Quản trị</h2>
             </div>
-            
+
             <div class="admin-tabs">
-                <button class="admin-tab-btn active" onclick="app.switchAdminTab('pending')" id="tab-btn-pending">Duyệt sách</button>
-                <button class="admin-tab-btn" onclick="app.switchAdminTab('feedback')" id="tab-btn-feedback">Góp ý từ User</button>
+                <button class="admin-tab-btn active" onclick="app.switchAdminTab('pending')" id="tab-btn-pending">Duyệt
+                    sách</button>
+                <button class="admin-tab-btn" onclick="app.switchAdminTab('catalog')" id="tab-btn-catalog">Quản lý
+                    Kho</button>
+                <button class="admin-tab-btn" onclick="app.switchAdminTab('feedback')" id="tab-btn-feedback">Góp ý từ
+                    User</button>
             </div>
 
             <div id="admin-pending-container" class="admin-tab-content active">
@@ -227,13 +252,33 @@
                 </div>
             </div>
 
+            <div id="admin-catalog-container" class="admin-tab-content hidden">
+                <div style="margin-bottom: 1.5rem; display: flex; gap: 0.5rem;">
+                    <div class="search-box" style="flex:1;">
+                        <i data-feather="search"></i>
+                        <input type="text" id="admin-catalog-search"
+                            placeholder="Nhập tên Series hoặc Tiêu đề sách trong kho chung..."
+                            onkeypress="if(event.key === 'Enter') app.searchAdminCatalog()">
+                    </div>
+                    <button class="btn btn-primary" onclick="app.searchAdminCatalog()">
+                        Tìm kiếm
+                    </button>
+                </div>
+                <div id="admin-catalog-list" class="detail-grid">
+                    <p style="text-align:center; color:var(--text-muted); padding:2rem; grid-column:1/-1;">Nhập từ khóa
+                        và bấm Tìm kiếm để tải dữ liệu từ Kho chung.</p>
+                </div>
+            </div>
+
             <div id="admin-feedback-container" class="admin-tab-content hidden">
                 <div id="admin-feedback-list" style="display:flex; flex-direction:column; gap:1rem;">
                     <!-- Danh sách góp ý -->
                 </div>
             </div>
-            
-            <p style="text-align:center; color:var(--text-muted); font-size:0.85rem; margin-top:3rem; padding-bottom:1rem;">Phiên bản 1.3.3</p>
+
+            <p
+                style="text-align:center; color:var(--text-muted); font-size:0.85rem; margin-top:3rem; padding-bottom:1rem;">
+                Phiên bản 1.5.0</p>
         </section>
 
         <!-- Form View -->
@@ -273,8 +318,10 @@
                             <div class="form-row">
                                 <div class="form-group">
                                     <label for="volume">Tập số *</label>
-                                    <input type="number" id="volume" class="input-ctrl" required min="0" max="10000" step="0.5" onkeydown="if(event.key==='-') event.preventDefault();" oninvalid="this.setCustomValidity('Vui lòng nhập Tập số hợp lệ')" oninput="this.setCustomValidity('')"
-                                        placeholder="Ví dụ: 1, 2, 1.5">
+                                    <input type="number" id="volume" class="input-ctrl" required min="0" max="10000"
+                                        step="0.5" onkeydown="if(event.key==='-') event.preventDefault();"
+                                        oninvalid="this.setCustomValidity('Vui lòng nhập Tập số hợp lệ')"
+                                        oninput="this.setCustomValidity('')" placeholder="Ví dụ: 1, 2, 1.5">
                                 </div>
                                 <div class="form-group">
                                     <label for="isbn">ISBN</label>
@@ -287,12 +334,11 @@
                                 <div class="form-group">
                                     <label for="author">Tác giả</label>
                                     <textarea id="author" class="input-ctrl" rows="2"
-                                        placeholder="VD:&#10;Tác giả A&#10;Tác giả B..."></textarea>
+                                        placeholder="Tác giả A&#10;Tác giả B..."></textarea>
                                 </div>
                                 <div class="form-group">
                                     <label for="translator">Dịch giả</label>
-                                    <input type="text" id="translator" class="input-ctrl"
-                                        placeholder="VD: Nguyễn Văn A...">
+                                    <input type="text" id="translator" class="input-ctrl" placeholder="Nguyễn Văn A...">
                                 </div>
                             </div>
 
@@ -327,7 +373,10 @@
                                 </div>
                                 <div class="form-group">
                                     <label for="pages">Số trang</label>
-                                    <input type="number" id="pages" class="input-ctrl" min="1" max="100000" onkeydown="if(event.key==='-') event.preventDefault();" oninvalid="this.setCustomValidity('Số trang phải từ 1 trở lên')" oninput="this.setCustomValidity('')" placeholder="200">
+                                    <input type="number" id="pages" class="input-ctrl" min="1" max="100000"
+                                        onkeydown="if(event.key==='-') event.preventDefault();"
+                                        oninvalid="this.setCustomValidity('Số trang phải từ 1 trở lên')"
+                                        oninput="this.setCustomValidity('')" placeholder="200">
                                 </div>
                             </div>
 
@@ -358,51 +407,51 @@
                         <!-- Cột Phải: Hình ảnh -->
                         <div class="form-cols cover-col">
                             <div class="image-tabs">
-                                <button type="button" class="img-tab-btn active" onclick="app.switchImgTab('cover')">Ảnh
-                                    bìa</button>
-                                <button type="button" class="img-tab-btn" onclick="app.switchImgTab('gift')">Quà tặng
-                                    kèm</button>
+                                <button type="button" class="img-tab-btn active"
+                                    onclick="app.switchImgTab('cover', 'main-')">Ảnh bìa</button>
+                                <button type="button" class="img-tab-btn"
+                                    onclick="app.switchImgTab('gift', 'main-')">Quà tặng kèm</button>
                             </div>
 
                             <!-- Tab Ảnh bìa -->
-                            <div id="tab-cover" class="img-tab-content active">
+                            <div id="main-tab-cover" class="img-tab-content active">
                                 <div class="form-group">
                                     <div style="display:flex; gap:0.5rem; align-items:center;">
-                                        <input type="text" id="coverUrl" class="input-ctrl"
+                                        <input type="text" id="main-coverUrl" class="input-ctrl"
                                             placeholder="https://... hoặc tải File"
-                                            oninput="app.previewImage(this.value, 'cover')">
-                                        <input type="file" id="coverFile" accept="image/*" style="display:none"
-                                            onchange="app.handleFileUpload(this, 'cover')">
+                                            oninput="app.previewImage(this.value, 'cover', 'main-')">
+                                        <input type="file" id="main-coverFile" accept="image/*" style="display:none"
+                                            onchange="app.handleFileUpload(this, 'cover', 'main-')">
                                         <button type="button" class="btn btn-outline"
                                             style="padding:0.6rem 1rem; flex-shrink:0;" title="Tải ảnh lên từ máy"
-                                            onclick="document.getElementById('coverFile').click()">
+                                            onclick="document.getElementById('main-coverFile').click()">
                                             <i data-feather="upload"></i>
                                         </button>
                                     </div>
                                     <p class="help-text">Dán link hoặc tải file ảnh bìa.</p>
                                 </div>
-                                <div class="cover-preview-box" id="cover-preview-box" style="position:relative;">
+                                <div class="cover-preview-box" id="main-cover-preview-box" style="position:relative;">
                                     <i data-feather="image"></i>
                                     <span>Xem trước ảnh bìa</span>
                                 </div>
                             </div>
 
                             <!-- Tab Quà tặng -->
-                            <div id="tab-gift" class="img-tab-content hidden">
+                            <div id="main-tab-gift" class="img-tab-content hidden">
                                 <div class="form-group">
                                     <div style="display:flex; gap:0.5rem; align-items:center;">
-                                        <input type="text" id="giftUrlInput" class="input-ctrl"
+                                        <input type="text" id="main-giftUrlInput" class="input-ctrl"
                                             placeholder="https://... hoặc tải File">
-                                        <input type="file" id="giftFiles" accept="image/*" multiple style="display:none"
-                                            onchange="app.handleGiftFileUpload(this)">
+                                        <input type="file" id="main-giftFiles" accept="image/*" multiple
+                                            style="display:none" onchange="app.handleGiftFileUpload(this, 'main-')">
                                         <button type="button" class="btn btn-outline"
                                             style="padding:0.6rem 1rem; flex-shrink:0;" title="Tải ảnh lên từ máy"
-                                            onclick="document.getElementById('giftFiles').click()">
+                                            onclick="document.getElementById('main-giftFiles').click()">
                                             <i data-feather="upload"></i>
                                         </button>
                                         <button type="button" class="btn btn-primary"
                                             style="padding:0.6rem 1rem; flex-shrink:0;" title="Thêm ảnh này"
-                                            onclick="app.addGiftUrl()">
+                                            onclick="app.addGiftUrl('main-')">
                                             <i data-feather="plus"></i>
                                         </button>
                                     </div>
@@ -410,15 +459,15 @@
                                     </p>
                                 </div>
                                 <!-- Ảnh xem trước lớn -->
-                                <div class="cover-preview-box" id="gift-preview-box" style="position:relative;">
+                                <div class="cover-preview-box" id="main-gift-preview-box" style="position:relative;">
                                     <i data-feather="gift"></i>
                                     <span>Xem trước quà tặng</span>
                                 </div>
-                                <!-- Danh sách thumb ảnh đã thêm -->
-                                <div id="gift-thumbnails"
-                                    style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-top:0.75rem;"></div>
-                                <!-- Lưu URL quà tặng hidden -->
-                                <textarea id="giftUrls" style="display:none"></textarea>
+                                <!-- Danh sách thumbnail -->
+                                <div id="main-gift-thumbnails"
+                                    style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-top:1rem;"></div>
+                                <!-- Ẩn text chứa mảng URL -->
+                                <textarea id="main-giftUrls" class="hidden"></textarea>
                             </div>
                         </div>
                     </div>
@@ -464,20 +513,51 @@
 
         <!-- Pending Book Modal (Admin) -->
         <div id="pending-modal" class="modal-overlay hidden" onclick="if(event.target===this)app.closePendingModal()">
-            <div class="modal-content" style="max-width: 960px; max-height:92vh; display:flex; flex-direction:column; width:95vw;">
-                <div class="modal-header" style="flex-shrink:0;">
-                    <h3 id="pending-modal-title">Xử lý Sách Chờ duyệt</h3>
+            <div class="modal-content"
+                style="max-width: 960px; max-height:92vh; display:flex; flex-direction:column; width:95vw; background:var(--surface); color:var(--text-main);">
+                <div class="modal-header" style="flex-shrink:0; border-bottom:1px solid var(--border);">
+                    <h3 id="pending-modal-title" style="color:var(--text-main);">Xử lý Sách Chờ duyệt</h3>
                     <button class="btn-close" onclick="app.closePendingModal()"><i data-feather="x"></i></button>
                 </div>
                 <div class="modal-body" id="pending-modal-body" style="padding: 1.5rem; overflow-y:auto; flex:1;">
                     <!-- Rendered dynamically by app.js -->
                 </div>
-                <div style="padding:1rem 1.5rem; display:flex; gap:0.75rem; border-top:1px solid var(--border); flex-shrink:0; background:var(--surface);">
-                    <button class="btn btn-primary" style="flex:2; justify-content:center;" onclick="app._runAdminApprove()">
+                <div
+                    style="padding:1rem 1.5rem; display:flex; gap:0.75rem; border-top:1px solid var(--border); flex-shrink:0; background:var(--surface);">
+                    <button class="btn btn-primary" style="flex:2; justify-content:center;"
+                        onclick="app._runAdminApprove()">
                         <i data-feather="check-circle"></i> Duyệt bản ghi này
                     </button>
-                    <button class="btn btn-outline" style="flex:1; color:var(--danger); border-color:var(--danger); justify-content:center;" onclick="app._runAdminReject()">
+                    <button class="btn btn-outline"
+                        style="flex:1; color:var(--danger); border-color:var(--danger); justify-content:center;"
+                        onclick="app._runAdminReject()">
                         <i data-feather="trash-2"></i> Từ chối
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Catalog Edit Modal (Admin) -->
+        <div id="catalog-modal" class="modal-overlay hidden" onclick="if(event.target===this)app.closeCatalogModal()">
+            <div class="modal-content"
+                style="max-width: 960px; max-height:92vh; display:flex; flex-direction:column; width:95vw; background:var(--surface); color:var(--text-main);">
+                <div class="modal-header" style="flex-shrink:0; border-bottom:1px solid var(--border);">
+                    <h3 id="catalog-modal-title" style="color:var(--text-main);">Sửa Sách trong Kho Chung</h3>
+                    <button class="btn-close" onclick="app.closeCatalogModal()"><i data-feather="x"></i></button>
+                </div>
+                <div class="modal-body" id="catalog-modal-body" style="padding: 1.5rem; overflow-y:auto; flex:1;">
+                    <!-- Rendered dynamically by app.js -->
+                </div>
+                <div
+                    style="padding:1rem 1.5rem; display:flex; gap:0.75rem; border-top:1px solid var(--border); flex-shrink:0; background:var(--surface);">
+                    <button class="btn btn-primary" style="flex:2; justify-content:center;"
+                        onclick="app.adminUpdateCatalog()">
+                        <i data-feather="save"></i> Cập nhật Kho Chung
+                    </button>
+                    <button class="btn btn-outline"
+                        style="flex:1; color:var(--danger); border-color:var(--danger); justify-content:center;"
+                        onclick="app.adminDeleteCatalog()">
+                        <i data-feather="trash-2"></i> Xóa khỏi Kho
                     </button>
                 </div>
             </div>
@@ -545,18 +625,27 @@
                         <div class="scan-line"></div>
                     </div>
                     <!-- Fallback UI for non-HTTPS or failed camera -->
-                    <div id="scanner-fallback" class="hidden" style="position: absolute; top:0; left:0; width:100%; height:100%; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #111; padding: 2rem; color: white; text-align: center;">
-                        <i data-feather="camera-off" style="width:48px;height:48px;color:#f87171;margin-bottom:1rem;"></i>
-                        <p style="margin-bottom: 1.5rem; color: #fca5a5;">Không thể xem trực tiếp Camera.<br/>Bạn hãy bấm nút dưới để chụp nha.</p>
-                        <button class="btn btn-outline" style="color: white; border-color: var(--primary); background: var(--primary); padding: 0.8rem 1.5rem;" onclick="document.getElementById('barcode-file-input').click()">Mở máy ảnh / Chọn ảnh</button>
-                        <input type="file" id="barcode-file-input" accept="image/*" capture="environment" style="display:none;" onchange="app.handleBarcodeUpload(event)">
+                    <div id="scanner-fallback" class="hidden"
+                        style="position: absolute; top:0; left:0; width:100%; height:100%; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #111; padding: 2rem; color: white; text-align: center;">
+                        <i data-feather="camera-off"
+                            style="width:48px;height:48px;color:#f87171;margin-bottom:1rem;"></i>
+                        <p style="margin-bottom: 1.5rem; color: #fca5a5;">Không thể xem trực tiếp Camera.<br />Bạn hãy
+                            bấm nút dưới để chụp nha.</p>
+                        <button class="btn btn-outline"
+                            style="color: white; border-color: var(--primary); background: var(--primary); padding: 0.8rem 1.5rem;"
+                            onclick="document.getElementById('barcode-file-input').click()">Mở máy ảnh / Chọn
+                            ảnh</button>
+                        <input type="file" id="barcode-file-input" accept="image/*" capture="environment"
+                            style="display:none;" onchange="app.handleBarcodeUpload(event)">
                     </div>
                 </div>
                 <div style="padding: 1rem; text-align: center; background: #111;">
-                    <p style="color: #aaa; font-size: 0.9rem; margin-bottom: 0.5rem;" id="scanner-hint-text">Cố gắng giữ điện thoại thẳng và ở nơi đủ sáng.</p>
+                    <p style="color: #aaa; font-size: 0.9rem; margin-bottom: 0.5rem;" id="scanner-hint-text">Cố gắng giữ
+                        điện thoại thẳng và ở nơi đủ sáng.</p>
                     <div style="display:flex; justify-content:center; gap:1rem;">
                         <button class="btn btn-outline" id="btn-capture-live" onclick="app.captureBarcode()"
-                            style="color: white; border-color: var(--primary); background: var(--primary); padding: 0.6rem 2rem;">Chụp Ảnh</button>
+                            style="color: white; border-color: var(--primary); background: var(--primary); padding: 0.6rem 2rem;">Chụp
+                            Ảnh</button>
                         <button class="btn btn-secondary" onclick="app.stopBarcodeScanner()"
                             style="color: white; border-color: #555;">Hủy</button>
                     </div>
@@ -572,7 +661,8 @@
                     <h3>Tìm thấy sách!</h3>
                     <button class="btn-close" onclick="app.closeBookPreview()"><i data-feather="x"></i></button>
                 </div>
-                <div class="modal-body" style="padding: 1.5rem; text-align: center; display: flex; flex-direction: column;">
+                <div class="modal-body"
+                    style="padding: 1.5rem; text-align: center; display: flex; flex-direction: column;">
                     <img id="preview-cover" src="" alt="Cover"
                         style="width: 120px; height: 170px; object-fit: cover; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); margin-bottom: 1rem; display: none; margin-left: auto; margin-right: auto;">
                     <h2 id="preview-title"
@@ -607,14 +697,17 @@
                     <h3>Gửi góp ý & Báo lỗi</h3>
                     <button class="btn-close" onclick="app.closeFeedbackModal()"><i data-feather="x"></i></button>
                 </div>
-                <div class="modal-body" style="padding: 1.5rem; display: flex; flex-direction: column; align-items: stretch; width: 100%;">
+                <div class="modal-body"
+                    style="padding: 1.5rem; display: flex; flex-direction: column; align-items: stretch; width: 100%;">
                     <div class="form-group" style="margin-bottom: 1.25rem; width: 100%;">
                         <label for="fb-title">Tiêu đề (không bắt buộc)</label>
-                        <input type="text" id="fb-title" class="input-ctrl" placeholder="VD: Góp ý tính năng mới, Báo lỗi...">
+                        <input type="text" id="fb-title" class="input-ctrl"
+                            placeholder="VD: Góp ý tính năng mới, Báo lỗi...">
                     </div>
                     <div class="form-group" style="margin-bottom: 0.5rem; width: 100%; flex: 1;">
                         <label for="fb-content">Nội dung góp ý *</label>
-                        <textarea id="fb-content" class="input-ctrl" rows="12" placeholder="Mô tả chi tiết ý kiến của bạn để Admin cải thiện nhé!"></textarea>
+                        <textarea id="fb-content" class="input-ctrl" rows="12"
+                            placeholder="Mô tả chi tiết ý kiến của bạn để Admin cải thiện nhé!"></textarea>
                     </div>
                 </div>
                 <div style="padding:0 1.5rem 1.5rem; display:flex; justify-content:flex-end; gap: 0.75rem;">
@@ -627,8 +720,8 @@
         </div>
     </main>
 
-    <script type="module" src="app.js?v=1.4.13"></script>
-    
+    <script type="module" src="app.js?v=1.5.0"></script>
+
 </body>
 
 </html>
