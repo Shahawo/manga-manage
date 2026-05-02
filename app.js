@@ -2103,6 +2103,7 @@ const app = {
             this.showToast('Đã duyệt và thêm vào kho!');
             this.closePendingModal();
             this._removePendingFromUI(id);
+            this.fullCatalogCache = null;
         } catch(e) {
             console.error(e);
             this.showToast('Lỗi khi duyệt sách!', 'error');
@@ -2234,46 +2235,62 @@ const app = {
     },
 
     // ─── ADMIN CATALOG MANAGER ───────────────────────────────────────────────
+    onAdminCatalogSearchInput(value) {
+        clearTimeout(this._adminSearchTimeout);
+        this._adminSearchTimeout = setTimeout(() => {
+            this.searchAdminCatalog(1);
+        }, 300);
+    },
+
     async searchAdminCatalog(page = 1) {
         if (typeof page !== 'number') page = 1;
         
         const input = document.getElementById('admin-catalog-search');
         if (!input) return;
-        const query = input.value.trim();
+        const query = input.value.trim().toLowerCase();
 
         const container = document.getElementById('admin-catalog-list');
         const pagination = document.getElementById('admin-catalog-pagination');
-        container.innerHTML = '<div style="text-align:center; padding:3rem; grid-column:1/-1;"><i data-feather="loader" class="spin" style="width:32px;height:32px;"></i></div>';
-        if (pagination) pagination.innerHTML = '';
-        if (window.feather) { try { feather.replace(); } catch(e) { console.warn('Feather error:', e); } }
+        
+        if (!this.fullCatalogCache) {
+            container.innerHTML = '<div style="text-align:center; padding:3rem; grid-column:1/-1;"><i data-feather="loader" class="spin" style="width:32px;height:32px;"></i><p>Đang tải dữ liệu Kho chung...</p></div>';
+            if (pagination) pagination.innerHTML = '';
+            if (window.feather) { try { feather.replace(); } catch(e) { console.warn('Feather error:', e); } }
 
-        try {
-            const limit = 100;
-            const start = (page - 1) * limit;
-            const end = start + limit - 1;
-
-            let supabaseQuery = supabase.from('catalog').select('*', { count: 'exact' })
-                .order('series', { ascending: true })
-                .order('volume', { ascending: true })
-                .range(start, end);
-            
-            if (query) {
-                supabaseQuery = supabase.from('catalog').select('*', { count: 'exact' })
-                    .or(`series.ilike.%${query}%,title.ilike.%${query}%`)
-                    .order('series', { ascending: true })
-                    .order('volume', { ascending: true })
-                    .range(start, end);
+            try {
+                const { data, error } = await supabase.from('catalog').select('*').limit(10000).order('series', { ascending: true }).order('volume', { ascending: true });
+                if (error) throw error;
+                this.fullCatalogCache = data;
+            } catch (e) {
+                console.error('Lỗi tìm kiếm catalog:', e);
+                container.innerHTML = '<p style="text-align:center; color:var(--danger); padding:2rem; grid-column:1/-1;">Lỗi khi tải dữ liệu từ Kho chung.</p>';
+                return;
             }
-            
-            const { data, error, count } = await supabaseQuery;
-            
-            if (error) throw error;
-            this.adminCatalogCache = data;
-            this.renderAdminCatalogList(data, count, page);
-        } catch (e) {
-            console.error('Lỗi tìm kiếm catalog:', e);
-            container.innerHTML = '<p style="text-align:center; color:var(--danger); padding:2rem; grid-column:1/-1;">Lỗi khi tải dữ liệu từ Kho chung.</p>';
         }
+
+        let matchedItems = this.fullCatalogCache;
+        if (query.length > 0) {
+            const queryWords = query.split(/[\s\-]+/).filter(Boolean);
+            
+            matchedItems = this.fullCatalogCache.filter(c => {
+                const cIsbnStr = c.isbns ? c.isbns.join('').replace(/[\s\-]/g, '') : '';
+                const qIsbnStr = query.replace(/[\s\-]/g, '');
+                const matchIsbn = cIsbnStr && qIsbnStr.length >= 6 && cIsbnStr.includes(qIsbnStr);
+                
+                const searchable = `${c.title || ''} ${c.series || ''} ${c.volume ? 'tập ' + c.volume : ''} ${c.author || ''} ${c.translator || ''}`.toLowerCase();
+                const matchText = queryWords.length > 0 && queryWords.every(w => searchable.includes(w));
+
+                return matchText || matchIsbn;
+            });
+        }
+
+        const count = matchedItems.length;
+        const limit = 100;
+        const start = (page - 1) * limit;
+        const pagedData = matchedItems.slice(start, start + limit);
+
+        this.adminCatalogCache = pagedData;
+        this.renderAdminCatalogList(pagedData, count, page);
     },
 
     renderAdminCatalogList(list, count = 0, page = 1) {
@@ -2560,6 +2577,7 @@ const app = {
 
             this.showToast('Cập nhật Kho chung thành công!');
             this.closeCatalogModal();
+            this.fullCatalogCache = null;
             // Refresh list
             this.searchAdminCatalog();
         } catch(e) {
@@ -2585,6 +2603,7 @@ const app = {
             this.showToast('Đã xóa sách khỏi Kho chung!');
             this.closeCatalogModal();
             // Remove from cache and re-render
+            if (this.fullCatalogCache) this.fullCatalogCache = this.fullCatalogCache.filter(c => c.id !== id);
             this.adminCatalogCache = this.adminCatalogCache.filter(c => c.id !== id);
             this.renderAdminCatalogList(this.adminCatalogCache);
         } catch(e) {
