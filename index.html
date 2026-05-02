@@ -193,12 +193,19 @@
                     <i data-feather="arrow-left"></i> Quay lại
                 </button>
                 <h2 id="detail-series-title">Tên Series</h2>
-                <div class="view-actions">
+                <div class="view-actions" style="display:flex; align-items:center; gap:0.5rem;">
                     <span id="detail-volume-count" class="badge">0 tập</span>
+                    <button class="btn btn-icon" onclick="app.toggleDetailViewMode()" id="btn-detail-view-mode"
+                        title="Đổi chế độ hiển thị"
+                        style="display: flex; align-items: center; justify-content: center; background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow-sm); border-radius: 99px; width: 34px; height: 34px; min-width: unset; padding: 0; flex-shrink: 0; color: var(--text-muted);">
+                        <i data-feather="list" id="icon-detail-view-mode" style="width: 16px; height: 16px;"></i>
+                    </button>
                 </div>
             </div>
             <div class="volumes-list" id="volumes-list">
                 <!-- Volumes will be listed here -->
+            </div>
+            <div id="series-detail-pagination" style="display:flex; justify-content:center; align-items:center; gap:1rem; margin-top:1.5rem; padding-bottom: 2rem;">
             </div>
         </section>
 
@@ -264,9 +271,11 @@
                         Tìm kiếm
                     </button>
                 </div>
-                <div id="admin-catalog-list" class="detail-grid">
+                <div id="admin-catalog-list">
                     <p style="text-align:center; color:var(--text-muted); padding:2rem; grid-column:1/-1;">Nhập từ khóa
                         và bấm Tìm kiếm để tải dữ liệu từ Kho chung.</p>
+                </div>
+                <div id="admin-catalog-pagination" style="display:flex; justify-content:center; align-items:center; gap:1rem; margin-top:1.5rem; padding-bottom: 2rem;">
                 </div>
             </div>
 
@@ -278,7 +287,7 @@
 
             <p
                 style="text-align:center; color:var(--text-muted); font-size:0.85rem; margin-top:3rem; padding-bottom:1rem;">
-                Phiên bản 1.5.0</p>
+                Phiên bản 1.5.1</p>
         </section>
 
         <!-- Form View -->
@@ -720,7 +729,7 @@
         </div>
     </main>
 
-    <script type="module" src="app.js?v=1.5.0"></script>
+    <script type="module" src="app.js?v=1.5.1"></script>
 
 </body>
 
