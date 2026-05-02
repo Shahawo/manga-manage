@@ -560,6 +560,61 @@ a {
     cursor: pointer;
 }
 
+/* Detail Grid List View overrides */
+.detail-grid.list-view {
+    display: block;
+    columns: 2;
+    column-gap: 1.5rem;
+}
+
+.detail-grid.list-view .volume-card {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-sm);
+    height: auto;
+    break-inside: avoid;
+    margin-bottom: 0.75rem;
+}
+
+.detail-grid.list-view .vol-cover {
+    width: 48px;
+    height: 72px;
+    flex-shrink: 0;
+    aspect-ratio: auto;
+    border-right: 1px solid var(--border);
+}
+
+.detail-grid.list-view .vol-info {
+    flex: 1;
+    padding: 0.5rem 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.detail-grid.list-view .vol-top {
+    margin-bottom: 0.2rem;
+}
+
+.detail-grid.list-view .vol-top .vol-title {
+    font-size: 1rem;
+}
+
+.detail-grid.list-view .edition-badge {
+    position: static;
+    margin-left: 0.5rem;
+    display: inline-block;
+    box-shadow: none;
+    padding: 1px 6px;
+}
+
+.detail-grid.list-view .vol-note-italic {
+    display: block;
+    white-space: normal;
+}
+
 .dropdown-wrapper {
     position: relative;
 }
