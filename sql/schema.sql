@@ -348,6 +348,54 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- ============================================================
+-- 15. BẢNG SERIES_METADATA (Admin quản lý tổng số tập hệ thống)
+CREATE TABLE IF NOT EXISTS public.series_metadata (
+    series TEXT PRIMARY KEY,
+    total_volumes NUMERIC NOT NULL DEFAULT 0,
+    status TEXT DEFAULT 'ongoing',
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+
+ALTER TABLE public.series_metadata ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Authenticated users can view series_metadata" ON public.series_metadata
+    FOR SELECT USING (auth.role() = 'authenticated');
+
+CREATE POLICY "Admins can insert series_metadata" ON public.series_metadata
+    FOR INSERT WITH CHECK (is_admin());
+
+CREATE POLICY "Admins can update series_metadata" ON public.series_metadata
+    FOR UPDATE USING (is_admin()) WITH CHECK (is_admin());
+
+CREATE POLICY "Admins can delete series_metadata" ON public.series_metadata
+    FOR DELETE USING (is_admin());
+
+
+-- ============================================================
+-- 16. BẢNG USER_SERIES_SETTINGS (User tuỳ chỉnh số tập mục tiêu)
+CREATE TABLE IF NOT EXISTS public.user_series_settings (
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    series TEXT NOT NULL,
+    target_volumes NUMERIC NOT NULL DEFAULT 0,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
+    PRIMARY KEY (user_id, series)
+);
+
+ALTER TABLE public.user_series_settings ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view their own series settings" ON public.user_series_settings
+    FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert their own series settings" ON public.user_series_settings
+    FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update their own series settings" ON public.user_series_settings
+    FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete their own series settings" ON public.user_series_settings
+    FOR DELETE USING (auth.uid() = user_id);
+
+-- ============================================================
 -- GRANTS: Cấp quyền cho role 'authenticated'
 GRANT USAGE ON SCHEMA public TO anon;
 GRANT USAGE ON SCHEMA public TO authenticated;
@@ -357,6 +405,8 @@ GRANT SELECT ON TABLE catalog TO authenticated;
 GRANT SELECT, INSERT, UPDATE ON TABLE pending_catalog TO authenticated;
 GRANT SELECT, INSERT ON TABLE feedback TO authenticated;
 GRANT SELECT ON TABLE admin_users TO authenticated;
+GRANT ALL ON TABLE public.series_metadata TO authenticated, anon, service_role;
+GRANT ALL ON TABLE public.user_series_settings TO authenticated, anon, service_role;
 
 -- ============================================================
 -- STORAGE: Tạo bucket 'covers' (chạy trong Supabase Dashboard)
