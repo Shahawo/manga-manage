@@ -2,6 +2,8 @@ import { supabase } from './supabase-client.js';
 
 const app = {
     data: [],
+    seriesMetadata: {},
+    userSeriesSettings: {},
     currentSeries: null,
     user: null,
     viewMode: localStorage.getItem('viewMode') || 'grid',
@@ -354,6 +356,21 @@ const app = {
                 catalogId: m.catalog_id,
                 addedAt: m.added_at
             }));
+
+            // Fetch extra tracking data
+            try {
+                const [metaRes, userRes] = await Promise.all([
+                    supabase.from('series_metadata').select('*'),
+                    supabase.from('user_series_settings').select('*')
+                ]);
+                this.seriesMetadata = {};
+                if (metaRes.data) metaRes.data.forEach(x => this.seriesMetadata[x.series] = x);
+                this.userSeriesSettings = {};
+                if (userRes.data) userRes.data.forEach(x => this.userSeriesSettings[x.series] = x);
+            } catch (err) {
+                console.warn('Không thể tải metadata tracking:', err);
+            }
+
             this.renderDashboard();
         } catch (err) {
             console.error('Lỗi tải dữ liệu:', err);
@@ -555,7 +572,15 @@ const app = {
         const sortOrder = sortEl ? sortEl.value : 'az';
         return Object.values(groups).map(g => {
             const count = g.uniqueVolumes.size;
-            const total = Math.max(count, Math.ceil(g.maxVolume));
+            let total = Math.max(count, Math.ceil(g.maxVolume));
+
+            if (this.seriesMetadata && this.seriesMetadata[g.title] && this.seriesMetadata[g.title].total_volumes > 0) {
+                total = Math.max(total, this.seriesMetadata[g.title].total_volumes);
+            }
+            if (this.userSeriesSettings && this.userSeriesSettings[g.title] && this.userSeriesSettings[g.title].target_volumes > 0) {
+                total = Math.max(count, this.userSeriesSettings[g.title].target_volumes);
+            }
+
             const percent = total > 0 ? Math.round((count / total) * 100) : 0;
             return {
                 title: g.title || 'Không có tên Series',
@@ -662,7 +687,15 @@ const app = {
         }
 
         seriesList.forEach(sg => {
-            const coverUrl = sg.latestVolume.coverUrl || 'https://via.placeholder.com/200x300.png?text=No+Cover';
+            const hasCover = sg.latestVolume.coverUrl && sg.latestVolume.coverUrl.trim() !== '';
+            const safeTitle = sg.title.replace(/'/g, "&#39;").replace(/"/g, "&quot;");
+            const coverHtml = hasCover 
+                ? `<img src="${sg.latestVolume.coverUrl}" alt="${safeTitle}" loading="lazy" style="width:100%;height:100%;object-fit:cover;" onerror="this.outerHTML='<div style=\\'width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.5rem;color:#86efac;font-size:0.85rem;font-weight:500;background:#0f3d21;text-align:center;padding:1rem;\\'><i data-feather=\\'image\\' style=\\'width:40px;height:40px;opacity:0.5;\\'></i><span>Không có bìa</span></div>'">`
+                : `<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.5rem;color:#86efac;font-size:0.85rem;font-weight:500;background:#0f3d21;text-align:center;padding:1rem;">
+                       <i data-feather="image" style="width:40px;height:40px;opacity:0.5;"></i>
+                       <span>Không có bìa</span>
+                   </div>`;
+
             const percentColor = sg.percent < 100 ? '#ea580c' : 'var(--primary)';
             const percentBg = sg.percent < 100 ? '#ffedd5' : 'var(--border)';
             const card = document.createElement('div');
@@ -670,7 +703,7 @@ const app = {
             card.onclick = () => this.openSeriesDetail(sg.title);
             card.innerHTML = `
                 <div class="series-cover">
-                    <img src="${coverUrl}" alt="${sg.title}" loading="lazy">
+                    ${coverHtml}
                 </div>
                 <div class="series-info">
                     <h3 class="series-title" title="${sg.title}">${sg.title}</h3>
@@ -742,10 +775,37 @@ const app = {
         const uniqueVolNumbers = new Set(allVolumes.map(v => Number(v.volume) || 0));
         const maxVol = Math.max(0, ...uniqueVolNumbers);
         const owned = uniqueVolNumbers.size;
-        const total = Math.max(owned, Math.ceil(maxVol));
+        
+        let total = Math.max(owned, Math.ceil(maxVol));
+        if (this.seriesMetadata && this.seriesMetadata[seriesName] && this.seriesMetadata[seriesName].total_volumes > 0) {
+            total = Math.max(total, this.seriesMetadata[seriesName].total_volumes);
+        }
+        if (this.userSeriesSettings && this.userSeriesSettings[seriesName] && this.userSeriesSettings[seriesName].target_volumes > 0) {
+            total = Math.max(owned, this.userSeriesSettings[seriesName].target_volumes);
+        }
         const percent = total > 0 ? Math.round((owned / total) * 100) : 0;
 
-        document.getElementById('detail-volume-count').textContent = `Sở hữu ${owned}/${total} tập (${percent}%)`;
+        // Escape title for string argument
+        const safeSeriesName = seriesName.replace(/'/g, "\\'");
+        const badgeEl = document.getElementById('detail-volume-count');
+        badgeEl.textContent = `Sở hữu ${owned}/${total} tập (${percent}%)`;
+        
+        if (percent >= 100) {
+            badgeEl.style.background = 'var(--primary)';
+            badgeEl.style.color = '#fff';
+            badgeEl.style.border = '1px solid var(--primary)';
+        } else {
+            const orangeColor = 'rgba(234, 88, 12, 0.25)'; // Màu cam nhạt
+            const emptyColor = 'var(--surface)'; // Dùng màu nền mờ nhạt
+            badgeEl.style.background = `linear-gradient(to right, ${orangeColor} ${percent}%, ${emptyColor} ${percent}%)`;
+            badgeEl.style.color = 'var(--text-main)';
+            badgeEl.style.border = '1px solid var(--border)';
+        }
+        
+        const btnEditTarget = document.getElementById('btn-edit-target');
+        if (btnEditTarget) {
+            btnEditTarget.onclick = () => app.editSeriesTarget(seriesName);
+        }
 
         if (!this.detailViewMode) this.detailViewMode = localStorage.getItem('detailViewMode') || 'grid';
 
@@ -823,6 +883,83 @@ const app = {
 
         this.showView('detail');
         if (window.feather) { try { feather.replace(); } catch(e) { console.warn('Feather error:', e); } }
+    },
+
+    async editSeriesTarget(seriesName) {
+        if (!this.user) {
+            this.showToast('Bạn cần đăng nhập để thiết lập mục tiêu cá nhân!', 'error');
+            return;
+        }
+        
+        let currentTarget = 0;
+        if (this.userSeriesSettings && this.userSeriesSettings[seriesName]) {
+            currentTarget = this.userSeriesSettings[seriesName].target_volumes || 0;
+        }
+
+        const input = prompt(`Thiết lập tổng số tập mục tiêu cá nhân cho bộ "${seriesName}"\n\n(Nhập 0 để sử dụng số tập mặc định của Kho hệ thống)`, currentTarget);
+        if (input === null) return;
+        
+        const targetVol = parseInt(input);
+        if (isNaN(targetVol) || targetVol < 0) {
+            alert('Vui lòng nhập một số hợp lệ!');
+            return;
+        }
+
+        this.showLoading('Đang lưu thiết lập...');
+        try {
+            let success = false;
+            let lastError = null;
+            
+            for (let i = 0; i < 2; i++) {
+                try {
+                    const controller = new AbortController();
+                    const timeout = ms => new Promise((_, reject) => setTimeout(() => { controller.abort(); reject(new Error('Timeout')); }, ms));
+                    
+                    const { error } = await Promise.race([
+                        supabase.from('user_series_settings').upsert({
+                            user_id: this.user.id,
+                            series: seriesName,
+                            target_volumes: targetVol,
+                            updated_at: new Date().toISOString()
+                        }, { onConflict: 'user_id, series' }).abortSignal(controller.signal),
+                        timeout(8000) // Timeout 8s cho mỗi lần thử
+                    ]);
+                    
+                    if (error) throw error;
+                    success = true;
+                    break;
+                } catch (err) {
+                    lastError = err;
+                    console.warn(`Lưu mục tiêu lần ${i+1} thất bại:`, err);
+                    if (i === 0) await new Promise(r => setTimeout(r, 1000));
+                }
+            }
+            
+            if (!success) throw lastError;
+            
+            // Cập nhật lại state cục bộ
+            if (!this.userSeriesSettings) this.userSeriesSettings = {};
+            this.userSeriesSettings[seriesName] = {
+                user_id: this.user.id,
+                series: seriesName,
+                target_volumes: targetVol
+            };
+            
+            this.showToast('Đã lưu mục tiêu cá nhân!');
+            
+            // Render lại UI nếu đang ở trang chi tiết hoặc trang chủ
+            const isDetailView = document.getElementById('view-detail').classList.contains('active');
+            if (isDetailView && this.currentSeries === seriesName) {
+                this.openSeriesDetail(seriesName);
+            } else {
+                this.renderDashboard();
+            }
+        } catch (e) {
+            console.error(e);
+            this.showToast('Lỗi khi lưu mục tiêu: ' + e.message, 'error');
+        } finally {
+            this.hideLoading();
+        }
     },
 
     getEditionBadge(title) {
@@ -1269,13 +1406,13 @@ const app = {
 
         this.showLoading(editId ? 'Đang cập nhật...' : 'Đang lưu...');
         try {
-            // Hàm tiện ích tạo timeout 15 giây
-            const timeout = (ms) => new Promise((_, reject) => setTimeout(() => reject(new Error('Yêu cầu quá hạn (Timeout)')), ms));
+            const controller = new AbortController();
+            const timeout = ms => new Promise((_, reject) => setTimeout(() => { controller.abort(); reject(new Error('Timeout')); }, ms));
 
             if (editId) {
-                // Sử dụng Promise.race để tự động ngắt nếu mạng treo
+                // Sử dụng kết hợp Promise.race và AbortController
                 const { data, error } = await Promise.race([
-                    supabase.from('manga').update(mangaData).eq('id', editId).select(),
+                    supabase.from('manga').update(mangaData).eq('id', editId).select().abortSignal(controller.signal),
                     timeout(15000)
                 ]);
                 
@@ -1309,9 +1446,9 @@ const app = {
                     };
                 }
             } else {
-                // Sử dụng Promise.race cho thêm mới
+                // Sử dụng kết hợp Promise.race và AbortController cho thêm mới
                 const { data, error } = await Promise.race([
-                    supabase.from('manga').insert(mangaData).select(),
+                    supabase.from('manga').insert(mangaData).select().abortSignal(controller.signal),
                     timeout(15000)
                 ]);
                 
@@ -1746,8 +1883,13 @@ const app = {
     },
 
     async fetchPendingBooks() {
+        const controller = new AbortController();
+        const timeout = ms => new Promise((_, reject) => setTimeout(() => { controller.abort(); reject(new Error('Timeout')); }, ms));
         try {
-            const { data, error } = await supabase.rpc('get_all_pending');
+            const { data, error } = await Promise.race([
+                supabase.rpc('get_all_pending').abortSignal(controller.signal),
+                timeout(15000)
+            ]);
             if (error) throw error;
             const list = data.map(p => ({...p, coverUrl: p.cover_url, giftUrls: p.gift_urls, publishDate: p.publish_date, submittedName: p.submitted_name}));
             this.adminCache = list;
@@ -1764,11 +1906,17 @@ const app = {
     },
 
     async checkDuplicate(pendingBook) {
+        const controller = new AbortController();
+        const timeout = ms => new Promise((_, reject) => setTimeout(() => { controller.abort(); reject(new Error('Timeout')); }, ms));
         try {
-            const { data } = await supabase.from('catalog').select('*')
-                .ilike('series', pendingBook.series)
-                .ilike('title', pendingBook.title)
-                .eq('volume', pendingBook.volume || 0);
+            const { data } = await Promise.race([
+                supabase.from('catalog').select('*')
+                    .ilike('series', pendingBook.series)
+                    .ilike('title', pendingBook.title)
+                    .eq('volume', pendingBook.volume || 0)
+                    .abortSignal(controller.signal),
+                timeout(10000)
+            ]);
             return data || [];
         } catch (e) { return []; }
     },
@@ -1838,35 +1986,18 @@ const app = {
         modal.classList.add('show');
         if (window.feather) { try { feather.replace(); } catch(e) { console.warn('Feather error:', e); } }
 
-        const duplicates = await this.checkDuplicate(p);
+        // Fix: Render ngay lập tức để không bị block UI
         const coverUrl = p.coverUrl || '';
 
         // Danh sách tất cả sách trong kho cho chức năng Gộp
         const datalistOptions = this.data.map(m => `<option value="${m.id}">${m.series} — ${m.title} (Tập ${m.volume || 0})</option>`).join('');
 
-        let dupHtml = '';
-        if(duplicates.length > 0) {
-            dupHtml = `<div class="duplicate-warning" style="margin-bottom:1.5rem; background: rgba(245, 158, 11, 0.1); border: 1px solid #f59e0b; padding: 1rem; border-radius: 10px;">
-                <strong style="color:#d97706; display:block; margin-bottom:0.5rem;">⚠️ Phát hiện ${duplicates.length} bản có thể trùng lặp:</strong>
-                <div style="display:flex; flex-direction:column; gap:0.5rem;">
-                ${duplicates.map(d => `
-                    <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.85rem; background:var(--surface); padding:8px 12px; border-radius:6px; border:1px solid var(--border);">
-                        <span><strong>[${d.series}]</strong> ${d.title} - Tập ${d.volume}</span>
-                        <button class="btn btn-outline" style="padding:4px 10px; font-size:0.75rem; min-height:auto;" onclick="app.quickMerge('${p.id}', '${d.id}')">
-                            <i data-feather="git-merge" style="width:12px; height:12px;"></i> Gộp nhanh
-                        </button>
-                    </div>
-                `).join('')}
-                </div>
-            </div>`;
-        }
-
         modalBody.innerHTML = `
-            ${dupHtml}
+            <div id="duplicate-container-${p.id}"></div>
             <div class="form-grid" style="display:flex; gap:2rem; align-items:flex-start;">
 
                 <!-- Cột TRÁI: Form chỉnh sửa -->
-                <div class="form-cols" style="flex:1; min-width:0;">
+                <div class="form-cols" style="flex: 1.5; min-width:0;">
                     <div class="form-group">
                         <label>Series</label>
                         <input type="text" id="edit-series-${p.id}" class="input-ctrl" value="${p.series || ''}">
@@ -1946,7 +2077,7 @@ const app = {
 
                 <!-- Cột PHẢI: ảnh bìa + Gộp ISBN -->
                 <!-- Cột PHẢI: ảnh bìa + Gộp ISBN -->
-                <div class="form-cols cover-col" style="width:280px; flex-shrink:0;">
+                <div class="form-cols cover-col" style="flex: 1;">
                     <div class="image-tabs">
                         <button type="button" class="img-tab-btn active" onclick="app.switchImgTab('cover', 'pending-')">Ảnh bìa</button>
                         <button type="button" class="img-tab-btn" onclick="app.switchImgTab('gift', 'pending-')">Quà tặng kèm</button>
@@ -2032,6 +2163,30 @@ const app = {
         } else {
             this.previewGiftImage('', 'pending-');
         }
+
+        // Asynchronously check for duplicates AFTER rendering the modal
+        this.checkDuplicate(p).then(duplicates => {
+            if (this._pendingActiveId !== p.id) return; // Modal changed
+            if (duplicates && duplicates.length > 0) {
+                const dupContainer = document.getElementById(`duplicate-container-${p.id}`);
+                if (dupContainer) {
+                    dupContainer.innerHTML = `<div class="duplicate-warning" style="margin-bottom:1.5rem; background: rgba(245, 158, 11, 0.1); border: 1px solid #f59e0b; padding: 1rem; border-radius: 10px;">
+                        <strong style="color:#d97706; display:block; margin-bottom:0.5rem;">⚠️ Phát hiện ${duplicates.length} bản có thể trùng lặp:</strong>
+                        <div style="display:flex; flex-direction:column; gap:0.5rem;">
+                        ${duplicates.map(d => `
+                            <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.85rem; background:var(--surface); padding:8px 12px; border-radius:6px; border:1px solid var(--border);">
+                                <span><strong>[${d.series}]</strong> ${d.title} - Tập ${d.volume}</span>
+                                <button class="btn btn-outline" style="padding:4px 10px; font-size:0.75rem; min-height:auto;" onclick="app.quickMerge('${p.id}', '${d.id}')">
+                                    <i data-feather="git-merge" style="width:12px; height:12px;"></i> Gộp nhanh
+                                </button>
+                            </div>
+                        `).join('')}
+                        </div>
+                    </div>`;
+                    if (window.feather) { try { feather.replace(); } catch(e) { console.warn('Feather error:', e); } }
+                }
+            }
+        }).catch(e => console.warn('Lỗi check trùng lặp:', e));
     },
 
     _runAdminApprove() {
@@ -2257,15 +2412,40 @@ const app = {
             if (pagination) pagination.innerHTML = '';
             if (window.feather) { try { feather.replace(); } catch(e) { console.warn('Feather error:', e); } }
 
-            try {
-                const { data, error } = await supabase.from('catalog').select('*').limit(10000).order('series', { ascending: true }).order('volume', { ascending: true });
-                if (error) throw error;
-                this.fullCatalogCache = data;
-            } catch (e) {
-                console.error('Lỗi tìm kiếm catalog:', e);
-                container.innerHTML = '<p style="text-align:center; color:var(--danger); padding:2rem; grid-column:1/-1;">Lỗi khi tải dữ liệu từ Kho chung.</p>';
+            let fullData = null;
+            let lastError = null;
+
+            for (let i = 0; i < 3; i++) {
+                try {
+                    const controller = new AbortController();
+                    // Lần đầu chờ 10s, lần 2 chờ 15s, lần 3 chờ 20s
+                    const currentTimeout = i === 0 ? 10000 : (i === 1 ? 15000 : 20000);
+                    const timeout = ms => new Promise((_, reject) => setTimeout(() => { controller.abort(); reject(new Error('Timeout')); }, ms));
+                    
+                    const { data, error } = await Promise.race([
+                        supabase.from('catalog').select('*')
+                            .limit(10000).order('series', { ascending: true }).order('volume', { ascending: true })
+                            .abortSignal(controller.signal),
+                        timeout(currentTimeout)
+                    ]);
+                    
+                    if (error) throw error;
+                    fullData = data;
+                    break; // Thành công thì thoát vòng lặp
+                } catch (e) {
+                    lastError = e;
+                    console.warn(`Lần thử tải Kho chung thứ ${i + 1} thất bại:`, e);
+                    // Đợi 1.5s trước khi thử lại để trình duyệt kịp dọn dẹp socket chết
+                    if (i < 2) await new Promise(r => setTimeout(r, 1500));
+                }
+            }
+
+            if (!fullData) {
+                console.error('Lỗi tìm kiếm catalog sau 3 lần thử:', lastError);
+                container.innerHTML = '<p style="text-align:center; color:var(--danger); padding:2rem; grid-column:1/-1;">Lỗi khi tải dữ liệu từ Kho chung. Xin hãy F5 tải lại trang.</p>';
                 return;
             }
+            this.fullCatalogCache = fullData;
         }
 
         let matchedItems = this.fullCatalogCache;
@@ -2378,7 +2558,7 @@ const app = {
         modalBody.innerHTML = `
             <div class="form-grid" style="display:flex; gap:2rem; align-items:flex-start;">
                 <!-- Cột TRÁI: Form chỉnh sửa -->
-                <div class="form-cols" style="flex:1; min-width:0;">
+                <div class="form-cols" style="flex: 1.5; min-width:0;">
                     <input type="hidden" id="edit-cat-id" value="${c.id}">
                     <div class="form-group">
                         <label>Series</label>
@@ -2454,7 +2634,7 @@ const app = {
                 </div>
 
                 <!-- Cột PHẢI: ảnh bìa -->
-                <div class="form-cols cover-col" style="width:280px; flex-shrink:0;">
+                <div class="form-cols cover-col" style="flex: 1;">
                     <div class="image-tabs">
                         <button type="button" class="img-tab-btn active" onclick="app.switchImgTab('cover', 'cat-')">Ảnh bìa</button>
                         <button type="button" class="img-tab-btn" onclick="app.switchImgTab('gift', 'cat-')">Quà tặng kèm</button>
