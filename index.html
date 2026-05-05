@@ -150,8 +150,8 @@
                             <button class="udrop-item" onclick="app.setFilter('100', 'Đã đủ bộ (100%)')"><span>Đã đủ bộ
                                     (100%)</span></button>
                             <button class="udrop-item"
-                                onclick="app.setFilter('under100', 'Chưa đủ bộ (<100%)')"><span>Chưa đủ bộ (<100%)<
-                                        /span></button>
+                                onclick="app.setFilter('under100', 'Chưa đủ bộ (<100%)')"><span>Chưa đủ bộ
+                                    (&lt;100%)</span></button>
                         </div>
                         <input type="hidden" id="filter-status" value="all">
                     </div>
@@ -195,7 +195,8 @@
                 <h2 id="detail-series-title">Tên Series</h2>
                 <div class="view-actions" style="display:flex; align-items:center; gap:0.5rem;">
                     <span id="detail-volume-count" class="badge">0 tập</span>
-                    <button class="custom-select-btn" id="btn-edit-target" title="Sửa mục tiêu cá nhân" style="display: flex;">
+                    <button class="custom-select-btn" id="btn-edit-target" title="Sửa mục tiêu cá nhân"
+                        style="display: flex;">
                         <i data-feather="target" style="color:var(--text-muted); width: 16px; height: 16px;"></i>
                         <span style="font-size:0.85rem; font-weight: 500;">Mục tiêu</span>
                     </button>
@@ -209,7 +210,8 @@
             <div class="volumes-list" id="volumes-list">
                 <!-- Volumes will be listed here -->
             </div>
-            <div id="series-detail-pagination" style="display:flex; justify-content:center; align-items:center; gap:1rem; margin-top:1.5rem; padding-bottom: 2rem;">
+            <div id="series-detail-pagination"
+                style="display:flex; justify-content:center; align-items:center; gap:1rem; margin-top:1.5rem; padding-bottom: 2rem;">
             </div>
         </section>
 
@@ -267,8 +269,7 @@
                 <div style="margin-bottom: 1.5rem; display: flex; justify-content: center;">
                     <div class="search-bar" style="width: 100%;">
                         <i data-feather="search"></i>
-                        <input type="text" id="admin-catalog-search"
-                            placeholder="Nhập tên sách hoặc ISBN..."
+                        <input type="text" id="admin-catalog-search" placeholder="Nhập tên sách hoặc ISBN..."
                             oninput="app.onAdminCatalogSearchInput(this.value)">
                     </div>
                 </div>
@@ -276,7 +277,8 @@
                     <p style="text-align:center; color:var(--text-muted); padding:2rem; grid-column:1/-1;">Nhập từ khóa
                         và bấm Tìm kiếm để tải dữ liệu từ Kho chung.</p>
                 </div>
-                <div id="admin-catalog-pagination" style="display:flex; justify-content:center; align-items:center; gap:1rem; margin-top:1.5rem; padding-bottom: 2rem;">
+                <div id="admin-catalog-pagination"
+                    style="display:flex; justify-content:center; align-items:center; gap:1rem; margin-top:1.5rem; padding-bottom: 2rem;">
                 </div>
             </div>
 
