@@ -150,8 +150,10 @@ export function applyCoreMixin(app) {
             const safeTitle = sg.title.replace(/'/g, "&#39;").replace(/"/g, "&quot;");
 
             // Dùng data-src thay vì src để IntersectionObserver kiểm soát thời điểm tải
+            // src="data:..." là 1×1 pixel trong suốt — tránh onerror cháy khi src rỗng
+            const BLANK = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
             const coverHtml = hasCover
-                ? `<img data-src="${sg.latestVolume.coverUrl}" src="" alt="${safeTitle}" class="lazy-cover" style="width:100%;height:100%;object-fit:cover;" onerror="this.outerHTML='<div style=\\'width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.5rem;color:#86efac;font-size:0.85rem;font-weight:500;background:#0f3d21;text-align:center;padding:1rem;\\'><i data-feather=\\'image\\' style=\\'width:40px;height:40px;opacity:0.5;\\'></i><span>Không có bìa</span></div>'">`
+                ? `<img data-src="${sg.latestVolume.coverUrl}" src="${BLANK}" alt="${safeTitle}" class="lazy-cover" style="width:100%;height:100%;object-fit:cover;" onerror="if(this.src&&!this.src.startsWith('data:')){this.outerHTML='<div style=\\'width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.5rem;color:#86efac;font-size:0.85rem;font-weight:500;background:#0f3d21;text-align:center;padding:1rem;\\'><i data-feather=\\'image\\' style=\\'width:40px;height:40px;opacity:0.5;\\'></i><span>Không có bìa</span></div>'}">`
                 : `<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.5rem;color:#86efac;font-size:0.85rem;font-weight:500;background:#0f3d21;text-align:center;padding:1rem;">
                        <i data-feather="image" style="width:40px;height:40px;opacity:0.5;"></i>
                        <span>Không có bìa</span>
