@@ -83,10 +83,14 @@ export function applyCoreMixin(app) {
 
         if (this.viewMode === 'list') {
             grid.classList.add('list-view');
+            grid.style.gridTemplateColumns = ''; // Xóa inline style để CSS class .list-view có hiệu lực
             const icon = document.getElementById('icon-view-mode');
             if (icon) icon.setAttribute('data-feather', 'grid');
         } else {
             grid.classList.remove('list-view');
+            // Khôi phục số cột đã lưu cho grid view
+            const savedCols = (this.settings && this.settings.gridCols) || localStorage.getItem('gridCols') || '6';
+            grid.style.gridTemplateColumns = `repeat(${savedCols}, 1fr)`;
             const icon = document.getElementById('icon-view-mode');
             if (icon) icon.setAttribute('data-feather', 'list');
         }
