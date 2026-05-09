@@ -26,7 +26,6 @@ dist-ssr
 # Temporary files from refactoring
 markers.txt
 
-# Internal Documentation (AI Artifacts)
-WALKTHROUGH_*.md
-IMPLEMENTATION_PLAN.md
-VERSIONING_RULES.md
+# Ignore all Markdown files except README.md
+*.md
+!README.md
