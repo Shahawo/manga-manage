@@ -428,8 +428,8 @@ a {
 }
 
 .series-grid.list-view .series-cover {
-    width: 60px;
-    height: 90px;
+    width: 64px;
+    height: 96px;
     flex-shrink: 0;
     border-right: 1px solid var(--border);
 }
@@ -440,11 +440,16 @@ a {
     display: flex;
     flex-direction: column;
     justify-content: center;
+    min-width: 0;
 }
 
 .series-grid.list-view .series-title {
-    font-size: 1rem;
+    font-size: 0.95rem;
     margin-bottom: 0.2rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    -webkit-line-clamp: unset;
 }
 
 .series-grid.list-view .series-meta {
@@ -1057,7 +1062,7 @@ label {
         gap: 1rem;
     }
 
-    /* List view mobile: thu nhỏ card cho 2 cột vừa màn hình */
+    /* List view tablet: thu nhỏ card */
     .series-grid.list-view {
         gap: 0.5rem;
     }
@@ -1088,9 +1093,19 @@ label {
         grid-template-columns: repeat(2, 1fr);
     }
 
-    /* Điện thoại nhỏ: list view giữ 2 cột, gap nhỏ hơn nữa */
+    /* Điện thoại: list view đổi về 1 cột, mỗi series 1 hàng rõ ràng */
     .series-grid.list-view {
+        grid-template-columns: 1fr;
         gap: 0.4rem;
+    }
+
+    .series-grid.list-view .series-cover {
+        width: 56px;
+        height: 84px;
+    }
+
+    .series-grid.list-view .series-title {
+        font-size: 0.9rem;
     }
 
     /* Detail list view trên điện thoại: 1 cột để mỗi tập có đủ không gian */
