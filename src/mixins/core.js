@@ -91,11 +91,67 @@ export function applyCoreMixin(app) {
             if (icon) icon.setAttribute('data-feather', 'list');
         }
 
-        seriesList.forEach(sg => {
+        // ─── PHÂN TRANG DASHBOARD ──────────────────────────────────────────────
+        // Áp dụng khi số series > 50 để tránh render quá nhiều DOM nodes
+        const DASHBOARD_PAGE_SIZE = 60;
+        const dashPage = this._dashboardPage || 1;
+        const totalDashPages = Math.ceil(seriesList.length / DASHBOARD_PAGE_SIZE);
+        const pagedSeries = seriesList.length > DASHBOARD_PAGE_SIZE
+            ? seriesList.slice((dashPage - 1) * DASHBOARD_PAGE_SIZE, dashPage * DASHBOARD_PAGE_SIZE)
+            : seriesList;
+
+        // Render pagination bar nếu cần
+        let paginationEl = document.getElementById('dashboard-pagination');
+        if (!paginationEl) {
+            paginationEl = document.createElement('div');
+            paginationEl.id = 'dashboard-pagination';
+            paginationEl.style.cssText = 'display:flex;justify-content:center;align-items:center;gap:0.75rem;padding:1.5rem 0 0.5rem;';
+            grid.parentNode.insertBefore(paginationEl, grid.nextSibling);
+        }
+        if (seriesList.length > DASHBOARD_PAGE_SIZE) {
+            paginationEl.innerHTML = `
+                <button class="btn btn-outline" style="padding:0.4rem 1rem;" onclick="app._dashboardPage=Math.max(1,(app._dashboardPage||1)-1);app.renderDashboard()" ${dashPage <= 1 ? 'disabled' : ''}>
+                    <i data-feather="chevron-left"></i>
+                </button>
+                <span style="color:var(--text-main);font-weight:500;font-size:0.9rem;">${dashPage} / ${totalDashPages}</span>
+                <button class="btn btn-outline" style="padding:0.4rem 1rem;" onclick="app._dashboardPage=Math.min(${totalDashPages},(app._dashboardPage||1)+1);app.renderDashboard()" ${dashPage >= totalDashPages ? 'disabled' : ''}>
+                    <i data-feather="chevron-right"></i>
+                </button>
+                <span style="color:var(--text-muted);font-size:0.8rem;">(${seriesList.length} series)</span>
+            `;
+        } else {
+            paginationEl.innerHTML = '';
+        }
+
+        // ─── INTERSECTION OBSERVER LAZY LOADING ───────────────────────────────
+        // Disconnect observer cũ nếu có
+        if (this._dashboardImgObserver) {
+            this._dashboardImgObserver.disconnect();
+        }
+        this._dashboardImgObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    const src = img.dataset.src;
+                    if (src) {
+                        img.src = src;
+                        img.removeAttribute('data-src');
+                        img.style.opacity = '0';
+                        img.style.transition = 'opacity 0.3s ease';
+                        img.onload = () => { img.style.opacity = '1'; };
+                    }
+                    observer.unobserve(img);
+                }
+            });
+        }, { rootMargin: '200px 0px', threshold: 0.01 });
+
+        pagedSeries.forEach(sg => {
             const hasCover = sg.latestVolume.coverUrl && sg.latestVolume.coverUrl.trim() !== '';
             const safeTitle = sg.title.replace(/'/g, "&#39;").replace(/"/g, "&quot;");
+
+            // Dùng data-src thay vì src để IntersectionObserver kiểm soát thời điểm tải
             const coverHtml = hasCover
-                ? `<img src="${sg.latestVolume.coverUrl}" alt="${safeTitle}" loading="lazy" style="width:100%;height:100%;object-fit:cover;" onerror="this.outerHTML='<div style=\\'width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.5rem;color:#86efac;font-size:0.85rem;font-weight:500;background:#0f3d21;text-align:center;padding:1rem;\\'><i data-feather=\\'image\\' style=\\'width:40px;height:40px;opacity:0.5;\\'></i><span>Không có bìa</span></div>'">`
+                ? `<img data-src="${sg.latestVolume.coverUrl}" src="" alt="${safeTitle}" class="lazy-cover" style="width:100%;height:100%;object-fit:cover;" onerror="this.outerHTML='<div style=\\'width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.5rem;color:#86efac;font-size:0.85rem;font-weight:500;background:#0f3d21;text-align:center;padding:1rem;\\'><i data-feather=\\'image\\' style=\\'width:40px;height:40px;opacity:0.5;\\'></i><span>Không có bìa</span></div>'">`
                 : `<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.5rem;color:#86efac;font-size:0.85rem;font-weight:500;background:#0f3d21;text-align:center;padding:1rem;">
                        <i data-feather="image" style="width:40px;height:40px;opacity:0.5;"></i>
                        <span>Không có bìa</span>
@@ -119,6 +175,12 @@ export function applyCoreMixin(app) {
                 </div>
             `;
             grid.appendChild(card);
+
+            // Đăng ký lazy-load cho ảnh bìa của card này
+            if (hasCover) {
+                const imgEl = card.querySelector('.lazy-cover');
+                if (imgEl) this._dashboardImgObserver.observe(imgEl);
+            }
         });
         if (window.feather) { try { feather.replace(); } catch (e) { console.warn('Feather error:', e); } }
     },
@@ -126,6 +188,7 @@ export function applyCoreMixin(app) {
     toggleViewMode() {
         this.viewMode = this.viewMode === 'grid' ? 'list' : 'grid';
         localStorage.setItem('viewMode', this.viewMode);
+        this._dashboardPage = 1; // Reset về trang 1 khi đổi view mode
         this.renderDashboard();
     },
 
@@ -148,6 +211,7 @@ export function applyCoreMixin(app) {
         document.getElementById('filter-status').value = value;
         document.getElementById('filter-status-label').textContent = label;
         document.getElementById('filter-dropdown').classList.add('hidden');
+        this._dashboardPage = 1; // Reset về trang 1 khi đổi filter
         this.renderDashboard();
     },
 
@@ -156,6 +220,7 @@ export function applyCoreMixin(app) {
         document.getElementById('sort-order-label').textContent = label;
         document.getElementById('sort-dropdown').classList.add('hidden');
         localStorage.setItem('defaultSort', value);
+        this._dashboardPage = 1; // Reset về trang 1 khi đổi sắp xếp
         this.renderDashboard();
     },
 
@@ -535,7 +600,8 @@ export function applyCoreMixin(app) {
         }
     },
 
-    compressImageToBlob(file, quality = 0.8) {
+    // ─── IMAGE COMPRESSION (WebP ưu tiên, fallback JPEG) ────────────────────
+    compressImageToBlob(file, quality = 0.85) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
@@ -552,11 +618,18 @@ export function applyCoreMixin(app) {
                     } else {
                         if (height > max_size) { width *= max_size / height; height = max_size; }
                     }
-                    canvas.width = width;
-                    canvas.height = height;
+                    canvas.width = Math.round(width);
+                    canvas.height = Math.round(height);
                     const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
-                    canvas.toBlob(blob => resolve(blob), 'image/jpeg', quality);
+                    ctx.drawImage(img, 0, 0, Math.round(width), Math.round(height));
+
+                    // Ưu tiên WebP (nhẹ hơn JPEG 25-35%), fallback JPEG nếu browser cũ
+                    const supportsWebP = canvas.toDataURL('image/webp').startsWith('data:image/webp');
+                    if (supportsWebP) {
+                        canvas.toBlob(blob => resolve({ blob, format: 'webp' }), 'image/webp', quality);
+                    } else {
+                        canvas.toBlob(blob => resolve({ blob, format: 'jpeg' }), 'image/jpeg', quality);
+                    }
                 };
                 img.onerror = () => reject(new Error('Không thể đọc file ảnh này. File có thể bị lỗi.'));
             };
@@ -568,17 +641,18 @@ export function applyCoreMixin(app) {
         if (!inputElem.files || inputElem.files.length === 0) return;
         try {
             const file = inputElem.files[0];
-            const fileExt = 'jpg'; // always jpeg after compression
+            this.showLoading('Đang nén và tải ảnh lên...');
+            const { blob, format } = await this.compressImageToBlob(file);
+
+            const fileExt = format === 'webp' ? 'webp' : 'jpg';
+            const contentType = format === 'webp' ? 'image/webp' : 'image/jpeg';
             const fileName = `${Math.random()}.${fileExt}`;
             const filePath = `covers/${fileName}`;
-
-            this.showLoading('Đang nén và tải ảnh lên...');
-            const compressedBlob = await this.compressImageToBlob(file);
 
             const timeout = (ms) => new Promise((_, reject) => setTimeout(() => reject(new Error('Yêu cầu tải ảnh quá hạn (Timeout)')), ms));
 
             const { error: uploadError } = await Promise.race([
-                supabase.storage.from(this.storageBucket).upload(filePath, compressedBlob, { contentType: 'image/jpeg' }),
+                supabase.storage.from(this.storageBucket).upload(filePath, blob, { contentType }),
                 timeout(15000)
             ]);
 
@@ -589,6 +663,7 @@ export function applyCoreMixin(app) {
             const targetInput = document.getElementById(`${prefix}coverUrl`);
             if (targetInput) targetInput.value = data.publicUrl;
             this.previewImage(data.publicUrl, 'cover', prefix);
+            console.debug(`[Upload] Ảnh bìa đã upload dạng ${format.toUpperCase()}: ${filePath}`);
         } catch (e) {
             console.error('Lỗi tải ảnh:', e);
             this.showToast(e.message === 'Yêu cầu tải ảnh quá hạn (Timeout)' ? 'Lỗi mạng: Thời gian tải ảnh quá lâu!' : 'Lỗi tải ảnh lên server!', 'error');
@@ -632,14 +707,15 @@ export function applyCoreMixin(app) {
 
             for (let i = 0; i < inputElem.files.length; i++) {
                 const file = inputElem.files[i];
-                const fileExt = 'jpg';
+                const { blob, format } = await this.compressImageToBlob(file);
+                const fileExt = format === 'webp' ? 'webp' : 'jpg';
+                const contentType = format === 'webp' ? 'image/webp' : 'image/jpeg';
                 const fileName = `${Math.random()}.${fileExt}`;
                 const filePath = `gifts/${fileName}`;
 
-                const compressedBlob = await this.compressImageToBlob(file);
                 const timeout = (ms) => new Promise((_, reject) => setTimeout(() => reject(new Error('Yêu cầu tải ảnh quá hạn (Timeout)')), ms));
                 const { error: uploadError } = await Promise.race([
-                    supabase.storage.from(this.storageBucket).upload(filePath, compressedBlob, { contentType: 'image/jpeg' }),
+                    supabase.storage.from(this.storageBucket).upload(filePath, blob, { contentType }),
                     timeout(15000)
                 ]);
                 if (uploadError) throw uploadError;
@@ -647,6 +723,7 @@ export function applyCoreMixin(app) {
                 const { data } = supabase.storage.from(this.storageBucket).getPublicUrl(filePath);
                 lines.push(data.publicUrl);
                 lastUrl = data.publicUrl;
+                console.debug(`[Upload] Ảnh quà tặng đã upload dạng ${format.toUpperCase()}: ${filePath}`);
             }
             urlsObj.value = lines.join('\n');
             this.renderGiftThumbnails(prefix);
