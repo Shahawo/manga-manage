@@ -8,6 +8,8 @@ export const store = {
     // Cache & Temp states
     adminCache: [],
     adminCatalogCache: [],
+    fullCatalogCache: null,
+    isFetchingCatalog: false,
     scannedBookCache: null,
     codeReader: null,
     scannerStream: null,
