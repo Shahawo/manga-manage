@@ -426,7 +426,7 @@ ON CONFLICT (id) DO UPDATE SET
   allowed_mime_types = ARRAY['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
 -- 2. Bật RLS cho bảng chứa file (storage.objects)
-ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
+-- Lưu ý: Supabase mặc định đã BẬT RLS cho bảng này, không cần chạy lệnh ALTER TABLE nữa để tránh lỗi quyền hạn (ERROR 42501).
 
 -- 3. Policy: Ai cũng có thể tải và xem ảnh (Public Read)
 DROP POLICY IF EXISTS "Public read covers" ON storage.objects;
