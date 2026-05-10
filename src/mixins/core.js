@@ -1,3 +1,4 @@
+import { store } from '../store.js';
 import { supabase } from '../supabase-client.js';
 import { escapeHTML } from '../utils/security.js';
 
@@ -6,17 +7,17 @@ export function applyCoreMixin(app) {
         
         async loadLibrary(url, globalVarName) {
             if (window[globalVarName]) return true;
-            if (!this._loadingScripts) this._loadingScripts = {};
-            if (this._loadingScripts[url]) return this._loadingScripts[url];
+            if (!store.loadingScripts) store.loadingScripts = {};
+            if (store.loadingScripts[url]) return store.loadingScripts[url];
             
-            this._loadingScripts[url] = new Promise((resolve, reject) => {
+            store.loadingScripts[url] = new Promise((resolve, reject) => {
                 const script = document.createElement('script');
                 script.src = url;
                 script.onload = () => resolve(true);
                 script.onerror = () => reject(new Error(`Failed to load ${url}`));
                 document.head.appendChild(script);
             });
-            return this._loadingScripts[url];
+            return store.loadingScripts[url];
         },
 
 
@@ -29,7 +30,7 @@ export function applyCoreMixin(app) {
         const thisMonthBadge = document.getElementById('this-month-books-count');
         grid.innerHTML = '';
 
-        if (!this.user) {
+        if (!store.user) {
             grid.classList.add('hidden');
             emptyState.classList.remove('hidden');
             emptyState.innerHTML = `
@@ -53,7 +54,7 @@ export function applyCoreMixin(app) {
             return;
         }
 
-        if (this.data.length === 0) {
+        if (store.data.length === 0) {
             grid.classList.add('hidden');
             emptyState.classList.remove('hidden');
             emptyState.innerHTML = `
@@ -83,11 +84,11 @@ export function applyCoreMixin(app) {
         }
 
         countBadge.textContent = `${seriesList.length} series`;
-        if (booksBadge) booksBadge.textContent = `${this.data.length} cuốn`;
+        if (booksBadge) booksBadge.textContent = `${store.data.length} cuốn`;
 
         // Đếm sách thêm tháng này
         const now = new Date();
-        const thisMonthCount = this.data.filter(m => {
+        const thisMonthCount = store.data.filter(m => {
             if (!m.addedAt) return false;
             const d = new Date(m.addedAt);
             return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
@@ -97,7 +98,7 @@ export function applyCoreMixin(app) {
             thisMonthBadge.classList.toggle('hidden', thisMonthCount === 0);
         }
 
-        if (this.viewMode === 'list') {
+        if (store.viewMode === 'list') {
             grid.classList.add('list-view');
             grid.style.gridTemplateColumns = ''; // Xóa inline style để CSS class .list-view có hiệu lực
             const icon = document.getElementById('icon-view-mode');
@@ -208,8 +209,8 @@ export function applyCoreMixin(app) {
     },
 
     toggleViewMode() {
-        this.viewMode = this.viewMode === 'grid' ? 'list' : 'grid';
-        localStorage.setItem('viewMode', this.viewMode);
+        store.viewMode = store.viewMode === 'grid' ? 'list' : 'grid';
+        localStorage.setItem('viewMode', store.viewMode);
         this._dashboardPage = 1; // Reset về trang 1 khi đổi view mode
         this.renderDashboard();
     },
@@ -217,7 +218,7 @@ export function applyCoreMixin(app) {
     toggleDetailViewMode() {
         this.detailViewMode = this.detailViewMode === 'grid' ? 'list' : 'grid';
         localStorage.setItem('detailViewMode', this.detailViewMode);
-        this.renderSeriesDetail(this.currentSeries);
+        this.renderSeriesDetail(store.currentSeries);
     },
 
     toggleCustomDropdown(id) {
@@ -254,14 +255,14 @@ export function applyCoreMixin(app) {
 
     renderSeriesDetail(seriesName, page = 1) {
         if (typeof page !== 'number') page = 1;
-        this.currentSeries = seriesName;
+        store.currentSeries = seriesName;
         // Bảo vệ XSS: sử dụng textContent thay vì innerHTML
         document.getElementById('detail-series-title').textContent = seriesName;
 
         const specialKeywords = /bản đặc biệt|đặc biệt|giới hạn|sưu tầm|collector|limited|special/i;
         const isSpecial = (title) => specialKeywords.test(title || '');
 
-        const allVolumes = this.data
+        const allVolumes = store.data
             .filter(m => m.series === seriesName)
             .sort((a, b) => {
                 const volDiff = (Number(a.volume) || 0) - (Number(b.volume) || 0);
@@ -275,11 +276,11 @@ export function applyCoreMixin(app) {
         const owned = uniqueVolNumbers.size;
 
         let total = Math.max(owned, Math.ceil(maxVol));
-        if (this.seriesMetadata && this.seriesMetadata[seriesName] && this.seriesMetadata[seriesName].total_volumes > 0) {
-            total = Math.max(total, this.seriesMetadata[seriesName].total_volumes);
+        if (store.seriesMetadata && store.seriesMetadata[seriesName] && store.seriesMetadata[seriesName].total_volumes > 0) {
+            total = Math.max(total, store.seriesMetadata[seriesName].total_volumes);
         }
-        if (this.userSeriesSettings && this.userSeriesSettings[seriesName] && this.userSeriesSettings[seriesName].target_volumes > 0) {
-            total = Math.max(owned, this.userSeriesSettings[seriesName].target_volumes);
+        if (store.userSeriesSettings && store.userSeriesSettings[seriesName] && store.userSeriesSettings[seriesName].target_volumes > 0) {
+            total = Math.max(owned, store.userSeriesSettings[seriesName].target_volumes);
         }
         const percent = total > 0 ? Math.round((owned / total) * 100) : 0;
 
@@ -384,14 +385,14 @@ export function applyCoreMixin(app) {
     },
 
     async editSeriesTarget(seriesName) {
-        if (!this.user) {
+        if (!store.user) {
             this.showToast('Bạn cần đăng nhập để thiết lập mục tiêu cá nhân!', 'error');
             return;
         }
 
         let currentTarget = 0;
-        if (this.userSeriesSettings && this.userSeriesSettings[seriesName]) {
-            currentTarget = this.userSeriesSettings[seriesName].target_volumes || 0;
+        if (store.userSeriesSettings && store.userSeriesSettings[seriesName]) {
+            currentTarget = store.userSeriesSettings[seriesName].target_volumes || 0;
         }
 
         const input = prompt(`Thiết lập tổng số tập mục tiêu cá nhân cho bộ "${seriesName}"\n\n(Nhập 0 để sử dụng số tập mặc định của Kho hệ thống)`, currentTarget);
@@ -404,16 +405,16 @@ export function applyCoreMixin(app) {
         }
 
         // --- Optimistic UI Update ---
-        if (!this.userSeriesSettings) this.userSeriesSettings = {};
-        this.userSeriesSettings[seriesName] = {
-            user_id: this.user.id,
+        if (!store.userSeriesSettings) store.userSeriesSettings = {};
+        store.userSeriesSettings[seriesName] = {
+            user_id: store.user.id,
             series: seriesName,
             target_volumes: targetVol
         };
 
         // Cập nhật giao diện ngay lập tức
         const isDetailView = document.getElementById('view-detail').classList.contains('active');
-        if (isDetailView && this.currentSeries === seriesName) {
+        if (isDetailView && store.currentSeries === seriesName) {
             this.renderSeriesDetail(seriesName);
         } else {
             this.navigateTo('/');
@@ -421,7 +422,7 @@ export function applyCoreMixin(app) {
 
         // --- Đẩy vào Hàng đợi đồng bộ ---
         this.queueTask('UPSERT_TARGET', {
-            user_id: this.user.id,
+            user_id: store.user.id,
             series: seriesName,
             target_volumes: targetVol,
             updated_at: new Date().toISOString()
@@ -448,7 +449,7 @@ export function applyCoreMixin(app) {
 
     // ─── MODAL CHI TIẾT ───────────────────────────────────────────────────────
     showModal(id) {
-        const manga = this.data.find(m => m.id === id);
+        const manga = store.data.find(m => m.id === id);
         if (!manga) return;
 
         const giftsArray = Array.isArray(manga.giftUrls)
@@ -509,7 +510,7 @@ export function applyCoreMixin(app) {
 
     // ─── EDIT ─────────────────────────────────────────────────────────────────
     editVolume(id) {
-        const manga = this.data.find(m => m.id === id);
+        const manga = store.data.find(m => m.id === id);
         if (!manga) return;
 
         this.navigateTo('/form');
@@ -553,12 +554,12 @@ export function applyCoreMixin(app) {
 
     // ─── DELETE ───────────────────────────────────────────────────────────────
     async deleteVolume(id) {
-        const manga = this.data.find(m => m.id === id);
+        const manga = store.data.find(m => m.id === id);
         if (!manga) return;
         if (!confirm(`Xóa "${manga.title} - Tập ${manga.volume}"?\nHành động này không thể hoàn tác.`)) return;
 
         // Optimistic UI Update: Xóa khỏi mảng cục bộ ngay lập tức
-        this.data = this.data.filter(m => m.id !== id);
+        store.data = store.data.filter(m => m.id !== id);
         this.updateSeriesSuggestions();
 
         const isSearchView = document.getElementById('view-search').classList.contains('active');
@@ -567,7 +568,7 @@ export function applyCoreMixin(app) {
         if (isSearchView) {
             this.renderSearch(document.getElementById('searchInput').value);
         } else if (isDetailView) {
-            const remaining = this.data.filter(m => m.series === manga.series);
+            const remaining = store.data.filter(m => m.series === manga.series);
             if (remaining.length > 0) this.openSeriesDetail(manga.series);
             else this.navigateTo('/');
         } else {
@@ -674,13 +675,13 @@ export function applyCoreMixin(app) {
             const timeout = (ms) => new Promise((_, reject) => setTimeout(() => reject(new Error('Yêu cầu tải ảnh quá hạn (Timeout)')), ms));
 
             const { error: uploadError } = await Promise.race([
-                supabase.storage.from(this.storageBucket).upload(filePath, blob, { contentType }),
+                supabase.storage.from(store.storageBucket).upload(filePath, blob, { contentType }),
                 timeout(15000)
             ]);
 
             if (uploadError) throw uploadError;
 
-            const { data } = supabase.storage.from(this.storageBucket).getPublicUrl(filePath);
+            const { data } = supabase.storage.from(store.storageBucket).getPublicUrl(filePath);
 
             const targetInput = document.getElementById(`${prefix}coverUrl`);
             if (targetInput) targetInput.value = data.publicUrl;
@@ -737,12 +738,12 @@ export function applyCoreMixin(app) {
 
                 const timeout = (ms) => new Promise((_, reject) => setTimeout(() => reject(new Error('Yêu cầu tải ảnh quá hạn (Timeout)')), ms));
                 const { error: uploadError } = await Promise.race([
-                    supabase.storage.from(this.storageBucket).upload(filePath, blob, { contentType }),
+                    supabase.storage.from(store.storageBucket).upload(filePath, blob, { contentType }),
                     timeout(15000)
                 ]);
                 if (uploadError) throw uploadError;
 
-                const { data } = supabase.storage.from(this.storageBucket).getPublicUrl(filePath);
+                const { data } = supabase.storage.from(store.storageBucket).getPublicUrl(filePath);
                 lines.push(data.publicUrl);
                 lastUrl = data.publicUrl;
                 console.debug(`[Upload] Ảnh quà tặng đã upload dạng ${format.toUpperCase()}: ${filePath}`);
@@ -834,7 +835,7 @@ export function applyCoreMixin(app) {
             const editId = document.getElementById('edit-id').value;
 
             const mangaData = {
-                user_id: this.user.id,
+                user_id: store.user.id,
                 series: getVal('series'),
                 title: getVal('title'),
                 volume: parseFloat(getVal('volume')),
@@ -864,7 +865,7 @@ export function applyCoreMixin(app) {
 
             const isRegularEdition = !mangaData.title.toLowerCase().includes(' - bản ');
             if (isRegularEdition) {
-                const isDuplicate = this.data.some(m =>
+                const isDuplicate = store.data.some(m =>
                     m.series === mangaData.series &&
                     m.volume === mangaData.volume &&
                     m.id !== editId &&
@@ -902,24 +903,24 @@ export function applyCoreMixin(app) {
             };
 
             if (editId) {
-                const idx = this.data.findIndex(m => m.id === editId);
+                const idx = store.data.findIndex(m => m.id === editId);
                 if (idx !== -1) {
                     // Giữ lại ngày thêm gốc
-                    localManga.addedAt = this.data[idx].addedAt;
-                    this.data[idx] = localManga;
+                    localManga.addedAt = store.data[idx].addedAt;
+                    store.data[idx] = localManga;
                 }
                 this.queueTask('UPDATE_MANGA', { ...mangaData, id: editId });
             } else {
-                this.data.unshift(localManga);
+                store.data.unshift(localManga);
                 // Gán luôn ID thật (vì DB xài uuid default gen_random_uuid() nên gửi lên ID luôn)
                 const insertData = { ...mangaData, id: optimisticId };
                 this.queueTask('INSERT_MANGA', insertData, optimisticId);
 
                 if (!mangaData.catalog_id) {
                     this.queueTask('INSERT_PENDING', {
-                        submitted_by: this.user.id,
-                        submitted_name: this.user.user_metadata?.full_name || this.user.user_metadata?.name || this.user.email,
-                        submitted_email: this.user.email,
+                        submitted_by: store.user.id,
+                        submitted_name: store.user.user_metadata?.full_name || store.user.user_metadata?.name || store.user.email,
+                        submitted_email: store.user.email,
                         linked_manga_id: optimisticId,
                         scanned_isbn: formEl.dataset.pendingIsbn || mangaData.isbn,
                         series: mangaData.series,
@@ -948,8 +949,8 @@ export function applyCoreMixin(app) {
             this.updateSeriesSuggestions();
 
             // Render UI lập tức
-            if (this.currentSeries === mangaData.series) {
-                this.openSeriesDetail(this.currentSeries);
+            if (store.currentSeries === mangaData.series) {
+                this.openSeriesDetail(store.currentSeries);
             } else {
                 this.navigateTo('/');
             }
@@ -1031,7 +1032,7 @@ export function applyCoreMixin(app) {
         let hasMultipleIsbnMatch = false;
         const queryWords = query.toLowerCase().split(/[\s\-]+/).filter(Boolean);
 
-        const matchedItems = this.data.filter(m => {
+        const matchedItems = store.data.filter(m => {
             const mIsbnStr = (m.isbn || '').replace(/[\s\-]/g, '');
             const qIsbnStr = query.replace(/[\s\-]/g, '');
             const matchIsbn = mIsbnStr && qIsbnStr.length >= 6 && mIsbnStr.includes(qIsbnStr);
@@ -1119,15 +1120,15 @@ export function applyCoreMixin(app) {
             this.showLoading('Đang tải module máy quét...');
             await this.loadLibrary('https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js', 'ZXing');
             this.hideLoading();
-            if (!this.codeReader) {
-                this.codeReader = new ZXing.BrowserMultiFormatReader();
+            if (!store.codeReader) {
+                store.codeReader = new ZXing.BrowserMultiFormatReader();
             }
-            const videoInputDevices = await this.codeReader.listVideoInputDevices();
+            const videoInputDevices = await store.codeReader.listVideoInputDevices();
             let selectedDeviceId = videoInputDevices[0].deviceId;
             const backCamera = videoInputDevices.find(d => d.label.toLowerCase().includes('back') || d.label.toLowerCase().includes('sau'));
             if (backCamera) selectedDeviceId = backCamera.deviceId;
 
-            this.codeReader.decodeFromVideoDevice(selectedDeviceId, 'scanner-video', (result, err) => {
+            store.codeReader.decodeFromVideoDevice(selectedDeviceId, 'scanner-video', (result, err) => {
                 if (result) {
                     this.onBarcodeDetected(result.text);
                 }
@@ -1165,8 +1166,8 @@ export function applyCoreMixin(app) {
             const fallback = document.getElementById('scanner-fallback');
             if (fallback) fallback.classList.add('hidden');
         }
-        if (this.codeReader) {
-            this.codeReader.reset();
+        if (store.codeReader) {
+            store.codeReader.reset();
         }
     },
 
@@ -1181,9 +1182,9 @@ export function applyCoreMixin(app) {
                 this.showLoading('Đang tải module máy quét...');
                 await this.loadLibrary('https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js', 'ZXing');
                 this.hideLoading();
-                if (!this.codeReader) this.codeReader = new ZXing.BrowserMultiFormatReader();
+                if (!store.codeReader) store.codeReader = new ZXing.BrowserMultiFormatReader();
                 this.showToast('Đang phân tích mã vạch...', 'info');
-                this.codeReader.decodeFromImageElement(img)
+                store.codeReader.decodeFromImageElement(img)
                     .then(result => {
                         if (result && result.text) this.onBarcodeDetected(result.text);
                     })
@@ -1214,7 +1215,7 @@ export function applyCoreMixin(app) {
 
         img.onload = () => {
             this.showToast('Đang phân tích ảnh...', 'info');
-            this.codeReader.decodeFromImageElement(img)
+            store.codeReader.decodeFromImageElement(img)
                 .then(result => {
                     if (result && result.text) {
                         this.onBarcodeDetected(result.text);
@@ -1251,7 +1252,7 @@ export function applyCoreMixin(app) {
     },
 
     showBookPreview(catalogBook) {
-        this.scannedBookCache = catalogBook;
+        store.scannedBookCache = catalogBook;
         const modal = document.getElementById('book-preview-modal');
         if (!modal) return;
 
@@ -1274,11 +1275,11 @@ export function applyCoreMixin(app) {
     closeBookPreview() {
         const modal = document.getElementById('book-preview-modal');
         if (modal) modal.classList.add('hidden');
-        this.scannedBookCache = null;
+        store.scannedBookCache = null;
     },
 
     applyBookToForm() {
-        const book = this.scannedBookCache;
+        const book = store.scannedBookCache;
         this.closeBookPreview();
         this.navigateTo('/form');
         document.getElementById('manga-form').reset();
@@ -1316,7 +1317,7 @@ export function applyCoreMixin(app) {
         const modal = document.getElementById('ai-scan-modal');
         if (!modal) return;
         // Reset trạng thái
-        this._aiScanImageDataUrl = null;
+        store.aiScanImageDataUrl = null;
         document.getElementById('ai-scan-placeholder').style.display = 'flex';
         document.getElementById('ai-scan-preview-img').style.display = 'none';
         document.getElementById('ai-scan-processing').style.display = 'none';
@@ -1337,7 +1338,7 @@ export function applyCoreMixin(app) {
             modal.classList.add('hidden');
             modal.classList.remove('show');
         }
-        this._aiScanImageDataUrl = null;
+        store.aiScanImageDataUrl = null;
     },
 
     handleCoverScanFile(event) {
@@ -1345,13 +1346,13 @@ export function applyCoreMixin(app) {
         if (!file) return;
         const reader = new FileReader();
         reader.onload = (e) => {
-            this._aiScanImageDataUrl = e.target.result;
+            store.aiScanImageDataUrl = e.target.result;
             // Hiển thị preview ảnh
             const placeholder = document.getElementById('ai-scan-placeholder');
             const previewImg = document.getElementById('ai-scan-preview-img');
             if (placeholder) placeholder.style.display = 'none';
             if (previewImg) {
-                previewImg.src = this._aiScanImageDataUrl;
+                previewImg.src = store.aiScanImageDataUrl;
                 previewImg.style.display = 'block';
             }
             document.getElementById('ai-scan-results').style.display = 'none';
@@ -1363,7 +1364,7 @@ export function applyCoreMixin(app) {
     },
 
     async runCoverOcr() {
-        if (!this._aiScanImageDataUrl) {
+        if (!store.aiScanImageDataUrl) {
             this.showToast('Vui lòng chọn ảnh bìa trước!', 'error');
             return;
         }
@@ -1384,7 +1385,7 @@ export function applyCoreMixin(app) {
             setStatus('Đang khởi động AI nhận diện chữ...');
 
             const { data: { text } } = await Tesseract.recognize(
-                this._aiScanImageDataUrl,
+                store.aiScanImageDataUrl,
                 'vie+eng',
                 {
                     logger: (m) => {
@@ -1519,12 +1520,12 @@ export function applyCoreMixin(app) {
 
 
     async submitPendingBook(mangaData) {
-        if (!this.user) return;
+        if (!store.user) return;
         try {
             await supabase.from('pending_catalog').insert({
-                submitted_by: this.user.id,
-                submitted_name: this.user.user_metadata?.name || this.user.email,
-                submitted_email: this.user.email,
+                submitted_by: store.user.id,
+                submitted_name: store.user.user_metadata?.name || store.user.email,
+                submitted_email: store.user.email,
                 linked_manga_id: mangaData.linked_manga_id,
                 scanned_isbn: mangaData.scanned_isbn,
                 series: mangaData.series,
@@ -1548,7 +1549,7 @@ export function applyCoreMixin(app) {
 
     // ─── ADMIN PANEL ─────────────────────────────────────────────────────────
     loadAdminPanel() {
-        if (!this.user || !this.isAdmin) {
+        if (!store.user || !store.isAdmin) {
             this.showToast('Bạn không có quyền truy cập', 'error');
             return;
         }
@@ -1564,7 +1565,7 @@ export function applyCoreMixin(app) {
                 timeout(15000)
             ]);
             if (error) throw error;
-            const rejectedIds = new Set(this.pendingRejectedIds || []);
+            const rejectedIds = new Set(store.pendingRejectedIds || []);
             const list = data.filter(p => !rejectedIds.has(p.id)).map(p => ({
                 ...p,
                 coverUrl: p.cover_url,
@@ -1573,7 +1574,7 @@ export function applyCoreMixin(app) {
                 scannedIsbn: p.scanned_isbn,
                 submittedName: p.submitted_name
             }));
-            this.adminCache = list;
+            store.adminCache = list;
             this.renderPendingList(list);
 
             const badge = document.getElementById('nav-admin-badge');
@@ -1653,7 +1654,7 @@ export function applyCoreMixin(app) {
     },
 
     async openPendingModal(id) {
-        const p = this.adminCache.find(x => x.id === id);
+        const p = store.adminCache.find(x => x.id === id);
         if (!p) return;
 
         this._pendingActiveId = id;
@@ -1673,7 +1674,7 @@ export function applyCoreMixin(app) {
         const coverUrl = p.coverUrl || '';
 
         // Danh sách tất cả sách trong kho cho chức năng Gộp
-        const datalistOptions = this.data.map(m => `<option value="${m.id}">${m.series} — ${m.title} (Tập ${m.volume || 0})</option>`).join('');
+        const datalistOptions = store.data.map(m => `<option value="${m.id}">${m.series} — ${m.title} (Tập ${m.volume || 0})</option>`).join('');
 
         modalBody.innerHTML = `
             <div id="duplicate-container-${p.id}"></div>
@@ -1892,13 +1893,13 @@ export function applyCoreMixin(app) {
     },
 
     _removePendingFromUI(id) {
-        if (!this.adminCache) return;
-        this.adminCache = this.adminCache.filter(x => x.id !== id);
-        this.renderPendingList(this.adminCache);
+        if (!store.adminCache) return;
+        store.adminCache = store.adminCache.filter(x => x.id !== id);
+        this.renderPendingList(store.adminCache);
         const badge = document.getElementById('nav-admin-badge');
         if (badge) {
-            badge.textContent = this.adminCache.length;
-            badge.style.display = this.adminCache.length > 0 ? 'inline-block' : 'none';
+            badge.textContent = store.adminCache.length;
+            badge.style.display = store.adminCache.length > 0 ? 'inline-block' : 'none';
         }
     },
 
@@ -2024,9 +2025,9 @@ export function applyCoreMixin(app) {
         const content = title ? `[${title}]\n${body}` : body;
 
         const payload = {
-            user_id: this.user ? this.user.id : null,
-            user_name: this.user ? this.user.user_metadata?.full_name : 'Khách',
-            user_email: this.user ? this.user.email : '',
+            user_id: store.user ? store.user.id : null,
+            user_name: store.user ? store.user.user_metadata?.full_name : 'Khách',
+            user_email: store.user ? store.user.email : '',
             content: content
         };
 
@@ -2197,7 +2198,7 @@ export function applyCoreMixin(app) {
         const start = (page - 1) * limit;
         const pagedData = groupedSeries.slice(start, start + limit);
 
-        this.adminCatalogCache = pagedData; // Lưu cache mảng group
+        store.adminCatalogCache = pagedData; // Lưu cache mảng group
         this.renderAdminCatalogList(pagedData, count, page);
     },
 
