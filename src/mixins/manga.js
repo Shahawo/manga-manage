@@ -1,4 +1,5 @@
 import { supabase } from '../supabase-client.js';
+import { escapeHTML } from '../utils/security.js';
 
 export function applyMangaMixin(app) {
     Object.assign(app, {
@@ -34,7 +35,7 @@ export function applyMangaMixin(app) {
             .map(s => String(s).trim())
             .filter(s => s);
         uniqueSeries.sort((a, b) => a.localeCompare(b, 'vi'));
-        datalist.innerHTML = uniqueSeries.map(s => `<option value="${s}">`).join('');
+        datalist.innerHTML = uniqueSeries.map(s => `<option value="${escapeHTML(s)}">`).join('');
     },
 
     generateId() {
