@@ -1,4 +1,5 @@
 import { supabase } from '../supabase-client.js';
+import { escapeHTML } from '../utils/security.js';
 
 export function applyUiMixin(app) {
     Object.assign(app, {
@@ -163,7 +164,7 @@ export function applyUiMixin(app) {
             el.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:9999;';
             el.innerHTML = `<div style="background:var(--card-bg,#fff);border-radius:12px;padding:1.5rem 2.5rem;display:flex;align-items:center;gap:1rem;box-shadow:0 8px 30px rgba(0,0,0,0.2);font-weight:600;color:var(--card-text);">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:spin 1s linear infinite"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
-                <span>${msg}</span>
+                <span>${escapeHTML(msg)}</span>
             </div>`;
             document.body.appendChild(el);
             const style = document.createElement('style');
