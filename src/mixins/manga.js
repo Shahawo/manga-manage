@@ -1,12 +1,12 @@
+import { store } from '../store.js';
 import { supabase } from '../supabase-client.js';
 import { escapeHTML } from '../utils/security.js';
 
-export function applyMangaMixin(app) {
-    Object.assign(app, {
+
         
 
     // ─── TOAST NOTIFICATION ───────────────────────────────────────────────────
-    showToast(msg, type = 'success') {
+    export function showToast(msg, type = 'success') {
         let container = document.getElementById('toast-container');
         if (!container) {
             container = document.createElement('div');
@@ -24,28 +24,28 @@ export function applyMangaMixin(app) {
             toast.style.transform = 'translateX(120%)';
             setTimeout(() => toast.remove(), 350);
         }, 3500);
-    },
+    }
 
     // ─── SERIES SUGGESTIONS ───────────────────────────────────────────────────
-    updateSeriesSuggestions() {
+    export function updateSeriesSuggestions() {
         const datalist = document.getElementById('series-suggestions');
         if (!datalist) return;
-        const uniqueSeries = [...new Set(this.data.map(m => m.series))]
+        const uniqueSeries = [...new Set(store.data.map(m => m.series))]
             .filter(s => s)
             .map(s => String(s).trim())
             .filter(s => s);
         uniqueSeries.sort((a, b) => a.localeCompare(b, 'vi'));
         datalist.innerHTML = uniqueSeries.map(s => `<option value="${escapeHTML(s)}">`).join('');
-    },
+    }
 
-    generateId() {
+    export function generateId() {
         return Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
-    },
+    }
         
 
-    showView(viewId) {
+    export function showView(viewId) {
         // Track view hiện tại để tránh abort khi ở form
-        this.currentView = viewId;
+        store.currentView = viewId;
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active', 'hidden'));
         document.querySelectorAll('.view').forEach(v => {
             if (v.id === `view-${viewId}`) v.classList.add('active');
@@ -54,32 +54,32 @@ export function applyMangaMixin(app) {
         if (window.feather) { try { feather.replace(); } catch (e) { console.warn('Feather error:', e); } }
 
         if (viewId === 'dashboard') {
-            this.renderDashboard();
+            window.app.renderDashboard();
             document.getElementById('searchInput').value = '';
         } else if (viewId === 'form') {
             document.getElementById('manga-form').reset();
             document.getElementById('edit-id').value = '';
             document.querySelector('#view-form h2').textContent = 'Thêm sách mới';
-            this.previewImage('', 'cover', 'main-');
+            window.app.previewImage('', 'cover', 'main-');
             const giftUrls = document.getElementById('main-giftUrls');
             if (giftUrls) giftUrls.value = '';
             const giftInput = document.getElementById('main-giftUrlInput');
             if (giftInput) giftInput.value = '';
             const thumbs = document.getElementById('main-gift-thumbnails');
             if (thumbs) thumbs.innerHTML = '';
-            this.previewGiftImage('', 'main-');
-            this.switchImgTab('cover', 'main-');
+            window.app.previewGiftImage('', 'main-');
+            window.app.switchImgTab('cover', 'main-');
             const datePicker = document.querySelector("#publishDate");
             if (datePicker && datePicker._flatpickr) datePicker._flatpickr.clear();
             if (window.feather) { try { feather.replace(); } catch (e) { console.warn('Feather error:', e); } }
         }
-    },
+    }
         
 
     // ─── SERIES GROUPS ────────────────────────────────────────────────────────
-    getSeriesGroups() {
+    export function getSeriesGroups() {
         const groups = {};
-        this.data.forEach(manga => {
+        store.data.forEach(manga => {
             if (!groups[manga.series]) {
                 groups[manga.series] = {
                     title: manga.series,
@@ -101,11 +101,11 @@ export function applyMangaMixin(app) {
             const count = g.uniqueVolumes.size;
             let total = Math.max(count, Math.ceil(g.maxVolume));
 
-            if (this.seriesMetadata && this.seriesMetadata[g.title] && this.seriesMetadata[g.title].total_volumes > 0) {
-                total = Math.max(total, this.seriesMetadata[g.title].total_volumes);
+            if (window.app.seriesMetadata && window.app.seriesMetadata[g.title] && window.app.seriesMetadata[g.title].total_volumes > 0) {
+                total = Math.max(total, window.app.seriesMetadata[g.title].total_volumes);
             }
-            if (this.userSeriesSettings && this.userSeriesSettings[g.title] && this.userSeriesSettings[g.title].target_volumes > 0) {
-                total = Math.max(count, this.userSeriesSettings[g.title].target_volumes);
+            if (store.userSeriesSettings && store.userSeriesSettings[g.title] && store.userSeriesSettings[g.title].target_volumes > 0) {
+                total = Math.max(count, store.userSeriesSettings[g.title].target_volumes);
             }
 
             const percent = total > 0 ? Math.round((count / total) * 100) : 0;
@@ -124,9 +124,9 @@ export function applyMangaMixin(app) {
                 ? titleB.localeCompare(titleA, 'vi')
                 : titleA.localeCompare(titleB, 'vi');
         });
-    },
+    }
     // ─── SKELETON LOADERS ─────────────────────────────────────────────────────
-    renderSeriesSkeletons(containerId, isListView = false) {
+    export function renderSeriesSkeletons(containerId, isListView = false) {
         const grid = document.getElementById(containerId);
         if (!grid) return;
 
@@ -152,9 +152,9 @@ export function applyMangaMixin(app) {
             `;
         }
         grid.innerHTML = html;
-    },
+    }
 
-    renderVolumeSkeletons(containerId, isListView = false) {
+    export function renderVolumeSkeletons(containerId, isListView = false) {
         const container = document.getElementById(containerId);
         if (!container) return;
 
@@ -178,5 +178,4 @@ export function applyMangaMixin(app) {
         }
         container.innerHTML = html;
     }
-    });
-}
+    
