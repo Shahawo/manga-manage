@@ -7,7 +7,7 @@ import * as auth from './mixins/auth.js';
 import * as api from './mixins/api.js';
 import * as manga from './mixins/manga.js';
 import * as dashboard from './mixins/dashboard.js';
-import * as ui_modal from './mixins/ui_modal.js';
+import * as ui_modal from './mixins/uiModal.js';
 import * as form from './mixins/form.js';
 import * as scanner from './mixins/scanner.js';
 import * as admin from './mixins/admin.js';
