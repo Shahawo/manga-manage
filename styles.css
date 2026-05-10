@@ -1984,3 +1984,61 @@ label {
     height: 72px;
     border-right: 1px solid var(--border);
 }
+
+/* ─── AI Vision Modal ─────────────────────────────────────────────────────── */
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.ai-result-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0.75rem;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.15s;
+    border: 1px solid rgba(124, 58, 237, 0.2);
+    margin-bottom: 0.5rem;
+    background: rgba(255,255,255,0.04);
+}
+.ai-result-item:hover {
+    background: rgba(124, 58, 237, 0.18);
+    border-color: rgba(124, 58, 237, 0.5);
+}
+.ai-result-cover {
+    width: 40px;
+    height: 58px;
+    object-fit: cover;
+    border-radius: 5px;
+    flex-shrink: 0;
+    background: #1e1b4b;
+}
+.ai-result-info {
+    flex: 1;
+    min-width: 0;
+}
+.ai-result-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #e9d5ff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.ai-result-meta {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.ai-result-badge {
+    font-size: 0.7rem;
+    background: rgba(124, 58, 237, 0.25);
+    color: #c4b5fd;
+    padding: 2px 7px;
+    border-radius: 99px;
+    flex-shrink: 0;
+}
