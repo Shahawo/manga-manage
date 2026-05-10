@@ -366,7 +366,7 @@ import { store } from '../store.js';
             window.app.renderDashboard();
 
             // Nếu là admin, prefetch catalog ngầm để khi vào tab "ỬQuản lý Kho" không phải chờ "Đang tải..."
-            if (window.app.isAdmin && !window.app.fullCatalogCache && !window.app._isFetchingCatalog) {
+            if (window.app.isAdmin && !store.fullCatalogCache && !store.isFetchingCatalog) {
                 // Delay nhỏ để ưu tiên render dashboard trước
                 setTimeout(() => window.app._prefetchCatalogCache(), 1500);
             }
@@ -387,8 +387,8 @@ import { store } from '../store.js';
     // ─── ADMIN CATALOG PREFETCH ────────────────────────────────────────────────
     // Chạy ngầm khi admin load trang chính, để khi vào Kho chung thì hiển thị ngay
     export async function _prefetchCatalogCache() {
-        if (window.app.fullCatalogCache || window.app._isFetchingCatalog) return;
-        window.app._isFetchingCatalog = true;
+        if (store.fullCatalogCache || store.isFetchingCatalog) return;
+        store.isFetchingCatalog = true;
         try {
             const controller = new AbortController();
             window.app._catalogFetchController = controller;
@@ -398,7 +398,7 @@ import { store } from '../store.js';
                 .order('volume', { ascending: true })
                 .abortSignal(controller.signal);
             if (!error && data) {
-                window.app.fullCatalogCache = data;
+                store.fullCatalogCache = data;
                 console.debug(`[Prefetch] Catalog cache đã tải xong ngầm: ${data.length} mục`);
             }
         } catch (e) {
@@ -406,7 +406,7 @@ import { store } from '../store.js';
             console.debug('[Prefetch] Catalog prefetch thất bại (im lặng):', e.message);
         } finally {
             window.app._catalogFetchController = null;
-            window.app._isFetchingCatalog = false;
+            store.isFetchingCatalog = false;
         }
     }
 
