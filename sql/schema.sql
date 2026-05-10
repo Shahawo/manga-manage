@@ -409,10 +409,54 @@ GRANT ALL ON TABLE public.series_metadata TO authenticated, anon, service_role;
 GRANT ALL ON TABLE public.user_series_settings TO authenticated, anon, service_role;
 
 -- ============================================================
--- STORAGE: Tạo bucket 'covers' (chạy trong Supabase Dashboard)
--- INSERT INTO storage.buckets (id, name, public) VALUES ('covers', 'covers', true);
--- CREATE POLICY "Authenticated upload covers" ON storage.objects FOR INSERT WITH CHECK (auth.role() = 'authenticated' AND bucket_id = 'covers');
--- CREATE POLICY "Public read covers" ON storage.objects FOR SELECT USING (bucket_id = 'covers');
+-- STORAGE: Cấu hình bảo mật (RLS) cho Bucket 'covers'
+-- ============================================================
+
+-- 1. Tạo bucket 'covers' (Giới hạn dung lượng < 5MB, chỉ nhận file ảnh)
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types) 
+VALUES (
+  'covers', 
+  'covers', 
+  true, 
+  5242880, -- 5MB
+  ARRAY['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+)
+ON CONFLICT (id) DO UPDATE SET 
+  file_size_limit = 5242880,
+  allowed_mime_types = ARRAY['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+
+-- 2. Bật RLS cho bảng chứa file (storage.objects)
+ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
+
+-- 3. Policy: Ai cũng có thể tải và xem ảnh (Public Read)
+DROP POLICY IF EXISTS "Public read covers" ON storage.objects;
+CREATE POLICY "Public read covers" ON storage.objects 
+  FOR SELECT USING (bucket_id = 'covers');
+
+-- 4. Policy: CHỈ user đã đăng nhập mới được upload ảnh
+DROP POLICY IF EXISTS "Authenticated upload covers" ON storage.objects;
+CREATE POLICY "Authenticated upload covers" ON storage.objects 
+  FOR INSERT WITH CHECK (
+    auth.role() = 'authenticated' AND 
+    bucket_id = 'covers'
+  );
+
+-- 5. Policy: CHỈ chủ nhân file mới có quyền Xoá/Sửa ảnh của mình
+DROP POLICY IF EXISTS "Owner can update own covers" ON storage.objects;
+CREATE POLICY "Owner can update own covers" ON storage.objects
+  FOR UPDATE USING (
+    auth.role() = 'authenticated' AND 
+    bucket_id = 'covers' AND 
+    owner = auth.uid()
+  );
+
+DROP POLICY IF EXISTS "Owner can delete own covers" ON storage.objects;
+CREATE POLICY "Owner can delete own covers" ON storage.objects
+  FOR DELETE USING (
+    auth.role() = 'authenticated' AND 
+    bucket_id = 'covers' AND 
+    owner = auth.uid()
+  );
 
 -- Thêm admin đầu tiên (thay YOUR_USER_UUID bằng UUID thực):
 -- INSERT INTO admin_users (user_id, email) VALUES ('YOUR_USER_UUID', 'your@email.com');
