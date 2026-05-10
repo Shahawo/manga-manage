@@ -101,8 +101,8 @@ import { escapeHTML } from '../utils/security.js';
             const count = g.uniqueVolumes.size;
             let total = Math.max(count, Math.ceil(g.maxVolume));
 
-            if (window.app.seriesMetadata && window.app.seriesMetadata[g.title] && window.app.seriesMetadata[g.title].total_volumes > 0) {
-                total = Math.max(total, window.app.seriesMetadata[g.title].total_volumes);
+            if (store.seriesMetadata && store.seriesMetadata[g.title] && store.seriesMetadata[g.title].total_volumes > 0) {
+                total = Math.max(total, store.seriesMetadata[g.title].total_volumes);
             }
             if (store.userSeriesSettings && store.userSeriesSettings[g.title] && store.userSeriesSettings[g.title].target_volumes > 0) {
                 total = Math.max(count, store.userSeriesSettings[g.title].target_volumes);
