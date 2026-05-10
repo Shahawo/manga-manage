@@ -1,5 +1,6 @@
 import { store } from '../store.js';
 import { supabase } from '../supabase-client.js';
+import { escapeHTML } from '../utils/security.js';
 
 export function showModal(id) {
         const manga = store.data.find(m => m.id === id);
