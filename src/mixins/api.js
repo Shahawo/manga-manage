@@ -183,8 +183,8 @@ import { store } from '../store.js';
             window.app._isPageLoad = false; // Reset flag sau lần sync đầu
 
             // ─── AUTO-RECONCILE: Đồng bộ lại UI từ server sau khi queue hoàn tất ────
-            if (window.app.user) {
-                const savedView = window.app.currentView;
+            if (store.user) {
+                const savedView = store.currentView;
                 const savedSeries = store.currentSeries;
                 try {
                     await window.app.loadData();
@@ -207,17 +207,17 @@ import { store } from '../store.js';
 
     export function _rememberPendingRejectedId(id) {
         if (!id) return;
-        if (!window.app.pendingRejectedIds.includes(id)) {
-            window.app.pendingRejectedIds.push(id);
-            localStorage.setItem('manga_pending_rejected_ids', JSON.stringify(window.app.pendingRejectedIds));
+        if (!store.pendingRejectedIds.includes(id)) {
+            store.pendingRejectedIds.push(id);
+            localStorage.setItem('manga_pending_rejected_ids', JSON.stringify(store.pendingRejectedIds));
         }
     }
         
 
     export function _clearPendingRejectedId(id) {
-        if (!id || !window.app.pendingRejectedIds.includes(id)) return;
-        window.app.pendingRejectedIds = window.app.pendingRejectedIds.filter(x => x !== id);
-        localStorage.setItem('manga_pending_rejected_ids', JSON.stringify(window.app.pendingRejectedIds));
+        if (!id || !store.pendingRejectedIds.includes(id)) return;
+        store.pendingRejectedIds = store.pendingRejectedIds.filter(x => x !== id);
+        localStorage.setItem('manga_pending_rejected_ids', JSON.stringify(store.pendingRejectedIds));
     }
         
 
@@ -251,7 +251,7 @@ import { store } from '../store.js';
 
     // ─── DATA — FETCH API ─────────────────────────────────────────────────────
     export async function loadData(forceSkeleton = false) {
-        if (!window.app.data || window.app.data.length === 0 || forceSkeleton) {
+        if (!store.data || store.data.length === 0 || forceSkeleton) {
             window.app.renderSeriesSkeletons('series-grid', store.viewMode === 'list');
             const emptyState = document.getElementById('empty-state');
             if (emptyState) emptyState.classList.add('hidden');
@@ -346,7 +346,7 @@ import { store } from '../store.js';
                     }
                 });
             }
-            window.app.data = fetchedData;
+            store.data = fetchedData;
 
             // Fetch extra tracking data
             try {
@@ -356,8 +356,8 @@ import { store } from '../store.js';
                 ]);
                 store.seriesMetadata = {};
                 if (metaRes.data) metaRes.data.forEach(x => store.seriesMetadata[x.series] = x);
-                window.app.userSeriesSettings = {};
-                if (userRes.data) userRes.data.forEach(x => window.app.userSeriesSettings[x.series] = x);
+                store.userSeriesSettings = {};
+                if (userRes.data) userRes.data.forEach(x => store.userSeriesSettings[x.series] = x);
             } catch (err) {
                 console.warn('Không thể tải metadata tracking:', err);
             }
@@ -366,15 +366,15 @@ import { store } from '../store.js';
             window.app.renderDashboard();
 
             // Nếu là admin, prefetch catalog ngầm để khi vào tab "ỬQuản lý Kho" không phải chờ "Đang tải..."
-            if (window.app.isAdmin && !store.fullCatalogCache && !store.isFetchingCatalog) {
+            if (store.isAdmin && !store.fullCatalogCache && !store.isFetchingCatalog) {
                 // Delay nhỏ để ưu tiên render dashboard trước
                 setTimeout(() => window.app._prefetchCatalogCache(), 1500);
             }
         } catch (err) {
             console.error('Lỗi tải dữ liệu:', err);
-            if (!window.app.data) window.app.data = [];
+            if (!store.data) store.data = [];
             window.app.renderDashboard();
-            if (window.app.user) {
+            if (store.user) {
                 const msg = err?.code === '42P01'
                     ? 'Chưa tạo bảng dữ liệu! Vui lòng chạy file sql/schema.sql trong Supabase.'
                     : 'Không thể kết nối server! (' + (err?.message || 'unknown') + ')';
@@ -414,11 +414,11 @@ import { store } from '../store.js';
     // ─── EXPORT / IMPORT ──────────────────────────────────────────────────────
     export function exportData() {
 
-        if (window.app.data.length === 0) {
+        if (store.data.length === 0) {
             window.app.showToast('Thư viện đang trống, không có dữ liệu để sao lưu!', 'error');
             return;
         }
-        const dataStr = JSON.stringify(window.app.data, null, 2);
+        const dataStr = JSON.stringify(store.data, null, 2);
         const blob = new Blob([dataStr], { type: "application/json" });
         const url = URL.createObjectURL(blob);
         const date = new Date();
@@ -449,7 +449,7 @@ import { store } from '../store.js';
                 // Import via Supabase JS
                 const cleanData = importedData.map(m => {
                     const record = {
-                        user_id: window.app.user.id,
+                        user_id: store.user.id,
                         series: m.series,
                         title: m.title,
                         volume: parseFloat(m.volume) || null,
@@ -475,7 +475,7 @@ import { store } from '../store.js';
                     return record;
                 });
 
-                const { error: deleteErr } = await supabase.from('manga').delete().eq('user_id', window.app.user.id);
+                const { error: deleteErr } = await supabase.from('manga').delete().eq('user_id', store.user.id);
                 if (deleteErr) throw deleteErr;
 
                 const { error: insertErr } = await supabase.from('manga').insert(cleanData);
