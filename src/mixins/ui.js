@@ -52,7 +52,7 @@ import { escapeHTML } from '../utils/security.js';
                 window.app._startSyncInterval();
 
                 // Nếu đang ở tab Admin Kho chung và cache bị xóa do chuyển tab → tự fetch lại
-                if (store.currentView === 'admin' && !window.app.fullCatalogCache) {
+                if (store.currentView === 'admin' && !store.fullCatalogCache) {
                     setTimeout(() => window.app.searchAdminCatalog(1), 300);
                 }
             } else {
