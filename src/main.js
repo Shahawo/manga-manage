@@ -1,10 +1,12 @@
 import { supabase } from './supabase-client.js';
-import { applyAuthMixin } from './mixins/auth.js';
-import { applyApiMixin } from './mixins/api.js';
-import { applySettingsMixin } from './mixins/settings.js';
-import { applyRouterMixin } from './mixins/router.js';
-import { applyUiMixin } from './mixins/ui.js';
-import { applyMangaMixin } from './mixins/manga.js';
+import * as settings from './mixins/settings.js';
+import * as router from './mixins/router.js';
+import * as ui from './mixins/ui.js';
+
+import * as auth from './mixins/auth.js';
+import * as api from './mixins/api.js';
+import * as manga from './mixins/manga.js';
+
 import { applyCoreMixin } from './mixins/core.js';
 
 // Nạp HTML bằng Vite
@@ -20,17 +22,17 @@ if (mainContainer) {
     mainContainer.insertAdjacentHTML('beforeend', modalsHtml);
 }
 
-const app = {};
-
-applyAuthMixin(app);
-applyApiMixin(app);
-applySettingsMixin(app);
-applyRouterMixin(app);
-applyUiMixin(app);
-applyMangaMixin(app);
-applyCoreMixin(app);
-
+const app = {
+    ...settings,
+    ...router,
+    ...ui,
+    ...auth,
+    ...api,
+    ...manga
+};
 window.app = app;
+
+applyCoreMixin(app);
 
 // We must extract init manually to be called after all mixins
 app.init();
