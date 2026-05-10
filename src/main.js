@@ -6,8 +6,11 @@ import * as ui from './mixins/ui.js';
 import * as auth from './mixins/auth.js';
 import * as api from './mixins/api.js';
 import * as manga from './mixins/manga.js';
-
-import { applyCoreMixin } from './mixins/core.js';
+import * as dashboard from './mixins/dashboard.js';
+import * as ui_modal from './mixins/ui_modal.js';
+import * as form from './mixins/form.js';
+import * as scanner from './mixins/scanner.js';
+import * as admin from './mixins/admin.js';
 
 // Nạp HTML bằng Vite
 import adminHtml from './views/admin.html?raw';
@@ -28,11 +31,14 @@ const app = {
     ...ui,
     ...auth,
     ...api,
-    ...manga
+    ...manga,
+    ...dashboard,
+    ...ui_modal,
+    ...form,
+    ...scanner,
+    ...admin
 };
 window.app = app;
-
-applyCoreMixin(app);
 
 // We must extract init manually to be called after all mixins
 app.init();
