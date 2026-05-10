@@ -100,7 +100,7 @@ export function renderDashboard() {
         } else {
             grid.classList.remove('list-view');
             // Khôi phục số cột đã lưu cho grid view
-            const savedCols = (window.app.settings && window.app.settings.gridCols) || localStorage.getItem('gridCols') || '6';
+            const savedCols = (store.settings && store.settings.gridCols) || localStorage.getItem('gridCols') || '6';
             grid.style.gridTemplateColumns = `repeat(${savedCols}, 1fr)`;
             const icon = document.getElementById('icon-view-mode');
             if (icon) icon.setAttribute('data-feather', 'list');
@@ -210,8 +210,8 @@ export function toggleViewMode() {
     }
 
 export function toggleDetailViewMode() {
-        window.app.detailViewMode = window.app.detailViewMode === 'grid' ? 'list' : 'grid';
-        localStorage.setItem('detailViewMode', window.app.detailViewMode);
+        store.detailViewMode = store.detailViewMode === 'grid' ? 'list' : 'grid';
+        localStorage.setItem('detailViewMode', store.detailViewMode);
         window.app.renderSeriesDetail(store.currentSeries);
     }
 
@@ -299,13 +299,13 @@ export function renderSeriesDetail(seriesName, page = 1) {
             btnEditTarget.onclick = () => app.editSeriesTarget(seriesName);
         }
 
-        if (!window.app.detailViewMode) window.app.detailViewMode = localStorage.getItem('detailViewMode') || 'grid';
+        if (!store.detailViewMode) store.detailViewMode = localStorage.getItem('detailViewMode') || 'grid';
 
         const list = document.getElementById('volumes-list');
-        list.className = window.app.detailViewMode === 'list' ? 'detail-grid list-view' : 'detail-grid';
+        list.className = store.detailViewMode === 'list' ? 'detail-grid list-view' : 'detail-grid';
 
         const icon = document.getElementById('icon-detail-view-mode');
-        if (icon) icon.setAttribute('data-feather', window.app.detailViewMode === 'list' ? 'grid' : 'list');
+        if (icon) icon.setAttribute('data-feather', store.detailViewMode === 'list' ? 'grid' : 'list');
 
         list.innerHTML = '';
 
