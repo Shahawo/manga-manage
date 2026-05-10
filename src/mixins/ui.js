@@ -1,25 +1,25 @@
+import { store } from '../store.js';
 import { supabase } from '../supabase-client.js';
 import { escapeHTML } from '../utils/security.js';
 
-export function applyUiMixin(app) {
-    Object.assign(app, {
+
         
 
     // ─── KHỞI ĐỘNG ────────────────────────────────────────────────────────────
-    async init() {
-        this.loadTheme();
-        this.applySettings();
+    export async function init() {
+        window.app.loadTheme();
+        window.app.applySettings();
 
         // Khôi phục session từ localStorage ngay khi khởi động (tránh phải đăng nhập lại sau F5)
         const { data: { session: existingSession } } = await supabase.auth.getSession();
         if (existingSession?.user) {
-            this.user = existingSession.user;
+            store.user = existingSession.user;
             try {
                 const { data } = await supabase.rpc('is_admin');
-                this.isAdmin = !!data;
-            } catch (e) { this.isAdmin = false; }
-            this.updateAuthUI();
-            await this.loadData();
+                store.isAdmin = !!data;
+            } catch (e) { store.isAdmin = false; }
+            window.app.updateAuthUI();
+            await window.app.loadData();
         }
 
         // Lắng nghe thay đổi auth (đăng nhập mới, đăng xuất, refresh token)
@@ -27,20 +27,20 @@ export function applyUiMixin(app) {
             const newUser = session?.user || null;
             // Bỏ qua INITIAL_SESSION nếu đã xử lý ở trên
             if (event === 'INITIAL_SESSION') return;
-            this.user = newUser;
-            if (this.user) {
+            store.user = newUser;
+            if (store.user) {
                 try {
                     const { data } = await supabase.rpc('is_admin');
-                    this.isAdmin = !!data;
-                } catch (e) { this.isAdmin = false; }
-                this.updateAuthUI();
-                await this.loadData();
-                this.router();
+                    store.isAdmin = !!data;
+                } catch (e) { store.isAdmin = false; }
+                window.app.updateAuthUI();
+                await window.app.loadData();
+                window.app.router();
             } else {
-                this.isAdmin = false;
-                this.updateAuthUI();
-                this.data = [];
-                this.navigateTo('/', true);
+                store.isAdmin = false;
+                window.app.updateAuthUI();
+                store.data = [];
+                window.app.navigateTo('/', true);
             }
         });
 
@@ -48,57 +48,57 @@ export function applyUiMixin(app) {
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) {
                 // Tab visible: chạy queue ngay + khởi động lại interval
-                this.processSyncQueue();
-                this._startSyncInterval();
+                window.app.processSyncQueue();
+                window.app._startSyncInterval();
 
                 // Nếu đang ở tab Admin Kho chung và cache bị xóa do chuyển tab → tự fetch lại
-                if (this.currentView === 'admin' && !this.fullCatalogCache) {
-                    setTimeout(() => this.searchAdminCatalog(1), 300);
+                if (store.currentView === 'admin' && !window.app.fullCatalogCache) {
+                    setTimeout(() => window.app.searchAdminCatalog(1), 300);
                 }
             } else {
                 // Tab hidden: dừng interval để không tốn CPU/pin (đặc biệt trên mobile/Safari)
-                this._stopSyncInterval();
+                window.app._stopSyncInterval();
             }
         });
 
         // Tự động chạy queue khi có mạng lại hoặc window focus
-        window.addEventListener('online', () => this.processSyncQueue());
-        window.addEventListener('focus', () => this.processSyncQueue());
+        window.addEventListener('online', () => window.app.processSyncQueue());
+        window.addEventListener('focus', () => window.app.processSyncQueue());
 
         // Hàm khởi động interval (10s) — chỉ chạy khi tab visible
-        this._startSyncInterval = () => {
-            if (this._syncIntervalId) return; // Tránh tạo nhiều interval
-            this._syncIntervalId = setInterval(() => this.processSyncQueue(), 10000);
+        window.app._startSyncInterval = () => {
+            if (window.app._syncIntervalId) return; // Tránh tạo nhiều interval
+            window.app._syncIntervalId = setInterval(() => window.app.processSyncQueue(), 10000);
         };
 
         // Hàm dừng interval khi tab ẩn
-        this._stopSyncInterval = () => {
-            if (this._syncIntervalId) {
-                clearInterval(this._syncIntervalId);
-                this._syncIntervalId = null;
+        window.app._stopSyncInterval = () => {
+            if (window.app._syncIntervalId) {
+                clearInterval(window.app._syncIntervalId);
+                window.app._syncIntervalId = null;
             }
         };
 
         // Khởi động interval ngay khi init (tab đang visible)
         if (!document.hidden) {
-            this._startSyncInterval();
+            window.app._startSyncInterval();
         }
 
         // Đánh dấu đây là lần sync đầu sau khi tải trang
         // → dùng để suppress toast "Đồng bộ hoàn tất" khi F5 (sách đã hiển thị qua queue-aware merge)
-        this._isPageLoad = true;
+        window.app._isPageLoad = true;
 
         // Chạy thử queue lúc mới init
-        setTimeout(() => this.processSyncQueue(), 2000);
+        setTimeout(() => window.app.processSyncQueue(), 2000);
 
         // Apply saved settings
-        const savedCols = this.settings.gridCols || '6';
+        const savedCols = window.app.settings.gridCols || '6';
         const grid = document.getElementById('series-grid');
-        if (grid && this.viewMode === 'grid') {
+        if (grid && window.app.viewMode === 'grid') {
             grid.style.gridTemplateColumns = `repeat(${savedCols}, 1fr)`;
         }
-        const savedFontSize = this.settings.fontSize || 'normal';
-        this.applyFontSize(savedFontSize);
+        const savedFontSize = window.app.settings.fontSize || 'normal';
+        window.app.applyFontSize(savedFontSize);
         const savedSort = localStorage.getItem('defaultSort');
         if (savedSort) {
             const sortEl = document.getElementById('sort-order');
@@ -126,10 +126,10 @@ export function applyUiMixin(app) {
             });
         });
 
-        this.updateSeriesSuggestions();
-        this.setupPriceInput();
-        this.setupRouter();
-        this.setupSearch();
+        window.app.updateSeriesSuggestions();
+        window.app.setupPriceInput();
+        window.app.setupRouter();
+        window.app.setupSearch();
 
         if (window.flatpickr) {
             flatpickr("#publishDate", {
@@ -153,10 +153,8 @@ export function applyUiMixin(app) {
                 }
             });
         }
-    },
-
-    // ─── LOADING UI ───────────────────────────────────────────────────────────
-    showLoading(msg = 'Đang xử lý...') {
+    } // ─── LOADING UI ───────────────────────────────────────────────────────────
+    export function showLoading(msg = 'Đang xử lý...') {
         let el = document.getElementById('loading-overlay');
         if (!el) {
             el = document.createElement('div');
@@ -173,30 +171,20 @@ export function applyUiMixin(app) {
         }
         el.querySelector('span').textContent = msg;
         el.style.display = 'flex';
-    },
-
-    hideLoading() {
+    }    export function hideLoading() {
         const el = document.getElementById('loading-overlay');
         if (el) el.style.display = 'none';
-    },
-        
-
-    // ─── THEME ────────────────────────────────────────────────────────────────
-    loadTheme() {
+    } // ─── THEME ────────────────────────────────────────────────────────────────
+    export function loadTheme() {
         const theme = localStorage.getItem('theme') || 'light';
         document.documentElement.setAttribute('data-theme', theme);
-        this.updateThemeIcon(theme);
-    },
-
-    toggleTheme() {
+        window.app.updateThemeIcon(theme);
+    }    export function toggleTheme() {
         let theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
         document.documentElement.setAttribute('data-theme', theme);
         localStorage.setItem('theme', theme);
-        this.updateThemeIcon(theme);
-    },
-        
-
-    updateThemeIcon(theme) {
+        window.app.updateThemeIcon(theme);
+    }    export function updateThemeIcon(theme) {
         // Sync dropdown toggle (toggle = current state ON/OFF)
         const toggleDot = document.getElementById('theme-toggle-dot');
         // Label shows what you'll switch TO (reversed)
@@ -217,5 +205,4 @@ export function applyUiMixin(app) {
         if (themeSwitchSettings) themeSwitchSettings.classList.toggle('active', theme === 'dark');
         if (window.feather) { try { feather.replace(); } catch (e) { console.warn('Feather error:', e); } }
     }
-    });
-}
+    
