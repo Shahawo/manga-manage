@@ -46,22 +46,42 @@ export function applyUiMixin(app) {
         // ─── PAGE VISIBILITY API ─────
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) {
+                // Tab visible: chạy queue ngay + khởi động lại interval
                 this.processSyncQueue();
-
+                this._startSyncInterval();
 
                 // Nếu đang ở tab Admin Kho chung và cache bị xóa do chuyển tab → tự fetch lại
                 if (this.currentView === 'admin' && !this.fullCatalogCache) {
                     setTimeout(() => this.searchAdminCatalog(1), 300);
                 }
+            } else {
+                // Tab hidden: dừng interval để không tốn CPU/pin (đặc biệt trên mobile/Safari)
+                this._stopSyncInterval();
             }
         });
 
-        // Tự động chạy queue khi có mạng lại
+        // Tự động chạy queue khi có mạng lại hoặc window focus
         window.addEventListener('online', () => this.processSyncQueue());
         window.addEventListener('focus', () => this.processSyncQueue());
 
-        // Chạy ngầm mỗi 10 giây để đề phòng kẹt
-        setInterval(() => this.processSyncQueue(), 10000);
+        // Hàm khởi động interval (10s) — chỉ chạy khi tab visible
+        this._startSyncInterval = () => {
+            if (this._syncIntervalId) return; // Tránh tạo nhiều interval
+            this._syncIntervalId = setInterval(() => this.processSyncQueue(), 10000);
+        };
+
+        // Hàm dừng interval khi tab ẩn
+        this._stopSyncInterval = () => {
+            if (this._syncIntervalId) {
+                clearInterval(this._syncIntervalId);
+                this._syncIntervalId = null;
+            }
+        };
+
+        // Khởi động interval ngay khi init (tab đang visible)
+        if (!document.hidden) {
+            this._startSyncInterval();
+        }
 
         // Đánh dấu đây là lần sync đầu sau khi tải trang
         // → dùng để suppress toast "Đồng bộ hoàn tất" khi F5 (sách đã hiển thị qua queue-aware merge)
