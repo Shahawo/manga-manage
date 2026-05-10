@@ -1,8 +1,24 @@
 import { supabase } from '../supabase-client.js';
+import { escapeHTML } from '../utils/security.js';
 
 export function applyCoreMixin(app) {
     Object.assign(app, {
         
+        async loadLibrary(url, globalVarName) {
+            if (window[globalVarName]) return true;
+            if (!this._loadingScripts) this._loadingScripts = {};
+            if (this._loadingScripts[url]) return this._loadingScripts[url];
+            
+            this._loadingScripts[url] = new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = url;
+                script.onload = () => resolve(true);
+                script.onerror = () => reject(new Error(`Failed to load ${url}`));
+                document.head.appendChild(script);
+            });
+            return this._loadingScripts[url];
+        },
+
 
     // ─── DASHBOARD ────────────────────────────────────────────────────────────
     renderDashboard() {
@@ -173,7 +189,7 @@ export function applyCoreMixin(app) {
                     ${coverHtml}
                 </div>
                 <div class="series-info">
-                    <h3 class="series-title" title="${sg.title}">${sg.title}</h3>
+                    <h3 class="series-title" title="${escapeHTML(sg.title)}">${escapeHTML(sg.title)}</h3>
                     <div class="series-meta">
                         <span><i data-feather="book" style="width:12px;height:12px;margin-right:4px;"></i>${sg.count}/${sg.total} tập</span>
                         <span class="progress-badge" style="font-weight:700; color:${percentColor}; background:${percentBg}; padding:0.15rem 0.5rem; border-radius:99px; font-size:0.75rem;">${sg.percent}%</span>
@@ -323,7 +339,7 @@ export function applyCoreMixin(app) {
                 <div class="vol-info">
                     <div class="vol-top">
                         <div style="display:flex; align-items:center;">
-                            <h4 class="vol-title">Tập ${v.volume}</h4>
+                            <h4 class="vol-title">Tập ${escapeHTML(v.volume)}</h4>
                             ${editionBadge}
                         </div>
                         <div style="display:flex; gap:0.25rem;">
@@ -335,7 +351,7 @@ export function applyCoreMixin(app) {
                             </button>
                         </div>
                     </div>
-                    ${v.note ? `<div class="vol-note-italic" onclick="app.showModal('${v.id}')">${v.note}</div>` : `<div onclick="app.showModal('${v.id}')" style="height:1.2rem"></div>`}
+                    ${v.note ? `<div class="vol-note-italic" onclick="app.showModal('${v.id}')">${escapeHTML(v.note)}</div>` : `<div onclick="app.showModal('${v.id}')" style="height:1.2rem"></div>`}
                 </div>
             `;
             list.appendChild(item);
@@ -459,19 +475,19 @@ export function applyCoreMixin(app) {
             <div class="modal-info">
                 <div class="minfo-group full-width">
                     <span class="minfo-label">Tiêu đề</span>
-                    <span class="minfo-val">${manga.title}</span>
+                    <span class="minfo-val">${escapeHTML(manga.title)}</span>
                 </div>
-                ${manga.isbn ? `<div class="minfo-group"><span class="minfo-label">ISBN</span><span class="minfo-val">${manga.isbn.split(/[,;|/\n]/)[0].trim()}</span></div>` : ''}
-                <div class="minfo-group"><span class="minfo-label">Tập số</span><span class="minfo-val">${manga.volume}</span></div>
-                ${manga.publisher ? `<div class="minfo-group"><span class="minfo-label">Nhà xuất bản</span><span class="minfo-val">${manga.publisher}</span></div>` : ''}
-                ${manga.distributor ? `<div class="minfo-group"><span class="minfo-label">Nhà phát hành</span><span class="minfo-val">${manga.distributor}</span></div>` : ''}
+                ${manga.isbn ? `<div class="minfo-group"><span class="minfo-label">ISBN</span><span class="minfo-val">${escapeHTML(manga.isbn.split(/[,;|/\n]/)[0].trim())}</span></div>` : ''}
+                <div class="minfo-group"><span class="minfo-label">Tập số</span><span class="minfo-val">${escapeHTML(manga.volume)}</span></div>
+                ${manga.publisher ? `<div class="minfo-group"><span class="minfo-label">Nhà xuất bản</span><span class="minfo-val">${escapeHTML(manga.publisher)}</span></div>` : ''}
+                ${manga.distributor ? `<div class="minfo-group"><span class="minfo-label">Nhà phát hành</span><span class="minfo-val">${escapeHTML(manga.distributor)}</span></div>` : ''}
                 ${manga.price ? `<div class="minfo-group"><span class="minfo-label">Giá bìa</span><span class="minfo-val">${new Intl.NumberFormat('vi-VN').format(manga.price)} <ins style="text-decoration:underline">đ</ins></span></div>` : ''}
                 ${fDate ? `<div class="minfo-group"><span class="minfo-label">Ngày phát hành</span><span class="minfo-val">${fDate}</span></div>` : ''}
-                ${manga.author ? `<div class="minfo-group"><span class="minfo-label">Tác giả</span><span class="minfo-val">${manga.author.replace(/\n/g, ', ')}</span></div>` : ''}
-                ${manga.translator ? `<div class="minfo-group"><span class="minfo-label">Dịch giả</span><span class="minfo-val">${manga.translator}</span></div>` : ''}
-                ${manga.size ? `<div class="minfo-group"><span class="minfo-label">Kích thước</span><span class="minfo-val">${manga.size}</span></div>` : ''}
-                ${manga.pages ? `<div class="minfo-group"><span class="minfo-label">Số trang</span><span class="minfo-val">${manga.pages} trang</span></div>` : ''}
-                ${manga.note ? `<div class="minfo-group full-width"><span class="minfo-label">Chú thích</span><span class="minfo-val">${manga.note}</span></div>` : ''}
+                ${manga.author ? `<div class="minfo-group"><span class="minfo-label">Tác giả</span><span class="minfo-val">${escapeHTML(manga.author.replace(/\n/g, ', '))}</span></div>` : ''}
+                ${manga.translator ? `<div class="minfo-group"><span class="minfo-label">Dịch giả</span><span class="minfo-val">${escapeHTML(manga.translator)}</span></div>` : ''}
+                ${manga.size ? `<div class="minfo-group"><span class="minfo-label">Kích thước</span><span class="minfo-val">${escapeHTML(manga.size)}</span></div>` : ''}
+                ${manga.pages ? `<div class="minfo-group"><span class="minfo-label">Số trang</span><span class="minfo-val">${escapeHTML(manga.pages)} trang</span></div>` : ''}
+                ${manga.note ? `<div class="minfo-group full-width"><span class="minfo-label">Chú thích</span><span class="minfo-val">${escapeHTML(manga.note)}</span></div>` : ''}
             </div>
         `;
         document.getElementById('volume-modal').classList.add('show');
@@ -1100,6 +1116,9 @@ export function applyCoreMixin(app) {
         modal.classList.add('show');
 
         try {
+            this.showLoading('Đang tải module máy quét...');
+            await this.loadLibrary('https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js', 'ZXing');
+            this.hideLoading();
             if (!this.codeReader) {
                 this.codeReader = new ZXing.BrowserMultiFormatReader();
             }
@@ -1158,7 +1177,10 @@ export function applyCoreMixin(app) {
         reader.onload = (event) => {
             const img = document.createElement('img');
             img.src = event.target.result;
-            img.onload = () => {
+            img.onload = async () => {
+                this.showLoading('Đang tải module máy quét...');
+                await this.loadLibrary('https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js', 'ZXing');
+                this.hideLoading();
                 if (!this.codeReader) this.codeReader = new ZXing.BrowserMultiFormatReader();
                 this.showToast('Đang phân tích mã vạch...', 'info');
                 this.codeReader.decodeFromImageElement(img)
@@ -1345,10 +1367,6 @@ export function applyCoreMixin(app) {
             this.showToast('Vui lòng chọn ảnh bìa trước!', 'error');
             return;
         }
-        if (typeof Tesseract === 'undefined') {
-            this.showToast('Đang tải thư viện AI... Vui lòng thử lại sau vài giây!', 'info');
-            return;
-        }
 
         // Hiện loading overlay
         const processingEl = document.getElementById('ai-scan-processing');
@@ -1358,8 +1376,11 @@ export function applyCoreMixin(app) {
         if (retryBtn) retryBtn.style.display = 'none';
 
         try {
-            // Chạy Tesseract OCR — nhận diện tiếng Việt + tiếng Anh
             const setStatus = (msg) => { if (statusEl) statusEl.textContent = msg; };
+            setStatus('Đang tải trí tuệ nhân tạo (OCR)...');
+            await this.loadLibrary('https://unpkg.com/tesseract.js@v5/dist/tesseract.min.js', 'Tesseract');
+
+            // Chạy Tesseract OCR — nhận diện tiếng Việt + tiếng Anh
             setStatus('Đang khởi động AI nhận diện chữ...');
 
             const { data: { text } } = await Tesseract.recognize(
