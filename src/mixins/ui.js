@@ -92,12 +92,12 @@ import { escapeHTML } from '../utils/security.js';
         setTimeout(() => window.app.processSyncQueue(), 2000);
 
         // Apply saved settings
-        const savedCols = window.app.settings.gridCols || '6';
+        const savedCols = store.settings.gridCols || '6';
         const grid = document.getElementById('series-grid');
         if (grid && window.app.viewMode === 'grid') {
             grid.style.gridTemplateColumns = `repeat(${savedCols}, 1fr)`;
         }
-        const savedFontSize = window.app.settings.fontSize || 'normal';
+        const savedFontSize = store.settings.fontSize || 'normal';
         window.app.applyFontSize(savedFontSize);
         const savedSort = localStorage.getItem('defaultSort');
         if (savedSort) {
