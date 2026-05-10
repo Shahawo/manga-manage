@@ -29,3 +29,4 @@ markers.txt
 # Ignore all Markdown files except README.md
 *.md
 !README.md
+/.agent-skills
