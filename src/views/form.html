@@ -1,0 +1,201 @@
+        <!-- Form View -->
+        <section id="view-form" class="view hidden">
+            <div class="view-header">
+                <button class="btn btn-icon" onclick="app.cancelForm()">
+                    <i data-feather="arrow-left"></i>
+                </button>
+                <h2>Thêm sách mới</h2>
+            </div>
+
+            <div class="form-container">
+                <form id="manga-form" onsubmit="app.handleFormSubmit(event)">
+                    <input type="hidden" id="edit-id">
+                    <div class="form-grid">
+                        <!-- Cột Trái: Thông tin -->
+                        <div class="form-cols">
+                            <div class="form-group">
+                                <label for="series">Tên Series *</label>
+                                <div style="display: flex; gap: 0.5rem; align-items: start;">
+                                    <input type="text" id="series" list="series-suggestions" class="input-ctrl" required
+                                        placeholder="VD: One Piece, Conan..." style="flex:1;">
+                                    <datalist id="series-suggestions"></datalist>
+                                    <button type="button" class="btn btn-outline" onclick="app.autoFill()"
+                                        style="white-space: nowrap; padding: 0.6rem 1rem;">Tự động điền</button>
+                                </div>
+                                <p class="help-text" style="margin-top:0.5rem; font-size: 0.8rem;">Nhập Tên Series rồi
+                                    bấm "Tự động điền" để tự động điền thông tin sách.</p>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="title">Tên sách cụ thể *</label>
+                                <input type="text" id="title" class="input-ctrl" required
+                                    placeholder="Tên cuốn sách hoặc chapter">
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="volume">Tập số *</label>
+                                    <input type="number" id="volume" class="input-ctrl" required min="0" max="10000"
+                                        step="0.5" onkeydown="if(event.key==='-') event.preventDefault();"
+                                        oninvalid="this.setCustomValidity('Vui lòng nhập Tập số hợp lệ')"
+                                        oninput="this.setCustomValidity('')" placeholder="Ví dụ: 1, 2, 1.5">
+                                </div>
+                                <div class="form-group">
+                                    <label for="isbn">ISBN</label>
+                                    <textarea id="isbn" class="input-ctrl" rows="2"
+                                        placeholder="Ví dụ: 978... (Cách nhau bằng phẩy hoặc xuống dòng)"></textarea>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="author">Tác giả</label>
+                                    <textarea id="author" class="input-ctrl" rows="2"
+                                        placeholder="Tác giả A&#10;Tác giả B..."></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="translator">Dịch giả</label>
+                                    <input type="text" id="translator" class="input-ctrl" placeholder="Nguyễn Văn A...">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="publisher">Nhà xuất bản</label>
+                                    <select id="publisher" class="input-ctrl">
+                                        <option value="">-- Chọn NXB --</option>
+                                        <option value="Hồng Đức">Hồng Đức</option>
+                                        <option value="Kim Đồng">Kim Đồng</option>
+                                        <option value="Lao động">Lao động</option>
+                                        <option value="Trẻ">Trẻ</option>
+                                        <option value="Văn học">Văn học</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="distributor">Nhà phát hành</label>
+                                    <select id="distributor" class="input-ctrl">
+                                        <option value="">-- Chọn NPH --</option>
+                                        <option value="IPM">IPM</option>
+                                        <option value="Kim Đồng">Kim Đồng</option>
+                                        <option value="Trẻ">Trẻ</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="publishDate">Ngày phát hành</label>
+                                    <input type="text" id="publishDate" class="input-ctrl" placeholder="dd/mm/yyyy"
+                                        autocomplete="off">
+                                </div>
+                                <div class="form-group">
+                                    <label for="pages">Số trang</label>
+                                    <input type="number" id="pages" class="input-ctrl" min="1" max="100000"
+                                        onkeydown="if(event.key==='-') event.preventDefault();"
+                                        oninvalid="this.setCustomValidity('Số trang phải từ 1 trở lên')"
+                                        oninput="this.setCustomValidity('')" placeholder="200">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="size">Kích thước</label>
+                                    <select id="size" class="input-ctrl">
+                                        <option value="">-- Chọn kích thước --</option>
+                                        <option value="11.3 x 17.6 cm">11.3 x 17.6 cm</option>
+                                        <option value="12 x 18 cm">12 x 18 cm</option>
+                                        <option value="13 x 18 cm">13 x 18 cm</option>
+                                        <option value="14.5 x 20.5 cm">14.5 x 20.5 cm</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="price">Giá bìa (VNĐ)</label>
+                                    <input type="text" id="price" class="input-ctrl" placeholder="VD: 30 hoặc 30000">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="note">Chú thích</label>
+                                <textarea id="note" class="input-ctrl" rows="3"
+                                    placeholder="Quà tặng kèm,..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Cột Phải: Hình ảnh -->
+                        <div class="form-cols cover-col">
+                            <div class="image-tabs">
+                                <button type="button" class="img-tab-btn active"
+                                    onclick="app.switchImgTab('cover', 'main-')">Ảnh bìa</button>
+                                <button type="button" class="img-tab-btn"
+                                    onclick="app.switchImgTab('gift', 'main-')">Quà tặng kèm</button>
+                            </div>
+
+                            <!-- Tab Ảnh bìa -->
+                            <div id="main-tab-cover" class="img-tab-content active">
+                                <div class="form-group">
+                                    <div style="display:flex; gap:0.5rem; align-items:center;">
+                                        <input type="text" id="main-coverUrl" class="input-ctrl"
+                                            placeholder="https://... hoặc tải File"
+                                            oninput="app.previewImage(this.value, 'cover', 'main-')">
+                                        <input type="file" id="main-coverFile" accept="image/*" style="display:none"
+                                            onchange="app.handleFileUpload(this, 'cover', 'main-')">
+                                        <button type="button" class="btn btn-outline"
+                                            style="padding:0.6rem 1rem; flex-shrink:0;" title="Tải ảnh lên từ máy"
+                                            onclick="document.getElementById('main-coverFile').click()">
+                                            <i data-feather="upload"></i>
+                                        </button>
+                                    </div>
+                                    <p class="help-text">Dán link hoặc tải file ảnh bìa.</p>
+                                </div>
+                                <div class="cover-preview-box" id="main-cover-preview-box" style="position:relative;">
+                                    <i data-feather="image"></i>
+                                    <span>Xem trước ảnh bìa</span>
+                                </div>
+                            </div>
+
+                            <!-- Tab Quà tặng -->
+                            <div id="main-tab-gift" class="img-tab-content hidden">
+                                <div class="form-group">
+                                    <div style="display:flex; gap:0.5rem; align-items:center;">
+                                        <input type="text" id="main-giftUrlInput" class="input-ctrl"
+                                            placeholder="https://... hoặc tải File">
+                                        <input type="file" id="main-giftFiles" accept="image/*" multiple
+                                            style="display:none" onchange="app.handleGiftFileUpload(this, 'main-')">
+                                        <button type="button" class="btn btn-outline"
+                                            style="padding:0.6rem 1rem; flex-shrink:0;" title="Tải ảnh lên từ máy"
+                                            onclick="document.getElementById('main-giftFiles').click()">
+                                            <i data-feather="upload"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-primary"
+                                            style="padding:0.6rem 1rem; flex-shrink:0;" title="Thêm ảnh này"
+                                            onclick="app.addGiftUrl('main-')">
+                                            <i data-feather="plus"></i>
+                                        </button>
+                                    </div>
+                                    <p class="help-text">Dán link hoặc tải file, rồi nhấn + để thêm. Hỗ trợ nhiều ảnh.
+                                    </p>
+                                </div>
+                                <!-- Ảnh xem trước lớn -->
+                                <div class="cover-preview-box" id="main-gift-preview-box" style="position:relative;">
+                                    <i data-feather="gift"></i>
+                                    <span>Xem trước quà tặng</span>
+                                </div>
+                                <!-- Danh sách thumbnail -->
+                                <div id="main-gift-thumbnails"
+                                    style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-top:1rem;"></div>
+                                <!-- Ẩn text chứa mảng URL -->
+                                <textarea id="main-giftUrls" class="hidden"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="app.cancelForm()">Hủy bỏ</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i data-feather="save"></i> Lưu thông tin
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
