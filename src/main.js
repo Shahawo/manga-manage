@@ -7,6 +7,18 @@ import { applyUiMixin } from './mixins/ui.js';
 import { applyMangaMixin } from './mixins/manga.js';
 import { applyCoreMixin } from './mixins/core.js';
 
+// Nạp HTML bằng Vite
+import adminHtml from './views/admin.html?raw';
+import formHtml from './views/form.html?raw';
+import modalsHtml from './views/modals.html?raw';
+
+// Bơm HTML vào DOM trước khi khởi tạo
+const mainContainer = document.querySelector('main.container');
+if (mainContainer) {
+    mainContainer.insertAdjacentHTML('beforeend', adminHtml);
+    mainContainer.insertAdjacentHTML('beforeend', formHtml);
+    mainContainer.insertAdjacentHTML('beforeend', modalsHtml);
+}
 
 const app = {};
 
