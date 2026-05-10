@@ -1,0 +1,81 @@
+        <!-- Admin Panel View -->
+        <section id="view-admin" class="view hidden">
+            <div class="view-header">
+                <button class="btn btn-icon" onclick="app.navigateTo('/')"><i data-feather="arrow-left"></i>
+                    <span style="margin-left:0.5rem;">Quay lại</span></button>
+                <h2>Hệ thống Quản trị</h2>
+            </div>
+
+            <div class="admin-tabs">
+                <button class="admin-tab-btn active" onclick="app.navigateTo('/admin/pending')"
+                    id="tab-btn-pending">Duyệt sách</button>
+                <button class="admin-tab-btn" onclick="app.navigateTo('/admin/catalog')" id="tab-btn-catalog">Quản lý
+                    Kho</button>
+                <button class="admin-tab-btn" onclick="app.navigateTo('/admin/feedback')" id="tab-btn-feedback">Góp ý từ
+                    User</button>
+            </div>
+
+            <div id="admin-pending-container" class="admin-tab-content active">
+                <div id="admin-pending-list" class="detail-grid">
+                    <!-- Danh sách sách chờ duyệt (Hiển thị dạng Grid) -->
+                </div>
+            </div>
+
+            <div id="admin-catalog-container" class="admin-tab-content hidden">
+                <!-- Wrapper danh sách Series -->
+                <div id="admin-catalog-main-view">
+                    <div style="margin-bottom: 1.5rem; display: flex; justify-content: center;">
+                        <div class="search-bar" style="width: 100%;">
+                            <i data-feather="search"></i>
+                            <input type="text" id="admin-catalog-search" placeholder="Nhập tên sách hoặc ISBN..."
+                                oninput="app.onAdminCatalogSearchInput(this.value)">
+                        </div>
+                    </div>
+                    <div id="admin-catalog-list">
+                        <p style="text-align:center; color:var(--text-muted); padding:2rem; grid-column:1/-1;">Nhập từ
+                            khóa
+                            và bấm Tìm kiếm để tải dữ liệu từ Kho chung.</p>
+                    </div>
+                    <div id="admin-catalog-pagination"
+                        style="display:flex; justify-content:center; align-items:center; gap:1rem; margin-top:1.5rem; padding-bottom: 2rem;">
+                    </div>
+                </div>
+
+                <!-- Wrapper chi tiết Series -->
+                <div id="admin-series-detail-view" class="hidden">
+                    <div class="view-header"
+                        style="margin-bottom:1rem; border-bottom:1px solid var(--border); padding-bottom:0.75rem; display:flex; align-items:center; gap:0.75rem;">
+                        <button class="btn btn-icon" onclick="app.closeAdminSeriesDetail()"><i
+                                data-feather="arrow-left"></i></button>
+                        <h3 id="admin-series-detail-title"
+                            style="flex:1; margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:1.15rem;">
+                            Tên Series</h3>
+                        <div
+                            style="display:flex; align-items:center; gap:0.5rem; background:#ecfdf5; padding:0.3rem 0.5rem 0.3rem 0.75rem; border-radius:99px; border:1px solid #a7f3d0;">
+                            <span style="font-weight:700; color:#065f46; font-size:0.85rem;">Số tập:</span>
+                            <input type="number" id="admin-series-total-volumes"
+                                style="width:50px; padding:0.2rem 0.4rem; text-align:center; background:#fff; border:1px solid #10b981; border-radius:6px; font-size:0.85rem; font-weight:600; color:#065f46; outline:none;"
+                                placeholder="..." onkeypress="if(event.key === 'Enter') app.saveAdminSeriesMetadata()">
+                        </div>
+                    </div>
+                    <div id="admin-series-volumes-list"
+                        style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem;">
+                        <!-- Rendered by app.js -->
+                    </div>
+                    <div id="admin-series-detail-pagination"
+                        style="display:flex; justify-content:center; align-items:center; gap:1rem; margin-top:1.5rem; padding-bottom: 2rem;">
+                    </div>
+                </div>
+            </div>
+
+            <div id="admin-feedback-container" class="admin-tab-content hidden">
+                <div id="admin-feedback-list" style="display:flex; flex-direction:column; gap:1rem;">
+                    <!-- Danh sách góp ý -->
+                </div>
+            </div>
+
+            <p
+                style="text-align:center; color:var(--text-muted); font-size:0.85rem; margin-top:3rem; padding-bottom:1rem;">
+                Phiên bản 1.6.0</p>
+        </section>
+
