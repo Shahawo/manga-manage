@@ -260,8 +260,12 @@ import { store } from '../store.js';
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 15000);
             
-            const { data, error } = await supabase.from('manga').select('*').order('added_at', { ascending: false }).abortSignal(controller.signal);
-            
+            // Execute all queries in parallel to avoid network waterfall
+            const mangaPromise = supabase.from('manga').select('*').order('added_at', { ascending: false }).abortSignal(controller.signal);
+            const metaPromise = supabase.from('series_metadata').select('*').abortSignal(controller.signal);
+            const userPromise = supabase.from('user_series_settings').select('*').abortSignal(controller.signal);
+
+            const [{ data, error }, metaRes, userRes] = await Promise.all([mangaPromise, metaPromise, userPromise]);            
             if (error) throw error;
             let fetchedData = data.map(m => ({
                 id: m.id,
@@ -348,16 +352,12 @@ import { store } from '../store.js';
             }
             store.data = fetchedData;
 
-            // Fetch extra tracking data
+            // Process extra tracking data
             try {
-                const [metaRes, userRes] = await Promise.all([
-                    supabase.from('series_metadata').select('*').abortSignal(controller.signal),
-                    supabase.from('user_series_settings').select('*').abortSignal(controller.signal)
-                ]);
                 store.seriesMetadata = {};
-                if (metaRes.data) metaRes.data.forEach(x => store.seriesMetadata[x.series] = x);
+                if (metaRes && metaRes.data) metaRes.data.forEach(x => store.seriesMetadata[x.series] = x);
                 store.userSeriesSettings = {};
-                if (userRes.data) userRes.data.forEach(x => store.userSeriesSettings[x.series] = x);
+                if (userRes && userRes.data) userRes.data.forEach(x => store.userSeriesSettings[x.series] = x);
             } catch (err) {
                 console.warn('Không thể tải metadata tracking:', err);
             }
