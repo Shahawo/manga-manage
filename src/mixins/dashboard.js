@@ -253,16 +253,22 @@ export function renderSeriesDetail(seriesName, page = 1) {
         // Bảo vệ XSS: sử dụng textContent thay vì innerHTML
         document.getElementById('detail-series-title').textContent = seriesName;
 
-        const specialKeywords = /bản đặc biệt|đặc biệt|giới hạn|sưu tầm|collector|limited|special/i;
-        const isSpecial = (title) => specialKeywords.test(title || '');
+        // Thứ tự edition: thường (0) → đặc biệt (1) → giới hạn (2) → sưu tầm (3)
+        const editionOrder = (title) => {
+            const t = (title || '').toLowerCase();
+            if (t.includes('sưu tầm') || t.includes('collector')) return 3;
+            if (t.includes('giới hạn') || t.includes('limited')) return 2;
+            if (t.includes('đặc biệt') || t.includes('special')) return 1;
+            return 0;
+        };
 
         const allVolumes = store.data
             .filter(m => m.series === seriesName)
             .sort((a, b) => {
                 const volDiff = (Number(a.volume) || 0) - (Number(b.volume) || 0);
                 if (volDiff !== 0) return volDiff;
-                // Cùng số tập: bản thường trước, bản đặc biệt sau
-                return isSpecial(a.title) - isSpecial(b.title);
+                // Cùng số tập: thường → đặc biệt → giới hạn → sưu tầm
+                return editionOrder(a.title) - editionOrder(b.title);
             });
 
         const uniqueVolNumbers = new Set(allVolumes.map(v => Number(v.volume) || 0));
