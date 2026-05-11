@@ -422,7 +422,7 @@ a {
 
 @media (max-width: 768px) {
     .series-grid.list-view {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr !important;
     }
 }
 
@@ -580,7 +580,7 @@ a {
 
 @media (max-width: 768px) {
     .detail-grid.list-view {
-        columns: 1;
+        columns: 1 !important;
     }
 }
 
