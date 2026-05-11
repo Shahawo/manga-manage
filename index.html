@@ -21,11 +21,13 @@
     <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://unpkg.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/feather-icons"></script>
+    <script src="https://unpkg.com/feather-icons" defer></script>
     <!-- Flatpickr for Date formatting -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr" defer></script>
     <link rel="stylesheet" href="/styles.css?v=2.0.0">
 </head>
 
@@ -72,13 +74,13 @@
                 <div id="user-info" class="hidden dropdown-wrapper" style="position:relative;">
                     <button id="avatar-trigger" onclick="app.toggleUserMenu()" class="avatar-btn"
                         aria-label="Menu tài khoản">
-                        <img id="user-avatar" src="" alt="Avatar">
+                        <img id="user-avatar" src="" alt="Avatar" loading="lazy" decoding="async">
                         <i data-feather="chevron-down" class="avatar-chevron"></i>
                     </button>
                     <div id="user-menu" class="user-dropdown hidden">
                         <!-- User info -->
                         <div class="udrop-header">
-                            <img id="user-avatar-menu" src="" alt="">
+                            <img id="user-avatar-menu" src="" alt="" loading="lazy" decoding="async">
                             <div>
                                 <div id="user-name" class="udrop-name"></div>
                                 <div id="user-email" class="udrop-email"></div>
