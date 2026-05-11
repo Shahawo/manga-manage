@@ -420,6 +420,12 @@ a {
     gap: 0.75rem;
 }
 
+@media (max-width: 768px) {
+    .series-grid.list-view {
+        grid-template-columns: 1fr;
+    }
+}
+
 .series-grid.list-view .series-card {
     display: flex;
     flex-direction: row;
@@ -570,6 +576,12 @@ a {
     display: block;
     columns: 2;
     column-gap: 1.5rem;
+}
+
+@media (max-width: 768px) {
+    .detail-grid.list-view {
+        columns: 1;
+    }
 }
 
 .detail-grid.list-view .volume-card {
