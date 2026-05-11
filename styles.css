@@ -582,6 +582,12 @@ a {
     .detail-grid.list-view {
         columns: 1 !important;
     }
+    #admin-catalog-list {
+        columns: 1 !important;
+    }
+    #admin-series-volumes-list {
+        grid-template-columns: 1fr !important;
+    }
 }
 
 .detail-grid.list-view .volume-card {
