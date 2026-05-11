@@ -580,9 +580,11 @@ a {
 
 @media (max-width: 768px) {
     .detail-grid.list-view {
+        -webkit-columns: 1 !important;
         columns: 1 !important;
     }
     #admin-catalog-list {
+        -webkit-columns: 1 !important;
         columns: 1 !important;
     }
     #admin-series-volumes-list {
