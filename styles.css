@@ -1086,14 +1086,8 @@ label {
     }
 }
 
-@media (max-width: 480px) {
-
-    .series-grid,
-    .detail-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    /* Điện thoại: list view đổi về 1 cột, mỗi series 1 hàng rõ ràng */
+@media (max-width: 768px) {
+    /* Tablet và điện thoại: list view đổi về 1 cột, mỗi series 1 hàng rõ ràng */
     .series-grid.list-view {
         grid-template-columns: 1fr;
         gap: 0.4rem;
@@ -1108,11 +1102,12 @@ label {
         font-size: 0.9rem;
     }
 
-    /* Detail list view trên điện thoại: 1 cột để mỗi tập có đủ không gian */
+    /* Detail list view trên tablet và điện thoại: 1 cột để mỗi tập có đủ không gian */
     .detail-grid.list-view {
         columns: 1;
     }
 }
+
 
 .delete-gift-btn {
     position: absolute;
