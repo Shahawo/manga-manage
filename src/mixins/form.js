@@ -92,12 +92,7 @@ export async function handleFileUpload(inputElem, type, prefix = 'main-') {
             const fileName = `${Math.random()}.${fileExt}`;
             const filePath = `covers/${fileName}`;
 
-            const timeout = (ms) => new Promise((_, reject) => setTimeout(() => reject(new Error('Yêu cầu tải ảnh quá hạn (Timeout)')), ms));
-
-            const { error: uploadError } = await Promise.race([
-                supabase.storage.from(store.storageBucket).upload(filePath, blob, { contentType }),
-                timeout(15000)
-            ]);
+            const { error: uploadError } = await supabase.storage.from(store.storageBucket).upload(filePath, blob, { contentType });
 
             if (uploadError) throw uploadError;
 
@@ -109,7 +104,7 @@ export async function handleFileUpload(inputElem, type, prefix = 'main-') {
             console.debug(`[Upload] Ảnh bìa đã upload dạng ${format.toUpperCase()}: ${filePath}`);
         } catch (e) {
             console.error('Lỗi tải ảnh:', e);
-            window.app.showToast(e.message === 'Yêu cầu tải ảnh quá hạn (Timeout)' ? 'Lỗi mạng: Thời gian tải ảnh quá lâu!' : 'Lỗi tải ảnh lên server!', 'error');
+            window.app.showToast('Lỗi tải ảnh lên server: ' + (e.message || ''), 'error');
         } finally {
             window.app.hideLoading();
         }
@@ -156,11 +151,7 @@ export async function handleGiftFileUpload(inputElem, prefix = 'main-') {
                 const fileName = `${Math.random()}.${fileExt}`;
                 const filePath = `gifts/${fileName}`;
 
-                const timeout = (ms) => new Promise((_, reject) => setTimeout(() => reject(new Error('Yêu cầu tải ảnh quá hạn (Timeout)')), ms));
-                const { error: uploadError } = await Promise.race([
-                    supabase.storage.from(store.storageBucket).upload(filePath, blob, { contentType }),
-                    timeout(15000)
-                ]);
+                const { error: uploadError } = await supabase.storage.from(store.storageBucket).upload(filePath, blob, { contentType });
                 if (uploadError) throw uploadError;
 
                 const { data } = supabase.storage.from(store.storageBucket).getPublicUrl(filePath);
@@ -173,7 +164,7 @@ export async function handleGiftFileUpload(inputElem, prefix = 'main-') {
             if (lastUrl) window.app.previewGiftImage(lastUrl, prefix);
         } catch (e) {
             console.error('Lỗi tải quà tặng:', e);
-            window.app.showToast(e.message === 'Yêu cầu tải ảnh quá hạn (Timeout)' ? 'Lỗi mạng: Thời gian tải ảnh quá lâu!' : 'Lỗi tải ảnh quà tặng lên server!', 'error');
+            window.app.showToast('Lỗi tải ảnh quà tặng lên server: ' + (e.message || ''), 'error');
         } finally {
             window.app.hideLoading();
         }
