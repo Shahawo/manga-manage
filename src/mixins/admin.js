@@ -849,7 +849,19 @@ export async function renderAdminSeriesDetail(seriesName, page = 1) {
         // ─── RENDER VOLUMES NGAY LẬP TỨC từ cache (không await gì cả) ──────────
         // series_metadata được fetch NGẦM sau khi render — không block UI
         try {
-            const volumes = store.fullCatalogCache.filter(c => c.series === seriesName).sort((a, b) => (a.volume || 0) - (b.volume || 0));
+            const editionOrder = (title) => {
+                const t = (title || '').toLowerCase();
+                if (t.includes('sưu tầm') || t.includes('collector')) return 3;
+                if (t.includes('giới hạn') || t.includes('limited')) return 2;
+                if (t.includes('đặc biệt') || t.includes('special')) return 1;
+                return 0;
+            };
+            const volumes = store.fullCatalogCache.filter(c => c.series === seriesName).sort((a, b) => {
+                const volDiff = (a.volume || 0) - (b.volume || 0);
+                if (volDiff !== 0) return volDiff;
+                // Cùng số tập: thường → đặc biệt → giới hạn → sưu tầm
+                return editionOrder(a.title) - editionOrder(b.title);
+            });
             const count = volumes.length;
             const maxVolume = volumes.reduce((max, c) => Math.max(max, c.volume || 0), 0);
             totalInput.placeholder = '';
