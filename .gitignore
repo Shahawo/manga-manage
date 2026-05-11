@@ -24,6 +24,13 @@ coverage
 *.sln
 *.sw?
 
+# Env files
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
 # Temporary files from refactoring
 markers.txt
 
