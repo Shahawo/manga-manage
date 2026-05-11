@@ -33,19 +33,19 @@ Dự án này sử dụng **Vite** làm công cụ phát triển. Để chạy w
 
 1. Cài đặt các thư viện cần thiết (Chỉ cần chạy 1 lần):
 ```bash
-npm install
+pnpm install
 ```
 
 2. Bật máy chủ phát triển (Hỗ trợ Hot-Reload):
 ```bash
-npm run dev
+pnpm run dev
 ```
 
 Sau đó truy cập đường dẫn được in ra trên Terminal (ví dụ: `http://localhost:5173`). Mọi thay đổi trong code sẽ tự động cập nhật lên giao diện.
 
 Để đóng gói ứng dụng (Build) phục vụ cho việc đẩy lên máy chủ hoặc Github Pages, chạy lệnh:
 ```bash
-npm run build
+pnpm run build
 ```
 
 ## Phân quyền Admin
