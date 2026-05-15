@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="vi">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kệ Truyện Của Tôi</title>
+    <title>Kho Truyện</title>
     <!-- SPA GitHub Pages Redirect -->
     <script type="text/javascript">
         (function (l) {
@@ -28,20 +28,30 @@
     <!-- Flatpickr for Date formatting -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr" defer></script>
-    <link rel="stylesheet" href="/styles.css?v=2.0.1">
+    <link rel="stylesheet" href="/styles.css?v=2.2.0">
 </head>
 
 <body>
     <header class="navbar">
         <div class="nav-container">
-            <div class="brand" role="button" tabindex="0" onclick="app.navigateTo('/')" onkeydown="if(event.key==='Enter'||event.key===' ') app.navigateTo('/')">
+            <div class="brand" role="button" tabindex="0" onclick="app.navigateTo('/about')"
+                onkeydown="if(event.key==='Enter'||event.key===' ') app.navigateTo('/about')">
                 <i data-feather="book-open"></i>
-                <span>Kệ Truyện</span>
+                <span>Kho Truyện</span>
             </div>
-            <div class="search-bar">
-                <i data-feather="search"></i>
-                <input type="text" id="searchInput" placeholder="Nhập tên sách hoặc ISBN...">
-            </div>
+
+            <!-- Nav Tabs (căn giữa tuyệt đối) -->
+            <nav class="nav-tabs" aria-label="Menu chính">
+                <button class="nav-tab" id="tab-about" onclick="app.navigateTo('/about')" aria-label="Giới thiệu">Giới
+                    thiệu</button>
+                <button class="nav-tab" id="tab-dashboard" onclick="app.navigateTo('/library')"
+                    aria-label="Kho truyện">Kho truyện</button>
+                <button class="nav-tab" id="tab-schedule" onclick="app.navigateTo('/schedule')"
+                    aria-label="Lịch phát hành">Lịch phát hành</button>
+                <button class="nav-tab" id="tab-stats" onclick="app.navigateTo('/stats')" aria-label="Thống kê">Thống
+                    kê</button>
+            </nav>
+
             <div class="nav-actions">
                 <!-- GS Identity placeholder -->
                 <input type="file" id="import-file" style="display:none" accept=".json"
@@ -132,6 +142,14 @@
             </div>
         </div>
     </header>
+
+    <!-- Search Row — hiện dưới navbar, chỉ khi ở Kho truyện -->
+    <div class="nav-search-row" id="nav-search-row" style="display:none;">
+        <div class="search-bar" id="nav-search-bar">
+            <i data-feather="search"></i>
+            <input type="text" id="searchInput" placeholder="Tìm kiếm theo tên sách, ISBN, tác giả...">
+        </div>
+    </div>
 
     <main class="container">
         <!-- Dashboard View -->
@@ -238,14 +256,16 @@
             </div>
             <div class="add-method-grid"
                 style="display:flex; flex-direction:column; gap:1.5rem; max-width:600px; margin: 2rem auto;">
-                <div class="method-card" role="button" tabindex="0" onclick="app.startBarcodeScanner()" onkeydown="if(event.key==='Enter'||event.key===' ') app.startBarcodeScanner()">
+                <div class="method-card" role="button" tabindex="0" onclick="app.startBarcodeScanner()"
+                    onkeydown="if(event.key==='Enter'||event.key===' ') app.startBarcodeScanner()">
                     <i data-feather="camera"
                         style="width:48px; height:48px; color:var(--primary); margin-bottom:1rem;"></i>
                     <h3 style="margin-bottom:0.5rem;">Quét Barcode (Khuyên dùng)</h3>
                     <p style="color:var(--text-muted); font-size:0.9rem;">Quét mã vạch (ISBN) trên bìa sách để nhập
                         nhanh.</p>
                 </div>
-                <div class="method-card" role="button" tabindex="0" onclick="app.startCoverScan()" onkeydown="if(event.key==='Enter'||event.key===' ') app.startCoverScan()">
+                <div class="method-card" role="button" tabindex="0" onclick="app.startCoverScan()"
+                    onkeydown="if(event.key==='Enter'||event.key===' ') app.startCoverScan()">
                     <i data-feather="cpu" style="width:48px; height:48px; color:#7c3aed; margin-bottom:1rem;"></i>
                     <h3 style="margin-bottom:0.5rem;">Quét Ảnh Bìa <span
                             style="font-size:0.75rem; background:#7c3aed; color:#fff; padding:2px 8px; border-radius:99px; vertical-align:middle;">AI</span>
@@ -253,7 +273,8 @@
                     <p style="color:var(--text-muted); font-size:0.9rem;">Chụp ảnh bìa truyện - AI sẽ đọc chữ và tự tìm
                         sách trong kho. Dùng khi mã vạch bị hỏng hoặc sách cũ.</p>
                 </div>
-                <div class="method-card" role="button" tabindex="0" onclick="app.navigateTo('/form')" onkeydown="if(event.key==='Enter'||event.key===' ') app.navigateTo('/form')">
+                <div class="method-card" role="button" tabindex="0" onclick="app.navigateTo('/form')"
+                    onkeydown="if(event.key==='Enter'||event.key===' ') app.navigateTo('/form')">
                     <i data-feather="edit-2"
                         style="width:48px; height:48px; color:var(--text-main); margin-bottom:1rem;"></i>
                     <h3 style="margin-bottom:0.5rem;">Nhập thủ công</h3>
@@ -273,6 +294,89 @@
             </div>
             <div class="volumes-list" id="search-results-list">
                 <!-- Search results here -->
+            </div>
+        </section>
+
+        <!-- About View -->
+        <section id="view-about" class="view hidden">
+            <!-- Hero -->
+            <div class="about-hero">
+                <i data-feather="book-open" class="about-hero-icon"></i>
+                <h1 class="about-title">Kho Truyện</h1>
+                <p class="about-subtitle">Quản lý thư viện manga &amp; light novel cá nhân của bạn - đơn giản, nhanh,
+                    miễn phí.</p>
+                <div id="about-cta" style="margin-top:1.5rem; display:none;">
+                    <button class="btn btn-primary" onclick="app.signInWithGoogle()"
+                        style="padding:0.75rem 2rem; font-size:1rem;">
+                        Bắt đầu ngay với Google
+                    </button>
+                </div>
+            </div>
+
+            <!-- Feature Cards -->
+            <div class="about-features">
+                <div class="about-feature-card">
+                    <i data-feather="layers" class="about-feat-icon"></i>
+                    <h3>Quản lý kho truyện</h3>
+                    <p>Lưu trữ toàn bộ bộ sưu tập theo Series, theo dõi tiến độ độc và đặt mục tiêu hoàn thành bộ.</p>
+                </div>
+                <div class="about-feature-card">
+                    <i data-feather="camera" class="about-feat-icon"></i>
+                    <h3>Quét Barcode &amp; Bìa</h3>
+                    <p>Quét mã ISBN bằng camera hoặc dùng AI nhận diện ảnh bìa để tự động điền thông tin sách.</p>
+                </div>
+                <div class="about-feature-card">
+                    <i data-feather="calendar" class="about-feat-icon" style="color:#f59e0b;"></i>
+                    <h3>Lịch phát hành</h3>
+                    <p>Theo dõi ngày ra mắt các tập mới đang được xuất bản, không bỏ lỡ tập nào.</p>
+                    <span class="about-badge-soon">Đang phát triển</span>
+                </div>
+                <div class="about-feature-card">
+                    <i data-feather="bar-chart-2" class="about-feat-icon" style="color:#8b5cf6;"></i>
+                    <h3>Thống kê</h3>
+                    <p>Báo cáo trực quan về số cuốn đã đọc, chi tiêu, thể loại yêu thích theo tháng.</p>
+                    <span class="about-badge-soon">Đang phát triển</span>
+                </div>
+            </div>
+
+            <!-- How to use -->
+            <div class="about-steps-section">
+                <h2 class="about-section-title">Cách bắt đầu</h2>
+                <div class="about-steps">
+                    <div class="about-step">
+                        <div class="about-step-num">1</div>
+                        <div>
+                            <strong>Đăng nhập bằng tài khoản Google</strong>
+                            <p>Chỉ cần 1 nhấp, không cần tạo tài khoản hay nhớ mật khẩu.</p>
+                        </div>
+                    </div>
+                    <div class="about-step">
+                        <div class="about-step-num">2</div>
+                        <div>
+                            <strong>Thêm sách vào Tủ</strong>
+                            <p>Quét barcode, quét ảnh bìa, hoặc nhập thủ công. Kho chung sẽ giúp tự điền thông tin.</p>
+                        </div>
+                    </div>
+                    <div class="about-step">
+                        <div class="about-step-num">3</div>
+                        <div>
+                            <strong>Theo dõi bộ sưu tập</strong>
+                            <p>Xếp theo Series, theo dõi tiến độ, đặt mục tiêu và tìm kiếm nhanh bất kỳ cuốn nào.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Coming Soon View -->
+        <section id="view-coming-soon" class="view hidden">
+            <div class="coming-soon-wrap">
+                <i data-feather="clock" class="coming-soon-icon"></i>
+                <h2 id="coming-soon-title">Đang phát triển</h2>
+                <p class="coming-soon-desc">Tính năng này đang được phát triển và sẽ sớm ra mắt!<br>Hãy quay lại sau nhé
+                    😊</p>
+                <button class="btn btn-outline" onclick="app.navigateTo('/')" id="coming-soon-back-btn">Về Tủ
+                    truyện</button>
             </div>
         </section>
 
