@@ -9,18 +9,22 @@ CREATE TABLE IF NOT EXISTS public.series_metadata (
 ALTER TABLE public.series_metadata ENABLE ROW LEVEL SECURITY;
 
 -- Mọi người dùng đã đăng nhập đều có thể xem
+DROP POLICY IF EXISTS "Authenticated users can view series_metadata" ON public.series_metadata;
 CREATE POLICY "Authenticated users can view series_metadata" ON public.series_metadata
     FOR SELECT USING (auth.role() = 'authenticated');
 
 -- Chỉ admin mới có thể sửa (Sử dụng hàm is_admin đã tạo từ trước)
+DROP POLICY IF EXISTS "Admins can insert series_metadata" ON public.series_metadata;
 CREATE POLICY "Admins can insert series_metadata" ON public.series_metadata
-    FOR INSERT WITH CHECK (is_admin());
+    FOR INSERT WITH CHECK (public.is_admin());
 
+DROP POLICY IF EXISTS "Admins can update series_metadata" ON public.series_metadata;
 CREATE POLICY "Admins can update series_metadata" ON public.series_metadata
-    FOR UPDATE USING (is_admin()) WITH CHECK (is_admin());
+    FOR UPDATE USING (public.is_admin()) WITH CHECK (public.is_admin());
 
+DROP POLICY IF EXISTS "Admins can delete series_metadata" ON public.series_metadata;
 CREATE POLICY "Admins can delete series_metadata" ON public.series_metadata
-    FOR DELETE USING (is_admin());
+    FOR DELETE USING (public.is_admin());
 
 
 -- 2. Bảng user_series_settings (Dành cho User ghi đè số tập mục tiêu cá nhân)
@@ -35,18 +39,22 @@ CREATE TABLE IF NOT EXISTS public.user_series_settings (
 ALTER TABLE public.user_series_settings ENABLE ROW LEVEL SECURITY;
 
 -- User chỉ có thể quản lý dữ liệu của chính mình
+DROP POLICY IF EXISTS "Users can view their own series settings" ON public.user_series_settings;
 CREATE POLICY "Users can view their own series settings" ON public.user_series_settings
     FOR SELECT USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can insert their own series settings" ON public.user_series_settings;
 CREATE POLICY "Users can insert their own series settings" ON public.user_series_settings
     FOR INSERT WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can update their own series settings" ON public.user_series_settings;
 CREATE POLICY "Users can update their own series settings" ON public.user_series_settings
     FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can delete their own series settings" ON public.user_series_settings;
 CREATE POLICY "Users can delete their own series settings" ON public.user_series_settings
     FOR DELETE USING (auth.uid() = user_id);
 
 -- 3. Phân quyền truy cập cho các Role (Bắt buộc để RLS hoạt động)
-GRANT ALL ON TABLE public.series_metadata TO authenticated, anon, service_role;
-GRANT ALL ON TABLE public.user_series_settings TO authenticated, anon, service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.series_metadata TO authenticated, service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.user_series_settings TO authenticated, service_role;
