@@ -52,6 +52,7 @@ export function updateAuthUI() {
         if (btnSignIn) btnSignIn.style.display = 'block';
         if (userInfo) userInfo.classList.add('hidden');
         authElements.forEach(el => el.classList.add('hidden'));
-        if (window.app && window.app.navigateTo) window.app.navigateTo('/');
+        // Đăng xuất → về trang giới thiệu
+        if (window.app && window.app.navigateTo) window.app.navigateTo('/about');
     }
 }
