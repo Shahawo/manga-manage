@@ -126,6 +126,7 @@ a {
     align-items: center;
     justify-content: space-between;
     gap: 1.5rem;
+    position: relative;  /* cần cho tabs absolute center */
 }
 
 .brand {
@@ -148,6 +149,270 @@ a {
     align-items: center;
     gap: 0.4rem;
     flex-shrink: 0;
+}
+
+/* ── Nav Tabs ──────────────────────────────────────────────────────── */
+.nav-tabs {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    /* Căn giữa tuyệt đối so với .nav-container */
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    /* Tránh overlap với brand/actions khi viewport nhỏ */
+    white-space: nowrap;
+}
+
+.nav-tab {
+    background: transparent;
+    border: none;
+    padding: 0.45rem 0.9rem;
+    border-radius: 99px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    font-family: inherit;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: var(--transition);
+    white-space: nowrap;
+}
+
+.nav-tab:hover {
+    background: var(--border);
+    color: var(--text-main);
+}
+
+.nav-tab--active {
+    background: var(--primary-light);
+    color: var(--primary);
+    font-weight: 600;
+}
+
+[data-theme="dark"] .nav-tab--active {
+    background: var(--primary-light);
+    color: var(--primary);
+}
+
+/* ── Search Row (dưới navbar) ─────────────────────────────────── */
+.nav-search-row {
+    background: rgba(240, 253, 244, 0.95);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--border);
+    padding: 0.5rem 1.5rem 0.65rem;
+    display: flex;
+    justify-content: center;
+    position: sticky;
+    top: 57px;   /* chiều cao navbar ≈ 57px */
+    z-index: 99;
+}
+
+[data-theme="dark"] .nav-search-row {
+    background: rgba(17, 28, 23, 0.95);
+}
+
+.nav-search-row .search-bar {
+    flex: none;
+    width: 100%;
+    max-width: 640px;
+}
+
+/* ── About Page ──────────────────────────────────────────── */
+.about-hero {
+    text-align: center;
+    padding: 3rem 1.5rem 2rem;
+}
+
+.about-hero-icon {
+    width: 48px;
+    height: 48px;
+    color: var(--primary);
+    margin-bottom: 1rem;
+}
+
+.about-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+}
+
+.about-subtitle {
+    font-size: 1rem;
+    color: var(--text-muted);
+    max-width: 480px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+.about-features {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.25rem;
+    margin: 2rem 0;
+}
+
+.about-feature-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem 1.25rem;
+    position: relative;
+    transition: var(--transition);
+}
+
+.about-feature-card:hover {
+    box-shadow: var(--shadow);
+    transform: translateY(-2px);
+}
+
+.about-feat-icon {
+    width: 28px;
+    height: 28px;
+    color: var(--primary);
+    margin-bottom: 0.75rem;
+}
+
+.about-feature-card h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.about-feature-card p {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+
+.about-badge-soon {
+    display: inline-block;
+    margin-top: 0.75rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    background: var(--border);
+    color: var(--text-muted);
+    padding: 2px 8px;
+    border-radius: 99px;
+}
+
+.about-section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1.25rem;
+}
+
+.about-steps-section {
+    margin: 2rem 0 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border);
+}
+
+.about-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.about-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.about-step-num {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.about-step strong {
+    display: block;
+    font-size: 0.95rem;
+    margin-bottom: 0.2rem;
+}
+
+.about-step p {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+
+/* ── Coming Soon Page ──────────────────────────────────────────────── */
+.coming-soon-wrap {
+    text-align: center;
+    padding: 5rem 1.5rem;
+}
+
+.coming-soon-icon {
+    width: 48px;
+    height: 48px;
+    color: var(--text-muted);
+    margin-bottom: 1.25rem;
+}
+
+.coming-soon-wrap h2 {
+    font-size: 1.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.coming-soon-desc {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 1.75rem;
+}
+
+/* ── Responsive ────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .about-features {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    /* Mobile: tabs không dùng absolute nữa, xuống hàng dưới brand */
+    .nav-container {
+        flex-wrap: wrap;
+        padding: 0.75rem 1rem;
+    }
+
+    .nav-tabs {
+        position: static;
+        transform: none;
+        order: 3;          /* xuống dưới brand + actions */
+        width: 100%;
+        justify-content: center;
+        gap: 0.1rem;
+        padding: 0.25rem 0;
+    }
+
+    .nav-tab {
+        padding: 0.4rem 0.65rem;
+        font-size: 0.8rem;
+    }
+
+    .nav-search-row {
+        top: 97px;  /* navbar cao hơn do tabs xuống hàng 2 */
+    }
+}
+
+@media (max-width: 480px) {
+    .about-features {
+        grid-template-columns: 1fr;
+    }
+
+    .nav-tab {
+        padding: 0.35rem 0.5rem;
+        font-size: 0.75rem;
+    }
 }
 
 .search-bar {
