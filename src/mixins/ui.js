@@ -40,7 +40,7 @@ import { escapeHTML } from '../utils/security.js';
                 store.isAdmin = false;
                 window.app.updateAuthUI();
                 store.data = [];
-                window.app.navigateTo('/', true);
+                window.app.navigateTo('/about', true);
             }
         });
 
