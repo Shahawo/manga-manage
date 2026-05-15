@@ -1,4 +1,4 @@
-import { supabase } from '../supabase-client.js';
+﻿import { supabase } from '../supabase-client.js';
 import { store } from '../store.js';
     // ─── HELPER: Background Sync Queue (Optimistic UI) ────────────────────────
 
@@ -440,7 +440,7 @@ import { store } from '../store.js';
             try {
                 const importedData = JSON.parse(e.target.result);
                 if (!Array.isArray(importedData)) {
-                    window.app.showToast('File không đúng định dạng dữ liệu Kệ Truyện!', 'error');
+                    window.app.showToast('File không đúng định dạng dữ liệu Kho Truyện!', 'error');
                     return;
                 }
                 if (!confirm(`Chuẩn bị phục hồi ${importedData.length} cuốn.\n\n⚠️ Dữ liệu hiện tại sẽ bị GHI ĐÈ. Tiếp tục?`)) return;
