@@ -34,15 +34,19 @@ CREATE INDEX IF NOT EXISTS idx_manga_series ON manga(series);
 -- RLS cho bảng manga
 ALTER TABLE manga ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can view own manga" ON public.manga;
 CREATE POLICY "Users can view own manga" ON manga
   FOR SELECT USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can insert own manga" ON public.manga;
 CREATE POLICY "Users can insert own manga" ON manga
   FOR INSERT WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can update own manga" ON public.manga;
 CREATE POLICY "Users can update own manga" ON manga
   FOR UPDATE USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can delete own manga" ON public.manga;
 CREATE POLICY "Users can delete own manga" ON manga
   FOR DELETE USING (auth.uid() = user_id);
 
@@ -75,10 +79,12 @@ CREATE INDEX IF NOT EXISTS idx_catalog_isbns ON catalog USING GIN(isbns);
 ALTER TABLE catalog ENABLE ROW LEVEL SECURITY;
 
 -- Tất cả user đăng nhập đều đọc được catalog
+DROP POLICY IF EXISTS "Authenticated users can view catalog" ON public.catalog;
 CREATE POLICY "Authenticated users can view catalog" ON catalog
   FOR SELECT USING (auth.role() = 'authenticated');
 
 -- Chỉ service_role mới ghi được
+DROP POLICY IF EXISTS "Service role can manage catalog" ON public.catalog;
 CREATE POLICY "Service role can manage catalog" ON catalog
   FOR ALL USING (auth.role() = 'service_role');
 
@@ -115,14 +121,17 @@ CREATE TABLE IF NOT EXISTS pending_catalog (
 ALTER TABLE pending_catalog ENABLE ROW LEVEL SECURITY;
 
 -- Users thêm mới
+DROP POLICY IF EXISTS "Users can insert pending" ON public.pending_catalog;
 CREATE POLICY "Users can insert pending" ON pending_catalog
   FOR INSERT WITH CHECK (auth.uid() = submitted_by);
 
 -- Users xem pending của mình
+DROP POLICY IF EXISTS "Users can view own pending" ON public.pending_catalog;
 CREATE POLICY "Users can view own pending" ON pending_catalog
   FOR SELECT USING (auth.uid() = submitted_by);
 
 -- Admin xem toàn bộ (qua RPC / service_role)
+DROP POLICY IF EXISTS "Service role manages pending" ON public.pending_catalog;
 CREATE POLICY "Service role manages pending" ON pending_catalog
   FOR ALL USING (auth.role() = 'service_role');
 
@@ -141,12 +150,15 @@ CREATE TABLE IF NOT EXISTS feedback (
 
 ALTER TABLE feedback ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can insert feedback" ON public.feedback;
 CREATE POLICY "Users can insert feedback" ON feedback
   FOR INSERT WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can view own feedback" ON public.feedback;
 CREATE POLICY "Users can view own feedback" ON feedback
   FOR SELECT USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Service role manages feedback" ON public.feedback;
 CREATE POLICY "Service role manages feedback" ON feedback
   FOR ALL USING (auth.role() = 'service_role');
 
@@ -162,64 +174,82 @@ CREATE TABLE IF NOT EXISTS admin_users (
 ALTER TABLE admin_users ENABLE ROW LEVEL SECURITY;
 
 -- Chỉ service_role mới quản lý admins
+DROP POLICY IF EXISTS "Service role manages admins" ON public.admin_users;
 CREATE POLICY "Service role manages admins" ON admin_users
   FOR ALL USING (auth.role() = 'service_role');
 
 -- User tự check xem mình có là admin không
+DROP POLICY IF EXISTS "Users can check own admin status" ON public.admin_users;
 CREATE POLICY "Users can check own admin status" ON admin_users
   FOR SELECT USING (auth.uid() = user_id);
 
 -- ============================================================
 -- 6. RPC: Kiểm tra admin
-CREATE OR REPLACE FUNCTION is_admin()
-RETURNS BOOLEAN AS $$
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY INVOKER
+SET search_path = ''
+AS $$
 BEGIN
   RETURN EXISTS (
-    SELECT 1 FROM admin_users WHERE user_id = auth.uid()
+    SELECT 1 FROM public.admin_users WHERE user_id = auth.uid()
   );
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 -- 7. RPC: Lấy toàn bộ pending (chỉ admin)
-CREATE OR REPLACE FUNCTION get_all_pending()
-RETURNS SETOF pending_catalog AS $$
+CREATE OR REPLACE FUNCTION public.get_all_pending()
+RETURNS SETOF public.pending_catalog
+LANGUAGE plpgsql
+SECURITY INVOKER
+SET search_path = ''
+AS $$
 BEGIN
-  IF NOT is_admin() THEN
+  IF NOT public.is_admin() THEN
     RAISE EXCEPTION 'Access denied';
   END IF;
-  RETURN QUERY SELECT * FROM pending_catalog WHERE status = 'pending' ORDER BY created_at DESC;
+  RETURN QUERY SELECT * FROM public.pending_catalog WHERE status = 'pending' ORDER BY created_at DESC;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 -- 8. RPC: Lấy toàn bộ feedback (chỉ admin)
-CREATE OR REPLACE FUNCTION get_all_feedback()
-RETURNS SETOF feedback AS $$
+CREATE OR REPLACE FUNCTION public.get_all_feedback()
+RETURNS SETOF public.feedback
+LANGUAGE plpgsql
+SECURITY INVOKER
+SET search_path = ''
+AS $$
 BEGIN
-  IF NOT is_admin() THEN
+  IF NOT public.is_admin() THEN
     RAISE EXCEPTION 'Access denied';
   END IF;
-  RETURN QUERY SELECT * FROM feedback ORDER BY created_at DESC;
+  RETURN QUERY SELECT * FROM public.feedback ORDER BY created_at DESC;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 -- 9. RPC: Admin approve pending → thêm vào catalog
-CREATE OR REPLACE FUNCTION admin_approve_pending(pending_id UUID, updated_data JSONB)
-RETURNS JSONB AS $$
+CREATE OR REPLACE FUNCTION public.admin_approve_pending(pending_id UUID, updated_data JSONB)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY INVOKER
+SET search_path = ''
+AS $$
 DECLARE
-  p pending_catalog;
+  p public.pending_catalog%ROWTYPE;
   new_catalog_id UUID;
 BEGIN
-  IF NOT is_admin() THEN
+  IF NOT public.is_admin() THEN
     RAISE EXCEPTION 'Access denied';
   END IF;
 
-  SELECT * INTO p FROM pending_catalog WHERE id = pending_id;
+  SELECT * INTO p FROM public.pending_catalog WHERE id = pending_id;
   IF NOT FOUND THEN
     RAISE EXCEPTION 'Pending record not found';
   END IF;
 
   -- Thêm vào catalog
-  INSERT INTO catalog (series, title, volume, isbns, author, translator, publisher, distributor, publish_date, pages, size, price, cover_url, note, gift_urls)
+  INSERT INTO public.catalog (series, title, volume, isbns, author, translator, publisher, distributor, publish_date, pages, size, price, cover_url, note, gift_urls)
   VALUES (
     COALESCE((updated_data->>'series')::TEXT, p.series),
     COALESCE((updated_data->>'title')::TEXT, p.title),
@@ -239,54 +269,66 @@ BEGIN
   ) RETURNING id INTO new_catalog_id;
 
   -- Xoá khỏi pending
-  DELETE FROM pending_catalog WHERE id = pending_id;
+  DELETE FROM public.pending_catalog WHERE id = pending_id;
 
   RETURN jsonb_build_object('success', true, 'catalog_id', new_catalog_id);
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 -- 10. RPC: Admin reject pending
-CREATE OR REPLACE FUNCTION admin_reject_pending(pending_id UUID, reason TEXT DEFAULT NULL)
-RETURNS JSONB AS $$
+CREATE OR REPLACE FUNCTION public.admin_reject_pending(pending_id UUID, reason TEXT DEFAULT NULL)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY INVOKER
+SET search_path = ''
+AS $$
 BEGIN
-  IF NOT is_admin() THEN
+  IF NOT public.is_admin() THEN
     RAISE EXCEPTION 'Access denied';
   END IF;
   
   -- Xoá khỏi pending
-  DELETE FROM pending_catalog WHERE id = pending_id;
+  DELETE FROM public.pending_catalog WHERE id = pending_id;
   
   RETURN jsonb_build_object('success', true);
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 -- 11. RPC: Admin delete feedback
-CREATE OR REPLACE FUNCTION admin_delete_feedback(feedback_id UUID)
-RETURNS JSONB AS $$
+CREATE OR REPLACE FUNCTION public.admin_delete_feedback(feedback_id UUID)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY INVOKER
+SET search_path = ''
+AS $$
 BEGIN
-  IF NOT is_admin() THEN
+  IF NOT public.is_admin() THEN
     RAISE EXCEPTION 'Access denied';
   END IF;
-  DELETE FROM feedback WHERE id = feedback_id;
+  DELETE FROM public.feedback WHERE id = feedback_id;
   RETURN jsonb_build_object('success', true);
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 -- 12. RPC: Admin merge ISBN vào catalog có sẵn
-CREATE OR REPLACE FUNCTION admin_merge_isbn(pending_id UUID, target_catalog_id UUID)
-RETURNS JSONB AS $$
+CREATE OR REPLACE FUNCTION public.admin_merge_isbn(pending_id UUID, target_catalog_id UUID)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY INVOKER
+SET search_path = ''
+AS $$
 DECLARE
-  p pending_catalog;
+  p public.pending_catalog%ROWTYPE;
 BEGIN
-  IF NOT is_admin() THEN
+  IF NOT public.is_admin() THEN
     RAISE EXCEPTION 'Access denied';
   END IF;
 
-  SELECT * INTO p FROM pending_catalog WHERE id = pending_id;
+  SELECT * INTO p FROM public.pending_catalog WHERE id = pending_id;
   IF NOT FOUND THEN RAISE EXCEPTION 'Pending not found'; END IF;
 
   -- Gộp ISBN vào catalog (loại bỏ trùng lặp)
-  UPDATE catalog
+  UPDATE public.catalog
   SET isbns = ARRAY(
     SELECT DISTINCT unnest(isbns || ARRAY(
       SELECT trim(x) FROM unnest(regexp_split_to_array(COALESCE(p.isbn, p.scanned_isbn), '[,;|/\s\n]+')) AS x WHERE trim(x) <> ''
@@ -295,21 +337,25 @@ BEGIN
   WHERE id = target_catalog_id;
 
   -- Xoá khỏi pending
-  DELETE FROM pending_catalog WHERE id = pending_id;
+  DELETE FROM public.pending_catalog WHERE id = pending_id;
 
   RETURN jsonb_build_object('success', true);
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 -- 13. RPC: Admin update catalog
-CREATE OR REPLACE FUNCTION admin_update_catalog(catalog_id UUID, updated_data JSONB)
-RETURNS JSONB AS $$
+CREATE OR REPLACE FUNCTION public.admin_update_catalog(catalog_id UUID, updated_data JSONB)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY INVOKER
+SET search_path = ''
+AS $$
 BEGIN
-  IF NOT is_admin() THEN
+  IF NOT public.is_admin() THEN
     RAISE EXCEPTION 'Access denied';
   END IF;
 
-  UPDATE catalog
+  UPDATE public.catalog
   SET
     series       = COALESCE((updated_data->>'series')::TEXT, series),
     title        = COALESCE((updated_data->>'title')::TEXT, title),
@@ -331,24 +377,49 @@ BEGIN
 
   RETURN jsonb_build_object('success', true);
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 -- 14. RPC: Admin delete catalog
-CREATE OR REPLACE FUNCTION admin_delete_catalog(catalog_id UUID)
-RETURNS JSONB AS $$
+CREATE OR REPLACE FUNCTION public.admin_delete_catalog(catalog_id UUID)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY INVOKER
+SET search_path = ''
+AS $$
 BEGIN
-  IF NOT is_admin() THEN
+  IF NOT public.is_admin() THEN
     RAISE EXCEPTION 'Access denied';
   END IF;
 
-  DELETE FROM catalog WHERE id = catalog_id;
+  DELETE FROM public.catalog WHERE id = catalog_id;
 
   RETURN jsonb_build_object('success', true);
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 -- ============================================================
 -- 15. BẢNG SERIES_METADATA (Admin quản lý tổng số tập hệ thống)
+-- 14b. Admin catalog/pending/feedback policies for SECURITY INVOKER RPCs
+DROP POLICY IF EXISTS "Admins can manage catalog" ON public.catalog;
+CREATE POLICY "Admins can manage catalog" ON public.catalog
+  FOR ALL TO authenticated
+  USING (public.is_admin())
+  WITH CHECK (public.is_admin());
+
+DROP POLICY IF EXISTS "Admins can manage pending" ON public.pending_catalog;
+CREATE POLICY "Admins can manage pending" ON public.pending_catalog
+  FOR ALL TO authenticated
+  USING (public.is_admin())
+  WITH CHECK (public.is_admin());
+
+DROP POLICY IF EXISTS "Admins can manage feedback" ON public.feedback;
+CREATE POLICY "Admins can manage feedback" ON public.feedback
+  FOR ALL TO authenticated
+  USING (public.is_admin())
+  WITH CHECK (public.is_admin());
+
+-- ============================================================
+-- 15. BANG SERIES_METADATA (Admin quan ly tong so tap he thong)
 CREATE TABLE IF NOT EXISTS public.series_metadata (
     series TEXT PRIMARY KEY,
     total_volumes NUMERIC NOT NULL DEFAULT 0,
@@ -358,17 +429,21 @@ CREATE TABLE IF NOT EXISTS public.series_metadata (
 
 ALTER TABLE public.series_metadata ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Authenticated users can view series_metadata" ON public.series_metadata;
 CREATE POLICY "Authenticated users can view series_metadata" ON public.series_metadata
     FOR SELECT USING (auth.role() = 'authenticated');
 
+DROP POLICY IF EXISTS "Admins can insert series_metadata" ON public.series_metadata;
 CREATE POLICY "Admins can insert series_metadata" ON public.series_metadata
-    FOR INSERT WITH CHECK (is_admin());
+    FOR INSERT WITH CHECK (public.is_admin());
 
+DROP POLICY IF EXISTS "Admins can update series_metadata" ON public.series_metadata;
 CREATE POLICY "Admins can update series_metadata" ON public.series_metadata
-    FOR UPDATE USING (is_admin()) WITH CHECK (is_admin());
+    FOR UPDATE USING (public.is_admin()) WITH CHECK (public.is_admin());
 
+DROP POLICY IF EXISTS "Admins can delete series_metadata" ON public.series_metadata;
 CREATE POLICY "Admins can delete series_metadata" ON public.series_metadata
-    FOR DELETE USING (is_admin());
+    FOR DELETE USING (public.is_admin());
 
 
 -- ============================================================
@@ -383,30 +458,56 @@ CREATE TABLE IF NOT EXISTS public.user_series_settings (
 
 ALTER TABLE public.user_series_settings ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can view their own series settings" ON public.user_series_settings;
 CREATE POLICY "Users can view their own series settings" ON public.user_series_settings
     FOR SELECT USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can insert their own series settings" ON public.user_series_settings;
 CREATE POLICY "Users can insert their own series settings" ON public.user_series_settings
     FOR INSERT WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can update their own series settings" ON public.user_series_settings;
 CREATE POLICY "Users can update their own series settings" ON public.user_series_settings
     FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can delete their own series settings" ON public.user_series_settings;
 CREATE POLICY "Users can delete their own series settings" ON public.user_series_settings
     FOR DELETE USING (auth.uid() = user_id);
 
 -- ============================================================
--- GRANTS: Cấp quyền cho role 'authenticated'
+-- GRANTS: explicit Data API privileges for each role.
 GRANT USAGE ON SCHEMA public TO anon;
 GRANT USAGE ON SCHEMA public TO authenticated;
+GRANT USAGE ON SCHEMA public TO service_role;
 
-GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE manga TO authenticated;
-GRANT SELECT ON TABLE catalog TO authenticated;
-GRANT SELECT, INSERT, UPDATE ON TABLE pending_catalog TO authenticated;
-GRANT SELECT, INSERT ON TABLE feedback TO authenticated;
-GRANT SELECT ON TABLE admin_users TO authenticated;
-GRANT ALL ON TABLE public.series_metadata TO authenticated, anon, service_role;
-GRANT ALL ON TABLE public.user_series_settings TO authenticated, anon, service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.manga TO authenticated, service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.catalog TO authenticated, service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.pending_catalog TO authenticated, service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.feedback TO authenticated, service_role;
+GRANT SELECT ON TABLE public.admin_users TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.admin_users TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.series_metadata TO authenticated, service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.user_series_settings TO authenticated, service_role;
+
+REVOKE EXECUTE ON FUNCTION public.is_admin() FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.get_all_pending() FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.get_all_feedback() FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.admin_approve_pending(UUID, JSONB) FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.admin_reject_pending(UUID, TEXT) FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.admin_delete_feedback(UUID) FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.admin_merge_isbn(UUID, UUID) FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.admin_update_catalog(UUID, JSONB) FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.admin_delete_catalog(UUID) FROM PUBLIC, anon;
+
+GRANT EXECUTE ON FUNCTION public.is_admin() TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.get_all_pending() TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.get_all_feedback() TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.admin_approve_pending(UUID, JSONB) TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.admin_reject_pending(UUID, TEXT) TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.admin_delete_feedback(UUID) TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.admin_merge_isbn(UUID, UUID) TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.admin_update_catalog(UUID, JSONB) TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.admin_delete_catalog(UUID) TO authenticated, service_role;
 
 -- ============================================================
 -- STORAGE: Cấu hình bảo mật (RLS) cho Bucket 'covers'
@@ -429,9 +530,9 @@ ON CONFLICT (id) DO UPDATE SET
 -- Lưu ý: Supabase mặc định đã BẬT RLS cho bảng này, không cần chạy lệnh ALTER TABLE nữa để tránh lỗi quyền hạn (ERROR 42501).
 
 -- 3. Policy: Ai cũng có thể tải và xem ảnh (Public Read)
+-- Public URL downloads still work because the bucket is public; no SELECT policy is needed.
 DROP POLICY IF EXISTS "Public read covers" ON storage.objects;
-CREATE POLICY "Public read covers" ON storage.objects 
-  FOR SELECT USING (bucket_id = 'covers');
+DROP POLICY IF EXISTS "Public Access" ON storage.objects;
 
 -- 4. Policy: CHỈ user đã đăng nhập mới được upload ảnh
 DROP POLICY IF EXISTS "Authenticated upload covers" ON storage.objects;
