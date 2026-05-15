@@ -1,11 +1,11 @@
-import { store } from '../store.js';
+﻿import { store } from '../store.js';
 
 export function cancelForm() {
     const editId = document.getElementById('edit-id').value;
     if (editId) {
         const manga = store.data.find(m => m.id === editId);
         if (manga && manga.series) {
-            window.app.openSeriesDetail(manga.series); // Fallback until core.js is refactored
+            window.app.openSeriesDetail(manga.series);
             return;
         }
         navigateTo('/');
@@ -30,28 +30,61 @@ export function navigateTo(path, replace = false) {
     router();
 }
 
+// Các route công khai (không cần đăng nhập)
+const PUBLIC_ROUTES = ['/about', '/schedule', '/stats', '/library'];
+
 export function router() {
     const path = window.location.pathname;
-    const app = window.app; // fallback
+    const app = window.app;
 
-    if (!store.user && path !== '/' && path !== '/index.html') {
-        app.showToast('Vui lòng đăng nhập để sử dụng tính năng này!', 'error');
-        navigateTo('/', true);
+    // ─── Public routes — luôn accessible ────────────────────────────────
+    if (path === '/about') {
+        app.showView('about');
+        app.updateNavTabs(path);
+        // Hiện CTA đăng nhập nếu chưa login
+        const cta = document.getElementById('about-cta');
+        if (cta) cta.style.display = store.user ? 'none' : 'block';
         return;
     }
 
+    if (path === '/schedule' || path === '/stats') {
+        app.showView('coming-soon');
+        const title = document.getElementById('coming-soon-title');
+        const backBtn = document.getElementById('coming-soon-back-btn');
+        if (title) title.textContent = path === '/schedule' ? 'Lịch Phát Hành' : 'Thống Kê';
+        if (backBtn) backBtn.onclick = () => app.navigateTo(store.user ? '/library' : '/about');
+        app.updateNavTabs(path);
+        return;
+    }
+
+    // ─── Chưa đăng nhập → chỉ redirect /about khi vào các route cần auth ─────────
+    // '/library' được phép: hiện dashboard với empty state (không có dữ liệu)
+    if (!store.user && path !== '/library' && path !== '/index.html') {
+        navigateTo('/about', true);
+        return;
+    }
+
+    // ─── Authenticated routing ─────────────────────────────────────────
     if (path === '/' || path === '/index.html') {
+        // / redirect về /library (canonical path cho Kho Truyện)
+        navigateTo('/library', true);
+        return;
+    } else if (path === '/library') {
         app.showView('dashboard');
+        app.updateNavTabs('/library');
     } else if (path === '/add') {
         app.showView('add-method');
+        app.updateNavTabs('/library');
     } else if (path === '/form') {
         app.showView('form');
+        app.updateNavTabs('/library');
     } else if (path === '/search') {
         app.showView('search');
+        app.updateNavTabs('/library');
     } else if (path.startsWith('/admin')) {
         if (!store.isAdmin) {
             app.showToast('Bạn không có quyền truy cập khu vực này!', 'error');
-            navigateTo('/', true);
+            navigateTo('/about', true); // ← đổi từ / sang /about
             return;
         }
         if (path === '/admin' || path === '/admin/pending') {
@@ -76,15 +109,65 @@ export function router() {
         } else {
             navigateTo('/', true);
         }
+        app.updateNavTabs(path);
     } else if (path.startsWith('/series/')) {
         const parts = path.split('/series/');
         if (parts.length > 1) {
             const seriesName = decodeURIComponent(parts[1]);
             app.renderSeriesDetail(seriesName);
         } else {
-            navigateTo('/', true);
+            navigateTo('/library', true);
         }
+        app.updateNavTabs('/library');
     } else {
         navigateTo('/', true);
     }
+}
+
+/**
+ * Cập nhật trạng thái active của nav tabs và hiện/ẩn search bar.
+ * Được gọi từ router() sau mỗi lần điều hướng.
+ */
+export function updateNavTabs(activePath) {
+    const tabMap = {
+        'tab-about': '/about',
+        'tab-dashboard': '/library',
+        'tab-schedule': '/schedule',
+        'tab-stats': '/stats',
+    };
+
+    Object.entries(tabMap).forEach(([id, tabPath]) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const isActive = activePath === tabPath
+            || (tabPath === '/library' && (
+                activePath === '/'
+                || activePath === '/index.html'
+                || activePath === '/add'
+                || activePath === '/form'
+                || activePath === '/search'
+                || activePath.startsWith('/series/')));
+        el.classList.toggle('nav-tab--active', isActive);
+    });
+
+    // Hi\u1ec7n search row + n\u00fat Th\u00eam s\u00e1ch ch\u1ec9 khi \u0111ang \u1edf T\u1ee7 truy\u1ec7n
+    const isDashboard = activePath === '/library' || activePath === '/'
+        || activePath === '/index.html' || activePath === '/add'
+        || activePath === '/form' || activePath === '/search'
+        || activePath.startsWith('/series/');
+
+    // Toggle search row (n\u1eb1m d\u01b0\u1edbi navbar)
+    const searchRow = document.getElementById('nav-search-row');
+    if (searchRow) searchRow.style.display = isDashboard ? '' : 'none';
+
+    const addBtn = document.getElementById('btn-add-book');
+    if (addBtn) {
+        if (!isDashboard) {
+            addBtn.classList.add('hidden');
+        } else if (store.user) {
+            addBtn.classList.remove('hidden');
+        }
+    }
+
+    if (window.feather) { try { feather.replace(); } catch (e) {} }
 }
