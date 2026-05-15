@@ -1,4 +1,4 @@
-import { store } from '../store.js';
+﻿import { store } from '../store.js';
 import { supabase } from '../supabase-client.js';
 import { escapeHTML } from '../utils/security.js';
 
@@ -127,6 +127,6 @@ export async function deleteVolume(id) {
             window.app.navigateTo('/');
         }
         window.app.queueTask('DELETE_MANGA', { id }, null, {
-            message: 'Đã xóa khỏi kệ. Đang đồng bộ với database...'
+            message: 'Đã xóa khỏi kho. Đang đồng bộ với database...'
         });
     }
