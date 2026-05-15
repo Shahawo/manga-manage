@@ -359,8 +359,9 @@ export async function searchCatalogByOcrText(rawText) {
             if (retryBtn) retryBtn.style.display = 'flex';
 
             if (results.length === 0) {
-                window.app.showToast('Không tìm thấy sách phù hợp trong kho. Hãy nhập thủ công!', 'info');
-                document.getElementById('ai-scan-results').style.display = 'none';
+                // Không tìm thấy trong kho → điền OCR text vào form để user chỉnh thủ công
+                // Truyền rawText để extract dòng đầu tiên chính xác (cleaned đã mất newline)
+                window.app._applyOcrTextToForm(cleaned, words, rawText);
                 return;
             }
 
@@ -407,3 +408,60 @@ export function _showAiScanResults(results) {
         if (window.feather) { try { feather.replace(); } catch(e) {} }
         window.app.showToast(`Tìm thấy ${results.length} kết quả — chọn cuốn phù hợp!`, 'info');
     }
+
+export function _applyOcrTextToForm(cleaned, words, rawText = '') {
+    // Đóng modal AI scan
+    window.app.stopCoverScan();
+
+    // ─── Trích xuất thông tin từ OCR text ─────────────────────────────────
+    // 1. Tìm số tập: "Tập X", "Vol X", "Volume X", số đứng một mình cuối text
+    let volume = '';
+    const volMatch = cleaned.match(
+        /(?:tập|tap|vol(?:ume)?)[.:\s]*([\d]+(?:[.,][\d]+)?)/i
+    );
+    if (volMatch) {
+        volume = volMatch[1].replace(',', '.');
+    } else {
+        // Tìm số đứng một mình (1–3 chữ số) — thường là tập số trên bìa
+        const soloNum = cleaned.match(/\b(\d{1,3})\b(?!\s*\d)/);
+        if (soloNum && parseInt(soloNum[1]) <= 999) volume = soloNum[1];
+    }
+
+    // 2. Dòng đầu tiên của rawText (có newline gốc) thường là tên sách
+    // rawText được dùng thay vì cleaned vì cleaned đã gộp tất cả thành 1 dòng
+    const sourceForLines = rawText || cleaned;
+    const firstLine = sourceForLines
+        .split(/\r?\n/)
+        .map(l => l.replace(/[^\w\sÀ-ỹà-ỹĂăÂâĐđÊêÔôƠơƯư]/gi, ' ').trim())
+        .find(l => l.length >= 3) || '';
+
+    // 3. Cụm 2–4 từ đầu tiên có nghĩa (>= 3 ký tự) → gợi ý series
+    const meaningfulWords = words.filter(w => w.length >= 3).slice(0, 4);
+    const seriesGuess = meaningfulWords.join(' ');
+
+    // ─── Điều hướng sang form ──────────────────────────────────────────────
+    window.app.navigateTo('/form');
+    const form = document.getElementById('manga-form');
+    if (form) form.reset();
+    document.getElementById('edit-id').value = '';
+
+    // ─── Tự động điền ─────────────────────────────────────────────────────
+    const setVal = (id, val) => {
+        if (!val) return;
+        const el = document.getElementById(id);
+        if (el) el.value = val;
+    };
+
+    setVal('series', seriesGuess);
+    // Điền title = firstLine nếu nó khác với seriesGuess (tránh trùng lặp)
+    if (firstLine && firstLine.toLowerCase() !== seriesGuess.toLowerCase()) {
+        setVal('title', firstLine);
+    }
+    setVal('volume', volume);
+
+    // ─── Thông báo người dùng ─────────────────────────────────────────────
+    window.app.showToast(
+        '📖 Không tìm thấy trong kho — đã điền thông tin OCR vào form. Vui lòng kiểm tra lại!',
+        'info'
+    );
+}
