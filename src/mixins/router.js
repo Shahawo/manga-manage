@@ -48,12 +48,9 @@ export function router() {
     }
 
     if (path === '/schedule') {
-        app.showView('coming-soon');
-        const title = document.getElementById('coming-soon-title');
-        const backBtn = document.getElementById('coming-soon-back-btn');
-        if (title) title.textContent = 'Lịch Phát Hành';
-        if (backBtn) backBtn.onclick = () => app.navigateTo(store.user ? '/library' : '/about');
-        app.updateNavTabs(path);
+        app.showView('schedule');
+        app.updateNavTabs('/schedule');
+        app.renderCalendar();
         return;
     }
 
@@ -103,6 +100,9 @@ export function router() {
         } else if (path === '/admin/feedback') {
             app.showView('admin');
             app.switchAdminTab('feedback');
+        } else if (path === '/admin/schedule') {
+            app.showView('admin');
+            app.switchAdminTab('schedule');
         } else if (path.startsWith('/admin/series/')) {
             const parts = path.split('/admin/series/');
             if (parts.length > 1) {

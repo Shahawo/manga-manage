@@ -12,6 +12,7 @@ import * as form from './mixins/form.js';
 import * as scanner from './mixins/scanner.js';
 import * as admin from './mixins/admin.js';
 import * as stats from './mixins/stats.js';
+import * as schedule from './mixins/schedule.js';
 
 // Nạp HTML bằng Vite
 import adminHtml from './views/admin.html?raw';
@@ -38,9 +39,11 @@ const app = {
     ...form,
     ...scanner,
     ...admin,
-    ...stats
+    ...stats,
+    ...schedule
 };
 window.app = app;
 
 // We must extract init manually to be called after all mixins
 app.init();
+

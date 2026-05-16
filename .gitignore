@@ -38,3 +38,5 @@ markers.txt
 *.md
 !README.md
 /.agent-skills
+# Kikuri reference clone
+.kikuri-ref/

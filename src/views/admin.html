@@ -11,6 +11,8 @@
                     id="tab-btn-pending">Duyệt sách</button>
                 <button class="admin-tab-btn" onclick="app.navigateTo('/admin/catalog')" id="tab-btn-catalog">Quản lý
                     Kho</button>
+                <button class="admin-tab-btn" onclick="app.navigateTo('/admin/schedule')" id="tab-btn-schedule">Lịch phát
+                    hành</button>
                 <button class="admin-tab-btn" onclick="app.navigateTo('/admin/feedback')" id="tab-btn-feedback">Góp ý từ
                     User</button>
             </div>
@@ -71,6 +73,83 @@
             <div id="admin-feedback-container" class="admin-tab-content hidden">
                 <div id="admin-feedback-list" style="display:flex; flex-direction:column; gap:1rem;">
                     <!-- Danh sách góp ý -->
+                </div>
+            </div>
+
+            <!-- Admin: Lịch Phát Hành -->
+            <div id="admin-schedule-container" class="admin-tab-content hidden">
+                <!-- Toolbar: tháng selector + nút thêm mới -->
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-bottom:1.5rem; flex-wrap:wrap;">
+                    <div style="display:flex; align-items:center; gap:0.5rem;">
+                        <button class="btn btn-icon" onclick="app.adminScheduleChangeMonth(-1)" style="width:34px;height:34px;padding:0;min-width:unset;border:1px solid var(--border);border-radius:50%;">
+                            <i data-feather="chevron-left"></i>
+                        </button>
+                        <span id="admin-schedule-month-label" style="font-weight:600; font-size:1rem;">Tháng 5/2026</span>
+                        <button class="btn btn-icon" onclick="app.adminScheduleChangeMonth(1)" style="width:34px;height:34px;padding:0;min-width:unset;border:1px solid var(--border);border-radius:50%;">
+                            <i data-feather="chevron-right"></i>
+                        </button>
+                    </div>
+                    <button class="btn btn-primary" onclick="app.openAdminReleaseForm()" style="padding:0.5rem 1.25rem;">
+                        <i data-feather="plus"></i> Thêm mới
+                    </button>
+                </div>
+
+                <!-- Add/Edit Form (hidden by default) -->
+                <div id="admin-release-form" class="hidden" style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:1.5rem; margin-bottom:1.5rem;">
+                    <h3 style="margin-bottom:1rem;" id="admin-release-form-title">Thêm entry mới</h3>
+                    <input type="hidden" id="admin-release-id">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+                        <div class="form-group">
+                            <label>Ngày phát hành <span style="color:var(--danger)">*</span></label>
+                            <input type="date" id="admin-release-date" class="input-ctrl">
+                        </div>
+                        <div class="form-group">
+                            <label>Tiêu đề sách <span style="color:var(--danger)">*</span></label>
+                            <input type="text" id="admin-release-title" class="input-ctrl" placeholder="Tên đầy đủ của cuốn sách">
+                        </div>
+                        <div class="form-group">
+                            <label>Series / Bộ truyện</label>
+                            <input type="text" id="admin-release-series" class="input-ctrl" placeholder="Ví dụ: Naruto, One Piece...">
+                        </div>
+                        <div class="form-group">
+                            <label>Tập số</label>
+                            <input type="number" id="admin-release-volume" class="input-ctrl" placeholder="1" min="0" step="0.5">
+                        </div>
+                        <div class="form-group">
+                            <label>Nhà xuất bản</label>
+                            <input type="text" id="admin-release-publisher" class="input-ctrl" placeholder="Kim Đồng, Hồng Đức...">
+                        </div>
+                        <div class="form-group">
+                            <label>Giá bìn (VNĐ)</label>
+                            <input type="number" id="admin-release-price" class="input-ctrl" placeholder="45000" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label>URL ảnh bìa</label>
+                            <input type="text" id="admin-release-cover" class="input-ctrl" placeholder="https://...">
+                        </div>
+                        <div class="form-group">
+                            <label>Loại bản</label>
+                            <select id="admin-release-edition" class="input-ctrl">
+                                <option value="standard">Thường</option>
+                                <option value="special">Bản Đặc Biệt</option>
+                                <option value="collector">Bản Sưu Tầm</option>
+                                <option value="limited">Bản Giới Hạn</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="grid-column:1/-1;">
+                            <label>Ghi chú</label>
+                            <textarea id="admin-release-note" class="input-ctrl" rows="2" placeholder="Ghi chú thêm (nếu có)"></textarea>
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:0.75rem; justify-content:flex-end; margin-top:1rem;">
+                        <button class="btn btn-outline" onclick="app.closeAdminReleaseForm()">Hủy</button>
+                        <button class="btn btn-primary" onclick="app.saveAdminRelease()">Lưu</button>
+                    </div>
+                </div>
+
+                <!-- List entries -->
+                <div id="admin-release-list">
+                    <p style="text-align:center; color:var(--text-muted); padding:2rem;">Chưa có entry nào trong tháng này.</p>
                 </div>
             </div>
 
