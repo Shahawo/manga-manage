@@ -1,4 +1,4 @@
-﻿import { store } from '../store.js';
+import { store } from '../store.js';
 
 export function cancelForm() {
     const editId = document.getElementById('edit-id').value;
@@ -47,13 +47,20 @@ export function router() {
         return;
     }
 
-    if (path === '/schedule' || path === '/stats') {
+    if (path === '/schedule') {
         app.showView('coming-soon');
         const title = document.getElementById('coming-soon-title');
         const backBtn = document.getElementById('coming-soon-back-btn');
-        if (title) title.textContent = path === '/schedule' ? 'Lịch Phát Hành' : 'Thống Kê';
+        if (title) title.textContent = 'Lịch Phát Hành';
         if (backBtn) backBtn.onclick = () => app.navigateTo(store.user ? '/library' : '/about');
         app.updateNavTabs(path);
+        return;
+    }
+
+    if (path === '/stats') {
+        app.showView('stats');
+        app.updateNavTabs('/stats');
+        app.renderStats();
         return;
     }
 

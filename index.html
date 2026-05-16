@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 
 <head>
@@ -28,7 +28,7 @@
     <!-- Flatpickr for Date formatting -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr" defer></script>
-    <link rel="stylesheet" href="/styles.css?v=2.2.0">
+    <link rel="stylesheet" href="/styles.css?v=2.6.0">
 </head>
 
 <body>
@@ -363,6 +363,136 @@
                             <strong>Theo dõi bộ sưu tập</strong>
                             <p>Xếp theo Series, theo dõi tiến độ, đặt mục tiêu và tìm kiếm nhanh bất kỳ cuốn nào.</p>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stats View -->
+        <section id="view-stats" class="view hidden">
+            <!-- Login gate -->
+            <div id="stats-login-gate" class="stats-login-gate">
+                <div class="stats-gate-icon">
+                    <i data-feather="bar-chart-2"></i>
+                </div>
+                <h2>Thống Kê Bộ Sưu Tập</h2>
+                <p>Đăng nhập để xem thống kê chi tiết về thư viện manga của bạn.</p>
+                <button class="btn btn-primary" onclick="app.signInWithGoogle()" style="margin-top:1rem; padding:0.65rem 1.75rem;">
+                    <svg width="18" height="18" viewBox="0 0 48 48" style="margin-right:0.4rem;">
+                        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.36-8.16 2.36-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                    </svg>
+                    Đăng nhập bằng Google
+                </button>
+            </div>
+
+            <!-- Stats content (khi đã đăng nhập) -->
+            <div id="stats-content" class="hidden">
+                <!-- Page header -->
+                <div class="stats-page-header">
+                    <h2 class="stats-page-title">
+                        <i data-feather="bar-chart-2"></i>
+                        Thống Kê
+                    </h2>
+                </div>
+
+                <!-- Summary Cards -->
+                <div class="stats-summary-grid">
+                    <div class="stats-card">
+                        <div class="stats-card-icon stats-icon-blue">
+                            <i data-feather="book"></i>
+                        </div>
+                        <div class="stats-card-body">
+                            <div class="stats-card-value" id="stat-total-books">0</div>
+                            <div class="stats-card-label">Tổng số cuốn</div>
+                        </div>
+                    </div>
+                    <div class="stats-card">
+                        <div class="stats-card-icon stats-icon-purple">
+                            <i data-feather="layers"></i>
+                        </div>
+                        <div class="stats-card-body">
+                            <div class="stats-card-value" id="stat-total-series">0</div>
+                            <div class="stats-card-label">Tổng số bộ</div>
+                        </div>
+                    </div>
+                    <div class="stats-card">
+                        <div class="stats-card-icon stats-icon-green">
+                            <i data-feather="trending-up"></i>
+                        </div>
+                        <div class="stats-card-body">
+                            <div class="stats-card-value" id="stat-this-month">0</div>
+                            <div class="stats-card-label">Cuốn thêm tháng này</div>
+                        </div>
+                    </div>
+                    <div class="stats-card">
+                        <div class="stats-card-icon stats-icon-orange">
+                            <i data-feather="plus-circle"></i>
+                        </div>
+                        <div class="stats-card-body">
+                            <div class="stats-card-value" id="stat-new-series">0</div>
+                            <div class="stats-card-label">Bộ mới tháng này</div>
+                        </div>
+                    </div>
+                    <!-- Card: Tổng giá trị kho truyện -->
+                    <div class="stats-card stats-card-value-wrap">
+                        <div class="stats-card-icon stats-icon-rose">
+                            <i data-feather="dollar-sign"></i>
+                        </div>
+                        <div class="stats-card-body" style="flex:1; min-width:0;">
+                            <div class="stats-card-value-row">
+                                <span class="stats-card-value" id="stat-total-value" data-raw="0" data-visible="false">••••••••</span>
+                                <button class="stats-eye-btn" id="stat-value-eye" onclick="app.toggleTotalValue()" title="Hiển thị/Ẩn giá trị" aria-label="Toggle giá trị">
+                                    <i data-feather="eye" id="stat-value-eye-icon"></i>
+                                </button>
+                            </div>
+                            <div class="stats-card-label">Tổng giá trị</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Monthly message -->
+                <div id="stats-monthly-message" class="stats-monthly-message"></div>
+
+                <!-- Bar chart: sách thêm theo thời gian -->
+                <div class="stats-chart-card">
+                    <div class="stats-chart-header">
+                        <h3 class="stats-chart-title">Lịch sử thêm sách</h3>
+                        <div class="stats-bar-controls">
+                            <!-- Custom period dropdown (giống /library) -->
+                            <div class="custom-select-container dropdown-wrapper" id="stats-period-wrapper">
+                                <button class="custom-select-btn" onclick="app.toggleCustomDropdown('stats-period-dropdown')">
+                                    <span id="stats-period-label" style="font-size:0.85rem; font-weight:500;">Tháng 5, 2026</span>
+                                    <i data-feather="chevron-down" style="width:14px; height:14px; color:var(--text-muted);"></i>
+                                </button>
+                                <div id="stats-period-dropdown" class="user-dropdown custom-select-menu hidden" style="min-width:160px;">
+                                    <!-- Options populated by JS -->
+                                </div>
+                            </div>
+                            <div class="stats-timeframe-switcher" id="stats-timeframe-switcher">
+                                <button class="stats-tf-btn stats-tf-active" data-tf="month" onclick="app.setStatsTimeframe('month')">Tháng</button>
+                                <button class="stats-tf-btn" data-tf="quarter" onclick="app.setStatsTimeframe('quarter')">Quý</button>
+                                <button class="stats-tf-btn" data-tf="year" onclick="app.setStatsTimeframe('year')">Năm</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stats-chart-container">
+                        <canvas id="chart-bar-timeline"></canvas>
+                    </div>
+                </div>
+
+                <!-- Pie chart: phân bổ NXB -->
+                <div class="stats-chart-card">
+                    <div class="stats-chart-header">
+                        <h3 class="stats-chart-title">Phân bổ theo Nhà Phát Hành</h3>
+                    </div>
+                    <div class="stats-pie-layout">
+                        <div class="stats-chart-container stats-pie-container">
+                            <canvas id="chart-pie-publisher"></canvas>
+                        </div>
+                        <div id="stats-publisher-legend" class="stats-publisher-legend"></div>
                     </div>
                 </div>
             </div>

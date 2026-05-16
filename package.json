@@ -1,6 +1,6 @@
 {
   "name": "manga-supabase",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "Đây là phiên bản web-based tĩnh (static) quản lý truyện tranh cá nhân sử dụng **Supabase** làm backend. Ứng dụng không cần cài đặt Node.js server, toàn bộ nghiệp vụ (Database, Storage, Authentication) được xử lý trực tiếp trên trình duyệt qua Supabase JS SDK.",
   "main": "src/main.js",
   "scripts": {

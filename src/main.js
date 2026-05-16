@@ -11,6 +11,7 @@ import * as ui_modal from './mixins/uiModal.js';
 import * as form from './mixins/form.js';
 import * as scanner from './mixins/scanner.js';
 import * as admin from './mixins/admin.js';
+import * as stats from './mixins/stats.js';
 
 // Nạp HTML bằng Vite
 import adminHtml from './views/admin.html?raw';
@@ -36,7 +37,8 @@ const app = {
     ...ui_modal,
     ...form,
     ...scanner,
-    ...admin
+    ...admin,
+    ...stats
 };
 window.app = app;
 

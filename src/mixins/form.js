@@ -386,16 +386,25 @@ export async function handleFormSubmit(e) {
 export function setupPriceInput() {
     const priceInput = document.getElementById('price');
     if (!priceInput) return;
+
+    // Chặn nhập số âm và ký tự không hợp lệ ngay khi gõ
+    priceInput.addEventListener('keydown', function (e) {
+        if (e.key === '-' || e.key === '+' || e.key === 'e' || e.key === 'E') {
+            e.preventDefault();
+        }
+    });
+
     priceInput.addEventListener('blur', function () {
-        let val = window.app.value.replace(/[^\d]/g, '');
-        if (!val) { window.app.value = ''; return; }
+        let val = this.value.replace(/[^\d]/g, '');
+        if (!val) { this.value = ''; return; }
         let num = parseInt(val, 10);
-        if (num < 1000 && num > 0) num = num * 1000;
+        // Nhập số nhỏ hơn 1000 (vd: 45, 30) → tự nhân ×1000 (45000, 30000)
+        if (num > 0 && num < 1000) num = num * 1000;
         if (num > 2000000000) num = 2000000000; // Ngăn lỗi Supabase (Integer limit)
-        window.app.value = new Intl.NumberFormat('vi-VN').format(num);
+        this.value = new Intl.NumberFormat('vi-VN').format(num);
     });
     priceInput.addEventListener('focus', function () {
-        window.app.value = window.app.value.replace(/\./g, '');
+        this.value = this.value.replace(/\./g, '');
     });
 }
 
