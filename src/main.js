@@ -13,6 +13,7 @@ import * as scanner from './mixins/scanner.js';
 import * as admin from './mixins/admin.js';
 import * as stats from './mixins/stats.js';
 import * as schedule from './mixins/schedule.js';
+import * as scheduleImport from './mixins/schedule-import.js';
 
 // Nạp HTML bằng Vite
 import adminHtml from './views/admin.html?raw';
@@ -40,7 +41,8 @@ const app = {
     ...scanner,
     ...admin,
     ...stats,
-    ...schedule
+    ...schedule,
+    ...scheduleImport
 };
 window.app = app;
 
