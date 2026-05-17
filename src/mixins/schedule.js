@@ -17,6 +17,7 @@ const calendarState = {
     pickerYear: null,       // temp year in picker UI
     pickerMonth: null,      // temp month in picker UI (1-indexed)
     releaseDates: [],       // sorted list of release dates for quick-nav
+    fetchController: null,  // AbortController for current fetch
 };
 
 // Vietnamese month names & weekday names
@@ -46,33 +47,57 @@ export async function renderCalendar() {
 
 // ─── Data fetching ────────────────────────────────────────────────────────────
 
-async function _fetchAndRender() {
+async function _fetchAndRender(retryCount = 0) {
     _setLoading(true);
+
+    if (calendarState.fetchController) {
+        calendarState.fetchController.abort();
+    }
+    calendarState.fetchController = new AbortController();
 
     const firstDay = `${calendarState.year}-${String(calendarState.month).padStart(2, '0')}-01`;
     const lastDay = _getLastDay(calendarState.year, calendarState.month);
 
-    const { data, error } = await supabase
-        .from('release_calendar')
-        .select('*')
-        .gte('release_date', firstDay)
-        .lte('release_date', lastDay)
-        .order('release_date', { ascending: true })
-        .order('title', { ascending: true });
+    try {
+        const { data, error } = await window.app.withTimeout(
+            supabase
+                .from('release_calendar')
+                .select('*')
+                .gte('release_date', firstDay)
+                .lte('release_date', lastDay)
+                .order('release_date', { ascending: true })
+                .order('title', { ascending: true })
+                .abortSignal(calendarState.fetchController.signal),
+            8000,
+            'Yêu cầu quá hạn do mạng gián đoạn'
+        );
 
-    _setLoading(false);
+        _setLoading(false);
 
-    if (error) {
-        console.error('[schedule] fetch error:', error);
-        _renderError(error.message);
-        return;
+        if (error) {
+            console.error('[schedule] fetch error:', error);
+            if (error.name !== 'AbortError' && error.message !== 'Fetch is aborted') {
+                _renderError(error.message);
+            }
+            return;
+        }
+
+        calendarState.allReleases = data ?? [];
+        calendarState.selectedPublishers = [];
+
+        _buildPublisherFilter(calendarState.allReleases);
+        _applyFilterAndRender();
+    } catch (err) {
+        if (err.name === 'AbortError' || err.message === 'Fetch is aborted') return;
+        
+        if (retryCount < 1 && err.message.includes('quá hạn')) {
+            console.warn('[schedule] Yêu cầu bị kẹt (thường do chuyển tab), tự động thử lại...');
+            return _fetchAndRender(retryCount + 1);
+        }
+
+        _setLoading(false);
+        _renderError(err.message);
     }
-
-    calendarState.allReleases = data ?? [];
-    calendarState.selectedPublishers = [];
-
-    _buildPublisherFilter(calendarState.allReleases);
-    _applyFilterAndRender();
 }
 
 function _getLastDay(year, month) {
