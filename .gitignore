@@ -40,3 +40,6 @@ markers.txt
 /.agent-skills
 # Kikuri reference clone
 .kikuri-ref/
+# Momoka & Shinobu reference clones (tana.moe backend/admin)
+.momoka-ref/
+.shinobu-ref/
