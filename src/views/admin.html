@@ -78,7 +78,7 @@
 
             <!-- Admin: Lịch Phát Hành -->
             <div id="admin-schedule-container" class="admin-tab-content hidden">
-                <!-- Toolbar: tháng selector + nút thêm mới -->
+                <!-- Toolbar: tháng selector + nút thêm mới + import -->
                 <div style="display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-bottom:1.5rem; flex-wrap:wrap;">
                     <div style="display:flex; align-items:center; gap:0.5rem;">
                         <button class="btn btn-icon" onclick="app.adminScheduleChangeMonth(-1)" style="width:34px;height:34px;padding:0;min-width:unset;border:1px solid var(--border);border-radius:50%;">
@@ -89,9 +89,103 @@
                             <i data-feather="chevron-right"></i>
                         </button>
                     </div>
-                    <button class="btn btn-primary" onclick="app.openAdminReleaseForm()" style="padding:0.5rem 1.25rem;">
-                        <i data-feather="plus"></i> Thêm mới
-                    </button>
+                    <div style="display:flex;gap:0.5rem;">
+                        <button class="btn btn-outline" onclick="app.toggleImportPanel()" style="padding:0.5rem 1.1rem;">
+                            <i data-feather="download"></i> Import
+                        </button>
+                        <button class="btn btn-primary" onclick="app.openAdminReleaseForm()" style="padding:0.5rem 1.25rem;">
+                            <i data-feather="plus"></i> Thêm mới
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Import Panel -->
+                <div id="admin-import-panel" class="hidden" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:1.5rem;overflow:hidden;">
+                    <!-- Sub-tabs -->
+                    <div style="display:flex;border-bottom:1px solid var(--border);">
+                        <button id="import-tab-btn-tana" class="import-tab-btn active" onclick="app.switchImportTab('tana')"
+                            style="padding:0.75rem 1.25rem;border:none;background:none;font-family:inherit;font-size:0.9rem;font-weight:600;color:var(--primary);border-bottom:2px solid var(--primary);cursor:pointer;">
+                            🌐 Fetch từ Tana.moe
+                        </button>
+                        <button id="import-tab-btn-csv" class="import-tab-btn" onclick="app.switchImportTab('csv')"
+                            style="padding:0.75rem 1.25rem;border:none;background:none;font-family:inherit;font-size:0.9rem;font-weight:500;color:var(--text-muted);border-bottom:2px solid transparent;cursor:pointer;">
+                            📋 CSV / JSON
+                        </button>
+                    </div>
+
+                    <!-- Tab: Fetch Tana.moe -->
+                    <div id="import-panel-tana" class="import-tab-content" style="padding:1.25rem;">
+                        <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:1rem;">
+                            Lấy dữ liệu trực tiếp từ <strong>PocketBase API của Tana.moe</strong> (<code>pb.tana.moe</code>). API này public, không cần đăng nhập.
+                        </p>
+                        <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+                            <div style="display:flex;align-items:center;gap:0.5rem;">
+                                <label style="font-size:0.85rem;font-weight:500;white-space:nowrap;">Tháng fetch:</label>
+                                <input type="month" id="tana-import-month" class="input-ctrl" style="width:auto;padding:0.4rem 0.65rem;font-size:0.9rem;">
+                            </div>
+                            <button class="btn btn-primary" onclick="app.fetchFromTana()" id="tana-fetch-btn" style="padding:0.5rem 1.1rem;">
+                                <i data-feather="download-cloud"></i> Fetch
+                            </button>
+                            <span id="tana-fetch-status" style="font-size:0.82rem;color:var(--text-muted);"></span>
+                        </div>
+
+                        <!-- Preview table -->
+                        <div id="tana-preview-area" class="hidden" style="margin-top:1.25rem;">
+                            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;flex-wrap:wrap;gap:0.5rem;">
+                                <div style="display:flex;align-items:center;gap:0.5rem;">
+                                    <input type="checkbox" id="tana-select-all" onchange="app.tanaToggleAll(this.checked)" style="width:16px;height:16px;cursor:pointer;">
+                                    <label for="tana-select-all" style="font-size:0.85rem;font-weight:600;cursor:pointer;">Chọn tất cả</label>
+                                    <span id="tana-selected-count" style="font-size:0.82rem;color:var(--text-muted);">(0 đã chọn)</span>
+                                </div>
+                                <button class="btn btn-primary" onclick="app.importSelectedTana()" style="padding:0.5rem 1.1rem;" id="tana-import-btn">
+                                    <i data-feather="check-circle"></i> Import đã chọn
+                                </button>
+                            </div>
+                            <div id="tana-preview-table" style="display:flex;flex-direction:column;gap:0.4rem;max-height:400px;overflow-y:auto;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Tab: CSV/JSON -->
+                    <div id="import-panel-csv" class="import-tab-content hidden" style="padding:1.25rem;">
+                        <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.75rem;">
+                            Paste CSV hoặc JSON array. Hệ thống tự nhận dạng định dạng.
+                        </p>
+                        <div style="margin-bottom:0.75rem;">
+                            <details style="font-size:0.8rem;color:var(--text-muted);">
+                                <summary style="cursor:pointer;font-weight:500;margin-bottom:0.4rem;">Xem định dạng mẫu</summary>
+                                <pre style="background:var(--background);border:1px solid var(--border);border-radius:6px;padding:0.75rem;font-size:0.75rem;overflow-x:auto;margin-top:0.5rem;">CSV:
+release_date,series,title,volume,publisher,price,cover_url,edition
+2026-06-07,Jujutsu Kaisen,Jujutsu Kaisen,28,Kim Đồng,45000,https://...,standard
+
+JSON:
+[{"release_date":"2026-06-07","series":"JJK","title":"Jujutsu Kaisen","volume":28,"publisher":"Kim Đồng","price":45000}]</pre>
+                            </details>
+                        </div>
+                        <textarea id="csv-import-input" class="input-ctrl" rows="8"
+                            placeholder="Paste CSV hoặc JSON vào đây..."
+                            style="font-family:monospace;font-size:0.82rem;resize:vertical;"></textarea>
+                        <div style="display:flex;gap:0.75rem;margin-top:0.75rem;flex-wrap:wrap;align-items:center;">
+                            <button class="btn btn-outline" onclick="app.parseCsvImport()" style="padding:0.5rem 1rem;">
+                                <i data-feather="eye"></i> Preview
+                            </button>
+                            <span id="csv-parse-status" style="font-size:0.82rem;color:var(--text-muted);"></span>
+                        </div>
+
+                        <!-- CSV Preview -->
+                        <div id="csv-preview-area" class="hidden" style="margin-top:1rem;">
+                            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;flex-wrap:wrap;gap:0.5rem;">
+                                <div style="display:flex;align-items:center;gap:0.5rem;">
+                                    <input type="checkbox" id="csv-select-all" onchange="app.csvToggleAll(this.checked)" style="width:16px;height:16px;cursor:pointer;">
+                                    <label for="csv-select-all" style="font-size:0.85rem;font-weight:600;cursor:pointer;">Chọn tất cả</label>
+                                    <span id="csv-selected-count" style="font-size:0.82rem;color:var(--text-muted);">(0 đã chọn)</span>
+                                </div>
+                                <button class="btn btn-primary" onclick="app.importSelectedCsv()" style="padding:0.5rem 1.1rem;" id="csv-import-btn">
+                                    <i data-feather="check-circle"></i> Import đã chọn
+                                </button>
+                            </div>
+                            <div id="csv-preview-table" style="display:flex;flex-direction:column;gap:0.4rem;max-height:400px;overflow-y:auto;"></div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Add/Edit Form (hidden by default) -->
