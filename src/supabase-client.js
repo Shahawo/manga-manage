@@ -18,5 +18,16 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: true,
+  },
+  global: {
+    fetch: (...args) => {
+      // Bọc fetch mặc định để xử lý lỗi TCP socket bị kẹt sau khi wake up từ tab sleep
+      const [url, options] = args;
+      const modifiedOptions = { ...options };
+      modifiedOptions.headers = new Headers(modifiedOptions.headers || {});
+      // Thêm header để tránh trình duyệt cache kết nối chết
+      modifiedOptions.headers.set('Cache-Control', 'no-cache');
+      return fetch(url, modifiedOptions);
+    }
   }
 });
