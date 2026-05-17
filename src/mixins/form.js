@@ -44,7 +44,7 @@ export function previewImage(url, type = 'cover', prefix = 'main-') {
     }
 }
 
-export function compressImageToBlob(file, quality = 0.85) {
+export function compressImageToBlob(file, quality = 0.8) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.readAsDataURL(file);
@@ -55,7 +55,7 @@ export function compressImageToBlob(file, quality = 0.85) {
                 const canvas = document.createElement('canvas');
                 let width = img.width;
                 let height = img.height;
-                const max_size = 1200;
+                const max_size = 800; // Giảm từ 1200 -> 800 để tối ưu Egress
                 if (width > height) {
                     if (width > max_size) { height *= max_size / width; width = max_size; }
                 } else {
@@ -94,7 +94,11 @@ export async function handleFileUpload(inputElem, type, prefix = 'main-') {
 
         const timeout = (ms) => new Promise((_, reject) => setTimeout(() => reject(new Error('Yêu cầu tải ảnh quá hạn (Timeout)')), ms));
         const { error: uploadError } = await Promise.race([
-            supabase.storage.from(store.storageBucket).upload(filePath, blob, { contentType }),
+            supabase.storage.from(store.storageBucket).upload(filePath, blob, { 
+                contentType,
+                cacheControl: '31536000',
+                upsert: false
+            }),
             timeout(15000)
         ]);
 
@@ -157,7 +161,11 @@ export async function handleGiftFileUpload(inputElem, prefix = 'main-') {
 
             const timeout = (ms) => new Promise((_, reject) => setTimeout(() => reject(new Error('Yêu cầu tải ảnh quá hạn (Timeout)')), ms));
             const { error: uploadError } = await Promise.race([
-                supabase.storage.from(store.storageBucket).upload(filePath, blob, { contentType }),
+                supabase.storage.from(store.storageBucket).upload(filePath, blob, { 
+                    contentType,
+                    cacheControl: '31536000',
+                    upsert: false
+                }),
                 timeout(45000)
             ]);
             if (uploadError) throw uploadError;
