@@ -127,7 +127,12 @@ export async function fetchFromTana() {
             const sort = encodeURIComponent('+publishDate,+publication.volume');
             const url = `${TANA_API}?page=${page}&perPage=200&filter=${filter}&expand=${expand}&sort=${sort}`;
 
-            const res = await fetch(url);
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 18000);
+
+            const res = await fetch(url, { signal: controller.signal });
+            clearTimeout(timeoutId);
+
             if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
             const json = await res.json();
 
