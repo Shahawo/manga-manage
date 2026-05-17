@@ -1,5 +1,6 @@
 import { store } from '../store.js';
 import { supabase } from '../supabase-client.js';
+import { escapeHTML } from '../utils/security.js';
 
 export async function submitPendingBook(mangaData) {
         if (!store.user) return;
@@ -37,7 +38,7 @@ export function loadAdminPanel() {
         window.app.navigateTo('/admin/pending');
     }
 
-export async function fetchPendingBooks() {
+export async function fetchPendingBooks(retryCount = 0) {
         const controller = new AbortController();
         const timeout = ms => new Promise((_, reject) => setTimeout(() => { controller.abort(); reject(new Error('Timeout')); }, ms));
         try {
@@ -64,15 +65,20 @@ export async function fetchPendingBooks() {
                 badge.style.display = list.length > 0 ? 'inline-block' : 'none';
             }
         } catch (e) {
-            console.error(e);
+            if (e.name === 'AbortError') return;
+            if (retryCount < 1 && e.message === 'Timeout') {
+                console.warn('[fetchPendingBooks] Yêu cầu bị kẹt, tự động thử lại...');
+                return window.app.fetchPendingBooks(retryCount + 1);
+            }
+            console.error('Lỗi tải danh sách Pending:', e);
         }
     }
 
-export async function checkDuplicate(pendingBook) {
+export async function checkDuplicate(pendingBook, retryCount = 0) {
         const controller = new AbortController();
         const timeout = ms => new Promise((_, reject) => setTimeout(() => { controller.abort(); reject(new Error('Timeout')); }, ms));
         try {
-            const { data } = await Promise.race([
+            const { data, error } = await Promise.race([
                 supabase.from('catalog').select('*')
                     .ilike('series', pendingBook.series)
                     .ilike('title', pendingBook.title)
@@ -80,8 +86,16 @@ export async function checkDuplicate(pendingBook) {
                     .abortSignal(controller.signal),
                 timeout(10000)
             ]);
+            if (error) throw error;
             return data || [];
-        } catch (e) { return []; }
+        } catch (e) {
+            if (e.name === 'AbortError') return [];
+            if (retryCount < 1 && e.message === 'Timeout') {
+                console.warn('[checkDuplicate] Bị kẹt, tự động thử lại...');
+                return window.app.checkDuplicate(pendingBook, retryCount + 1);
+            }
+            return [];
+        }
     }
 
 export async function renderPendingList(list) {
@@ -124,8 +138,8 @@ export async function renderPendingList(list) {
                                 display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
                                 cursor:pointer;"
                         onclick="app.openPendingModal('${p.id}')"
-                        title="${p.series || p.title}">${p.series || p.title}</h4>
-                    <div style="font-size:0.8rem; color:var(--card-note); font-weight:500;" onclick="app.openPendingModal('${p.id}')">Tập ${p.volume}</div>
+                        title="${escapeHTML(p.series || p.title)}">${escapeHTML(p.series || p.title)}</h4>
+                    <div style="font-size:0.8rem; color:var(--card-note); font-weight:500;" onclick="app.openPendingModal('${p.id}')">Tập ${escapeHTML(String(p.volume))}</div>
                 </div>
             `;
             container.appendChild(item);
@@ -835,12 +849,38 @@ export async function renderAdminSeriesDetail(seriesName, page = 1) {
         // ─── GUARD: fullCatalogCache có thể bị null nếu tab switch giữa chừng ──
         if (!store.fullCatalogCache) {
             if (window.feather) { try { feather.replace(); } catch (e) { } }
-            try {
-                const { data, error } = await supabase.from('catalog').select('*')
-                    .limit(10000).order('series', { ascending: true }).order('volume', { ascending: true });
-                if (error) throw error;
-                store.fullCatalogCache = data;
-            } catch (e) {
+            let success = false;
+            for (let i = 0; i < 2; i++) {
+                try {
+                    const controller = new AbortController();
+                    const timeoutMs = 15000;
+                    let timeoutId;
+                    const timeoutPromise = new Promise((_, reject) => {
+                        timeoutId = setTimeout(() => {
+                            controller.abort();
+                            reject(new Error('Timeout'));
+                        }, timeoutMs);
+                    });
+
+                    const { data, error } = await Promise.race([
+                        supabase.from('catalog').select('*')
+                            .limit(10000).order('series', { ascending: true }).order('volume', { ascending: true })
+                            .abortSignal(controller.signal),
+                        timeoutPromise
+                    ]);
+                    
+                    clearTimeout(timeoutId);
+                    if (error) throw error;
+                    
+                    store.fullCatalogCache = data;
+                    success = true;
+                    break;
+                } catch (e) {
+                    if (e.name === 'AbortError') return;
+                    console.warn(`[Admin Series] Lỗi tải cache lần ${i + 1}:`, e);
+                }
+            }
+            if (!success) {
                 listContainer.innerHTML = '<p style="text-align:center; color:var(--danger); padding:2rem; grid-column:1/-1;">Không thể tải dữ liệu. Vui lòng thử lại.</p>';
                 totalInput.placeholder = '...';
                 return;
@@ -1235,9 +1275,14 @@ export function adminDeleteCatalog() {
         });
     }
 
-export async function fetchAdminFeedback() {
+export async function fetchAdminFeedback(retryCount = 0) {
+        const controller = new AbortController();
+        const timeout = ms => new Promise((_, reject) => setTimeout(() => { controller.abort(); reject(new Error('Timeout')); }, ms));
         try {
-            const { data, error } = await supabase.rpc('get_all_feedback');
+            const { data, error } = await Promise.race([
+                supabase.rpc('get_all_feedback').abortSignal(controller.signal),
+                timeout(15000)
+            ]);
             if (error) throw error;
             const list = (data || []).map(fb => ({
                 ...fb,
@@ -1247,7 +1292,12 @@ export async function fetchAdminFeedback() {
             }));
             window.app.renderFeedbackList(list);
         } catch (e) {
-            console.error(e);
+            if (e.name === 'AbortError') return;
+            if (retryCount < 1 && e.message === 'Timeout') {
+                console.warn('[fetchAdminFeedback] Yêu cầu bị kẹt, tự động thử lại...');
+                return window.app.fetchAdminFeedback(retryCount + 1);
+            }
+            console.error('Lỗi tải danh sách Góp ý:', e);
         }
     }
 
@@ -1259,15 +1309,18 @@ export function renderFeedbackList(list) {
         }
 
         container.innerHTML = list.map(fb => {
-            const initials = fb.userName ? fb.userName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) : '?';
+            const safeName = escapeHTML(fb.userName || 'Ẩn danh');
+            const safeEmail = escapeHTML(fb.userEmail || '');
+            const safeContent = escapeHTML(fb.content || '').replace(/\n/g, '<br>');
+            const initials = safeName !== 'Ẩn danh' ? safeName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) : '?';
             return `
                 <div class="feedback-card">
                     <div class="fb-header">
                         <div class="fb-user-info">
                             <div class="fb-avatar">${initials}</div>
                             <div class="fb-meta">
-                                <div class="fb-name">${fb.userName}</div>
-                                <div class="fb-email">${fb.userEmail}</div>
+                                <div class="fb-name">${safeName}</div>
+                                <div class="fb-email">${safeEmail}</div>
                             </div>
                         </div>
                         <div class="fb-actions">
@@ -1277,7 +1330,7 @@ export function renderFeedbackList(list) {
                         </div>
                     </div>
                     <div class="fb-content-bubble">
-                        ${fb.content.replace(/\n/g, '<br>')}
+                        ${safeContent}
                     </div>
                     <div class="fb-footer">
                         <span>Trạng thái: <strong>${fb.status === 'new' ? 'Mới' : 'Đã xem'}</strong></span>
@@ -1325,7 +1378,7 @@ export function adminScheduleChangeMonth(delta) {
     window.app.adminScheduleLoad();
 }
 
-export async function adminScheduleLoad() {
+export async function adminScheduleLoad(retryCount = 0) {
     _adminScheduleUpdateLabel();
     const { year, month } = _adminScheduleState;
     const firstDay = `${year}-${String(month).padStart(2,'0')}-01`;
@@ -1335,22 +1388,32 @@ export async function adminScheduleLoad() {
     })();
 
     const list = document.getElementById('admin-release-list');
-    if (list) list.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:2rem;">Đang tải...</p>';
+    if (list && retryCount === 0) list.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:2rem;">Đang tải...</p>';
 
-    const { data, error } = await supabase
-        .from('release_calendar')
-        .select('*')
-        .gte('release_date', firstDay)
-        .lte('release_date', lastDay)
-        .order('release_date', { ascending: true })
-        .order('title', { ascending: true });
+    const controller = new AbortController();
+    const timeout = ms => new Promise((_, reject) => setTimeout(() => { controller.abort(); reject(new Error('Timeout')); }, ms));
 
-    if (error) {
-        if (list) list.innerHTML = `<p style="text-align:center;color:var(--danger);padding:2rem;">Lỗi: ${error.message}</p>`;
-        return;
+    try {
+        const { data, error } = await Promise.race([
+            supabase.from('release_calendar').select('*')
+                .gte('release_date', firstDay)
+                .lte('release_date', lastDay)
+                .order('release_date', { ascending: true })
+                .order('title', { ascending: true })
+                .abortSignal(controller.signal),
+            timeout(10000)
+        ]);
+
+        if (error) throw error;
+        window.app.renderAdminReleaseList(data ?? []);
+    } catch (err) {
+        if (err.name === 'AbortError') return;
+        if (retryCount < 1 && err.message === 'Timeout') {
+            console.warn('[adminScheduleLoad] Yêu cầu bị kẹt, tự động thử lại...');
+            return window.app.adminScheduleLoad(retryCount + 1);
+        }
+        if (list) list.innerHTML = `<p style="text-align:center;color:var(--danger);padding:2rem;">Lỗi: ${err.message}</p>`;
     }
-
-    window.app.renderAdminReleaseList(data ?? []);
 }
 
 export function renderAdminReleaseList(entries) {
