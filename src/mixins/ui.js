@@ -51,9 +51,39 @@ import { escapeHTML } from '../utils/security.js';
                 window.app.processSyncQueue();
                 window.app._startSyncInterval();
 
-                // Nếu đang ở tab Admin Kho chung và cache bị xóa do chuyển tab → tự fetch lại
-                if (store.currentView === 'admin' && !store.fullCatalogCache) {
-                    setTimeout(() => window.app.searchAdminCatalog(1), 300);
+                // Tự động retry nếu các màn hình đang bị kẹt ở trạng thái "Loading" (treo fetch)
+                const loadingOverlay = document.getElementById('loading-overlay');
+                if (loadingOverlay && loadingOverlay.style.display === 'flex') {
+                    const startTime = parseInt(loadingOverlay.dataset.startTime || Date.now());
+                    if (Date.now() - startTime > 30000) { // Nếu kẹt quá 30 giây (có thể do ngủ đông mạng)
+                        if (window.app.hideLoading) window.app.hideLoading();
+                        if (window.app.showToast) window.app.showToast('Tác vụ có thể bị gián đoạn. Vui lòng thử lại!', 'error');
+                    }
+                }
+                
+                const isDashboardLoading = store.currentView === 'dashboard' && document.querySelector('.skeleton');
+                
+                const scheduleLoadingBar = document.getElementById('schedule-loading-bar');
+                const scheduleBody = document.getElementById('schedule-body');
+                const isScheduleLoading = store.currentView === 'schedule' && 
+                                          ((scheduleLoadingBar && scheduleLoadingBar.style.opacity === '1') || 
+                                           (scheduleBody && scheduleBody.innerHTML.includes('schedule-loading')));
+
+                if (isDashboardLoading && window.app.loadData) {
+                    setTimeout(() => window.app.loadData(), 500);
+                }
+
+                if (isScheduleLoading && window.app.renderCalendar) {
+                    setTimeout(() => window.app.renderCalendar(), 500);
+                }
+                
+                if (store.currentView === 'admin') {
+                    if (!store.fullCatalogCache || document.getElementById('admin-catalog-loading')) {
+                        setTimeout(() => window.app.searchAdminCatalog && window.app.searchAdminCatalog(1), 500);
+                    }
+                    if (document.getElementById('admin-pending-loading')) {
+                        setTimeout(() => window.app.fetchPendingBooks && window.app.fetchPendingBooks(), 500);
+                    }
                 }
             } else {
                 // Tab hidden: dừng interval để không tốn CPU/pin (đặc biệt trên mobile/Safari)
@@ -170,6 +200,7 @@ import { escapeHTML } from '../utils/security.js';
             document.head.appendChild(style);
         }
         el.querySelector('span').textContent = msg;
+        el.dataset.startTime = Date.now();
         el.style.display = 'flex';
     }    export function hideLoading() {
         const el = document.getElementById('loading-overlay');
