@@ -1,7 +1,7 @@
 {
   "name": "manga-supabase",
-  "version": "2.3.1",
-  "description": "Đây là phiên bản web-based tĩnh (static) quản lý truyện tranh cá nhân sử dụng **Supabase** làm backend. Ứng dụng không cần cài đặt Node.js server, toàn bộ nghiệp vụ (Database, Storage, Authentication) được xử lý trực tiếp trên trình duyệt qua Supabase JS SDK.",
+  "version": "2.3.2",
+  "description": "Static manga and light novel collection manager powered by Vite and Supabase.",
   "main": "src/main.js",
   "scripts": {
     "dev": "vite",
