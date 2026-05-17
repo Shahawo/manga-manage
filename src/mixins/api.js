@@ -1,4 +1,4 @@
-﻿import { supabase } from '../supabase-client.js';
+import { supabase } from '../supabase-client.js';
 import { store } from '../store.js';
     // ─── HELPER: Background Sync Queue (Optimistic UI) ────────────────────────
 
@@ -250,14 +250,18 @@ import { store } from '../store.js';
 
 
     // ─── DATA — FETCH API ─────────────────────────────────────────────────────
-    export async function loadData(forceSkeleton = false) {
+    export async function loadData(forceSkeleton = false, retryCount = 0) {
         if (!store.data || store.data.length === 0 || forceSkeleton) {
             window.app.renderSeriesSkeletons('series-grid', store.viewMode === 'list');
             const emptyState = document.getElementById('empty-state');
             if (emptyState) emptyState.classList.add('hidden');
         }
         try {
-            const controller = new AbortController();
+            if (window.app._fetchController) {
+                window.app._fetchController.abort();
+            }
+            window.app._fetchController = new AbortController();
+            const controller = window.app._fetchController;
             const timeoutId = setTimeout(() => controller.abort(), 15000);
             
             // Execute all queries in parallel to avoid network waterfall
@@ -371,6 +375,13 @@ import { store } from '../store.js';
                 setTimeout(() => window.app._prefetchCatalogCache(), 1500);
             }
         } catch (err) {
+            if (err.name === 'AbortError') return; // Bỏ qua nếu bị abort chủ động
+
+            if (retryCount < 1 && err.message === 'Yêu cầu quá hạn, vui lòng thử lại!') {
+                console.warn('[loadData] Yêu cầu bị kẹt, tự động thử lại...');
+                return loadData(forceSkeleton, retryCount + 1);
+            }
+
             console.error('Lỗi tải dữ liệu:', err);
             if (!store.data) store.data = [];
             window.app.renderDashboard();
