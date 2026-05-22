@@ -11,6 +11,9 @@ import * as ui_modal from './mixins/uiModal.js';
 import * as form from './mixins/form.js';
 import * as scanner from './mixins/scanner.js';
 import * as admin from './mixins/admin.js';
+import * as adminCatalog from './mixins/admin-catalog.js';
+import * as adminPending from './mixins/admin-pending.js';
+import * as adminSchedule from './mixins/admin-schedule.js';
 import * as stats from './mixins/stats.js';
 import * as schedule from './mixins/schedule.js';
 import * as scheduleImport from './mixins/schedule-import.js';
@@ -40,6 +43,9 @@ const app = {
     ...form,
     ...scanner,
     ...admin,
+    ...adminCatalog,
+    ...adminPending,
+    ...adminSchedule,
     ...stats,
     ...schedule,
     ...scheduleImport
