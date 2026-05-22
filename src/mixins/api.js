@@ -43,6 +43,7 @@ import { store } from '../store.js';
 
         store.isSyncing = true;
         let hasSuccess = false;
+        let immediateRetryCount = 0;
 
         // Xử lý từng task một
         while (store.syncQueue.length > 0) {
@@ -59,7 +60,7 @@ import { store } from '../store.js';
             const task = store.syncQueue[0]; // Lấy task đầu tiên đã sẵn sàng
             try {
                 if (task.type === 'INSERT_MANGA') {
-                    const { error } = await window.app.withTimeout(
+                    const { error } = await withTimeout(
                         supabase.from('manga').insert(task.payload),
                         15000,
                         'Đồng bộ thêm sách quá hạn'
@@ -67,7 +68,7 @@ import { store } from '../store.js';
                     if (error) throw error;
                 }
                 else if (task.type === 'UPDATE_MANGA') {
-                    const { error } = await window.app.withTimeout(
+                    const { error } = await withTimeout(
                         supabase.from('manga').update(task.payload).eq('id', task.payload.id),
                         15000,
                         'Đồng bộ cập nhật sách quá hạn'
@@ -75,7 +76,7 @@ import { store } from '../store.js';
                     if (error) throw error;
                 }
                 else if (task.type === 'DELETE_MANGA') {
-                    const { error } = await window.app.withTimeout(
+                    const { error } = await withTimeout(
                         supabase.from('manga').delete().eq('id', task.payload.id),
                         15000,
                         'Đồng bộ xoá sách quá hạn'
@@ -83,7 +84,7 @@ import { store } from '../store.js';
                     if (error) throw error;
                 }
                 else if (task.type === 'UPSERT_TARGET') {
-                    const { error } = await window.app.withTimeout(
+                    const { error } = await withTimeout(
                         supabase.from('user_series_settings').upsert(task.payload, { onConflict: 'user_id, series' }),
                         15000,
                         'Đồng bộ mục tiêu quá hạn'
@@ -91,7 +92,7 @@ import { store } from '../store.js';
                     if (error) throw error;
                 }
                 else if (task.type === 'INSERT_PENDING') {
-                    const { error } = await window.app.withTimeout(
+                    const { error } = await withTimeout(
                         supabase.from('pending_catalog').insert(task.payload),
                         15000,
                         'Đồng bộ đóng góp kho chung quá hạn'
@@ -99,7 +100,7 @@ import { store } from '../store.js';
                     if (error) throw error;
                 }
                 else if (task.type === 'ADMIN_REJECT_PENDING') {
-                    const { error } = await window.app.withTimeout(
+                    const { error } = await withTimeout(
                         supabase.rpc('admin_reject_pending', {
                             pending_id: task.payload.id,
                             reason: task.payload.reason || null
@@ -110,7 +111,7 @@ import { store } from '../store.js';
                     if (error) throw error;
                 }
                 else if (task.type === 'INSERT_FEEDBACK') {
-                    const { error } = await window.app.withTimeout(
+                    const { error } = await withTimeout(
                         supabase.from('feedback').insert(task.payload),
                         15000,
                         'Đồng bộ gửi góp ý quá hạn'
@@ -118,7 +119,7 @@ import { store } from '../store.js';
                     if (error) throw error;
                 }
                 else if (task.type === 'ADMIN_UPDATE_CATALOG') {
-                    const { error } = await window.app.withTimeout(
+                    const { error } = await withTimeout(
                         supabase.rpc('admin_update_catalog', {
                             catalog_id: task.payload.id,
                             updated_data: task.payload.data
@@ -129,7 +130,7 @@ import { store } from '../store.js';
                     if (error) throw error;
                 }
                 else if (task.type === 'ADMIN_DELETE_CATALOG') {
-                    const { error } = await window.app.withTimeout(
+                    const { error } = await withTimeout(
                         supabase.rpc('admin_delete_catalog', {
                             catalog_id: task.payload.id
                         }),
@@ -146,9 +147,38 @@ import { store } from '../store.js';
                     window.app._clearPendingRejectedId(task.payload.id);
                 }
                 hasSuccess = true;
+                immediateRetryCount = 0; // Reset số lần thử lại nếu thành công
 
             } catch (err) {
                 console.warn('[Sync Queue] Lỗi đồng bộ task:', task.id, err);
+                
+                // Tránh kẹt hàng đợi (Head-of-Line Blocking):
+                if (err && err.code) {
+                    console.error(`[Sync Queue] Lỗi CSDL (${err.code}), loại bỏ task để giải phóng hàng đợi:`, err);
+                    store.syncQueue.shift();
+                    localStorage.setItem('manga_sync_queue', JSON.stringify(store.syncQueue));
+                    
+                    if (err.code === '23505') {
+                        hasSuccess = true;
+                    } else if (!task.silent) {
+                        window.app.showToast(`Lỗi dữ liệu: ${err.message}`, 'error');
+                    }
+                    immediateRetryCount = 0;
+                    continue; 
+                }
+
+                // Xử lý tự động thử lại giống Calendar (retry ngay lập tức khi lỗi mạng/timeout)
+                const errMessage = (err && typeof err.message === 'string') ? err.message : '';
+                const errName = (err && typeof err.name === 'string') ? err.name : '';
+                const isNetworkOrTimeout = errMessage.includes('quá hạn') || errMessage === 'Timeout' || errName === 'TypeError' || errMessage.toLowerCase().includes('fetch') || errMessage.toLowerCase().includes('network');
+                
+                if (isNetworkOrTimeout && immediateRetryCount < 2) {
+                    immediateRetryCount++;
+                    console.warn(`[Sync Queue] Lỗi mạng/quá hạn, tự động thử lại ngay (lần ${immediateRetryCount})...`);
+                    continue;
+                }
+                immediateRetryCount = 0; // Reset nếu không retry nữa hoặc gặp lỗi không thể retry
+
                 if (task.type === 'ADMIN_REJECT_PENDING') {
                     task.attempts = (task.attempts || 0) + 1;
                     const retryDelay = Math.min(30000, 5000 * task.attempts);
@@ -248,6 +278,29 @@ import { store } from '../store.js';
     }
         
 
+    export async function executeWithAbort(buildQuery, ms = 15000, message = 'Yêu cầu quá hạn, vui lòng thử lại!', retries = 2, controller = null) {
+        let lastError = null;
+        for (let attempt = 0; attempt < retries; attempt++) {
+            const currentController = controller || new AbortController();
+            try {
+                const query = buildQuery(currentController.signal);
+                if (query && typeof query.abortSignal === 'function') {
+                    query.abortSignal(currentController.signal);
+                }
+                const result = await withTimeout(query, ms, message);
+                return result;
+            } catch (err) {
+                lastError = err;
+                console.warn(`[executeWithAbort] Lần ${attempt + 1}/${retries} thất bại:`, err.message);
+                if (err.name === 'AbortError') throw err;
+                if (attempt < retries - 1) {
+                    await new Promise(r => setTimeout(r, 800));
+                }
+            }
+        }
+        throw lastError;
+    }
+        
 
     // ─── DATA — FETCH API ─────────────────────────────────────────────────────
     export async function loadData(forceSkeleton = false, retryCount = 0) {
