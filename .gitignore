@@ -44,3 +44,4 @@ markers.txt
 .momoka-ref/
 .shinobu-ref/
 desktop.ini
+/cloudflare-worker
