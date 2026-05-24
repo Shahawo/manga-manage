@@ -1,100 +1,76 @@
-# Kho Truyen (Manga-Supabase)
+# Kho Truyện (Manga-Supabase) 📚
 
-Kho Truyen la ung dung web tinh de quan ly bo suu tap manga/light novel ca nhan. Frontend chay bang Vite + Vanilla JavaScript, backend dung Supabase cho Authentication, PostgreSQL, Row Level Security va Storage.
+**Kho Truyện** là ứng dụng web quản lý bộ sưu tập manga và light novel cá nhân (SPA - Single Page Application). Dự án được thiết kế với giao diện hiện đại, tốc độ cao nhờ sử dụng **Vite + Vanilla JavaScript**, kết hợp với sức mạnh của **Supabase** cho Authentication, Database, Storage và tính năng bảo mật Row Level Security (RLS).
 
-## Tinh nang chinh
+Đặc biệt, hệ thống đã được tái cấu trúc theo kiến trúc **Feature-driven**, đảm bảo khả năng mở rộng mạnh mẽ trong tương lai.
 
-- Dang nhap Google qua Supabase Auth.
-- Quan ly thu vien ca nhan theo series, tap, ISBN, tac gia, dich gia, NXB/NPH, gia bia, ngay phat hanh, anh bia va anh qua tang.
-- Theo doi tien do suu tam theo tong so tap he thong va muc tieu rieng cua tung user.
-- Quet ISBN bang camera/anh voi ZXing, quet anh bia bang OCR Tesseract.js, va tu dong doi chieu voi Kho chung.
-- Dong gop sach moi vao `pending_catalog` de admin duyet vao `catalog`.
-- Admin panel cho pending, catalog, feedback va lich phat hanh.
-- Lich phat hanh public theo thang, loc NXB, quick navigation va badge "Mua tiep" theo thu vien cua user.
-- Thong ke ca nhan bang Chart.js: tong so cuon, tong series, sach them theo thoi gian, phan bo NPH/NXB va tong gia tri an/hien.
-- Export/import backup JSON cho thu vien ca nhan.
-- Queue dong bo nen voi optimistic UI de thao tac van muot khi mang cham hoac tam mat ket noi.
+## ✨ Tính năng nổi bật
 
-## Cong nghe
+- **Quản lý Thư viện Cá nhân**: Theo dõi bộ sưu tập theo Series, ISBN, Tác giả, Nhà xuất bản, v.v. Hỗ trợ hiển thị dạng Grid và List.
+- **Tính năng Thông minh (AI & OCR)**: Tích hợp thư viện `ZXing` (quét mã vạch Barcode) và `Tesseract.js` (nhận diện chữ trên ảnh bìa OCR) giúp tự động hóa tối đa việc nhập liệu sách mới.
+- **Lịch Phát Hành**: Cập nhật lịch phát hành manga/light novel hàng tháng, đi kèm tính năng phân tích và đề xuất "Mua tiếp" (Continue Buying) các tập tiếp theo trong series bạn đang sưu tầm.
+- **Bảng Thống Kê (Dashboard Stats)**: Trực quan hóa dữ liệu qua biểu đồ `Chart.js`, cho biết số lượng sách đã mua, tổng chi tiêu theo tháng và tỷ lệ các nhà xuất bản.
+- **Kho Sách Chung (Catalog)**: Dữ liệu đám đông được người dùng đóng góp (`pending_catalog`) và phê duyệt bởi Admin, giúp mọi người không cần nhập liệu lại các cuốn sách đã có trên hệ thống.
+- **Chế độ Ngoại tuyến (Offline Queue)**: Trải nghiệm mượt mà không độ trễ nhờ cơ chế Optimistic UI kết hợp hàng đợi đồng bộ ngầm (Background Sync Queue) khi có mạng trở lại.
+- **Tối ưu Băng thông với CDN**: Tích hợp Cloudflare Worker Proxy để tải ảnh trực tiếp từ CDN, giảm tối đa Egress cost trên Supabase Storage.
 
-- Frontend: Vite, Vanilla JS ES modules, HTML, CSS.
-- Backend: Supabase Auth, Database, Storage.
-- Database: PostgreSQL + RLS, schema chinh o `sql/schema.sql`.
-- Thu vien runtime qua CDN: `@supabase/supabase-js@2`, Feather Icons, Flatpickr, ZXing, Tesseract.js, Chart.js.
-- Test: Vitest + jsdom.
-- Deploy: GitHub Actions -> GitHub Pages, co `public/404.html` de ho tro SPA clean URL.
+## 🛠 Công nghệ sử dụng
 
-## Cai dat local
+- **Frontend**: Vite, Vanilla JavaScript (ES Modules), HTML5, CSS3 (Modular).
+- **Backend & Database**: Supabase (Auth, PostgreSQL, Storage, Edge Functions).
+- **Thư viện bên thứ ba**:
+  - Giao diện: `Feather Icons`, `Flatpickr`, `Chart.js`.
+  - Xử lý Ảnh & Camera: `ZXing` (Barcode), `Tesseract.js` (OCR).
+- **Kiến trúc mã nguồn**: Modular CSS, Feature-driven JS Architecture, HTML View Extraction.
 
-1. Cai dependency:
+## 📂 Cấu trúc thư mục (Feature-driven)
 
+```text
+src/
+ ├── core/                 # Logic cốt lõi của hệ thống (api, auth, router, store, ui, settings)
+ ├── features/             # Logic nghiệp vụ phân tách theo Domain (admin, manga, schedule, stats)
+ ├── styles/               # CSS Modular được chia nhỏ (base, layout, components, views, variables)
+ ├── views/                # Các HTML partials độc lập (dashboard.html, detail.html, admin.html, ...)
+ ├── utils/                # Tiện ích chung (như escapeHTML chống XSS)
+ ├── main.js               # Entry point - Kết nối và khởi tạo ứng dụng (`window.app`)
+ └── supabase-client.js    # Khởi tạo Supabase client
+sql/
+ ├── schema.sql            # Schema tổng hợp để thiết lập database Supabase
+ └── ...                   # Các file migration
+```
+
+## 🚀 Hướng dẫn Cài đặt & Chạy Local
+
+**1. Clone dự án và Cài đặt thư viện:**
 ```bash
+git clone https://github.com/Shahawo/manga-manage.git
+cd manga-manage
 pnpm install
 ```
 
-2. Tao file `.env` tu `.env.example`:
-
+**2. Thiết lập Biến môi trường:**
+Tạo file `.env` dựa trên `.env.example`:
 ```env
 VITE_SUPABASE_URL=your_supabase_url_here
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key_here
 ```
 
-3. Chay dev server:
-
+**3. Khởi động môi trường Dev:**
 ```bash
 pnpm run dev
 ```
 
-4. Build production:
-
+**4. Build cho Production:**
 ```bash
 pnpm run build
 ```
 
-5. Chay test:
+## 🔒 Ghi chú Bảo mật & RLS
 
-```bash
-pnpm run test
-```
+- Toàn bộ thao tác CRUD tới Supabase từ client chỉ sử dụng khóa `ANON_KEY`. Hệ thống tuân thủ nghiêm ngặt **Row Level Security (RLS)** trên toàn bộ các bảng trong lược đồ `public`.
+- Các dữ liệu nhạy cảm hoặc mang tính cá nhân (thư viện người dùng) bị khóa chặt bằng định danh `auth.uid()`.
+- Quyền Admin được phân giải hoàn toàn qua hàm RPC `public.is_admin()`, chặn đứng khả năng lạm quyền từ phía Client.
+- Dữ liệu xuất ra màn hình (Render) luôn đi qua hàm chống XSS `escapeHTML()`.
 
-## Cai dat Supabase
-
-1. Tao project Supabase moi.
-2. Vao SQL Editor va chay toan bo `sql/schema.sql`.
-3. Bat Google provider trong Authentication -> Providers -> Google, dien Client ID va Client Secret tu Google Cloud Console.
-4. Them URL dev va production vao Auth redirect URLs, vi du `http://localhost:5173` va domain GitHub Pages/custom domain.
-5. Neu can admin dau tien, chay SQL sau voi UUID user that:
-
-```sql
-insert into public.admin_users (user_id, email)
-values ('USER_UUID', 'admin@example.com');
-```
-
-`sql/schema.sql` da tao bucket public `covers`, cac bang ung dung, RLS policies, grants va RPC admin can thiet.
-
-## Cau truc du an
-
-```text
-src/
-  main.js                 Entry point, ghep cac mixin vao window.app
-  store.js                Global state va localStorage-backed settings/cache
-  supabase-client.js      Supabase client dung bien moi truong Vite
-  mixins/                 Module tinh nang: auth, api, manga, form, scanner, admin, stats, schedule...
-  views/                  HTML partial cho form, modal va admin
-  utils/security.js       Escape HTML helper
-sql/
-  schema.sql              Schema tong hop de khoi tao Supabase tu dau
-  04_series_tracking.sql  Migration tham khao cho tracking series
-  05_release_calendar.sql Migration tham khao cho lich phat hanh
-public/
-  404.html                Redirect cho SPA tren GitHub Pages
-  CNAME                   Custom domain
-```
-
-## Ghi chu bao mat
-
-- Frontend chi dung anon key qua `VITE_SUPABASE_ANON_KEY`; khong dua service role key vao client.
-- Cac bang trong `public` deu bat RLS.
-- Du lieu ca nhan trong `manga` va `user_series_settings` khoa theo `auth.uid()`.
-- Cac thao tac admin di qua RPC `SECURITY INVOKER` va ham `public.is_admin()`.
-- Output co nguy co render HTML can di qua `escapeHTML()`.
+---
+*Dự án được duy trì và phát triển bởi Shahawo.*
