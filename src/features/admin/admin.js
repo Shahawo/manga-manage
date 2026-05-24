@@ -1,6 +1,6 @@
-import { store } from '../store.js';
-import { supabase } from '../supabase-client.js';
-import { escapeHTML } from '../utils/security.js';
+import { store } from '../../store.js';
+import { supabase } from '../../supabase-client.js';
+import { escapeHTML } from '../../utils/security.js';
 
 export function loadAdminPanel() {
     if (!store.user || !store.isAdmin) {

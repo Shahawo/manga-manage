@@ -14,7 +14,7 @@ vi.mock('../supabase-client.js', () => ({
     supabase: {}
 }));
 
-import { store } from '../store.js';
+import { store } from '../../store.js';
 
 describe('manga mixins - getSeriesGroups', () => {
     beforeEach(() => {

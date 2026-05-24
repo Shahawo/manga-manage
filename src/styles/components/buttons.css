@@ -1,0 +1,88 @@
+/* Buttons */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    padding: 0.7rem 1.75rem;
+    border-radius: 99px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: var(--transition);
+    border: none;
+    font-family: inherit;
+    min-width: 100px;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow);
+}
+
+.btn-outline {
+    background: transparent;
+    border: 1.5px solid var(--border);
+    color: var(--text-main);
+    font-weight: 500;
+}
+
+.btn-outline:hover {
+    border-color: var(--primary);
+    background: var(--surface);
+    color: var(--primary);
+}
+
+.btn-secondary {
+    background: rgba(0, 0, 0, 0.05);
+    border: 1.5px solid #94a3b8;
+    color: #475569;
+    font-weight: 500;
+}
+
+[data-theme='dark'] .btn-secondary {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: #4b5563;
+    color: #9ca3af;
+}
+
+.btn-secondary:hover {
+    background: #94a3b8;
+    color: white;
+}
+
+[data-theme='dark'] .btn-secondary:hover {
+    background: #4b5563;
+    color: white;
+}
+
+.btn-icon {
+    background: transparent;
+    padding: 0.5rem 1rem;
+    border-radius: 99px;
+    color: var(--text-muted);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+}
+
+.btn-icon:hover {
+    background: var(--border);
+    color: var(--primary);
+}
+
+.btn-danger {
+    background: var(--danger);
+    color: white;
+}
+
+.btn-danger:hover {
+    opacity: 0.9;
+}

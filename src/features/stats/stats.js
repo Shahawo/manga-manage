@@ -1,4 +1,4 @@
-import { store } from '../store.js';
+import { store } from '../../store.js';
 
 // Chart instances — destroy trước khi re-render
 let _barChart = null;

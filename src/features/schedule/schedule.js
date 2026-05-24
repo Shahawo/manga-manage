@@ -4,8 +4,8 @@
  * Data source: Supabase public.release_calendar (anon read, no auth required)
  */
 
-import { supabase } from '../supabase-client.js';
-import { store } from '../store.js';
+import { supabase } from '../../supabase-client.js';
+import { store } from '../../store.js';
 
 // ─── Internal state ──────────────────────────────────────────────────────────
 const calendarState = {

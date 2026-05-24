@@ -1,0 +1,61 @@
+        <!-- Schedule / Lịch Phát Hành View -->
+        <section id="view-schedule" class="view hidden">
+            <!-- Toolbar: Month picker + Publisher filter -->
+            <div class="schedule-toolbar" id="schedule-toolbar">
+                <div class="schedule-toolbar-left">
+                    <button class="btn btn-icon schedule-nav-btn" id="schedule-prev-btn" onclick="app.scheduleChangeMonth(-1)" title="Tháng trước">
+                        <i data-feather="chevron-left"></i>
+                    </button>
+                    <button class="schedule-month-btn" id="schedule-month-btn" onclick="app.scheduleToggleMonthPicker()">
+                        <span id="schedule-month-label">Tháng 5/2026</span>
+                        <i data-feather="chevron-down" style="width:14px;height:14px;"></i>
+                    </button>
+                    <button class="btn btn-icon schedule-nav-btn" id="schedule-next-btn" onclick="app.scheduleChangeMonth(1)" title="Tháng sau">
+                        <i data-feather="chevron-right"></i>
+                    </button>
+                    <!-- Month picker popup -->
+                    <div id="schedule-month-picker" class="schedule-month-picker hidden">
+                        <select id="schedule-year-select" class="schedule-year-select" onchange="app.scheduleUpdatePickerYear()"></select>
+                        <div class="schedule-month-grid" id="schedule-month-grid"></div>
+                        <div class="schedule-picker-actions">
+                            <button class="btn btn-sm" onclick="app.scheduleResetToday()">Hiện tại</button>
+                            <button class="btn btn-sm btn-primary" onclick="app.scheduleApplyPicker()">Chọn</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="schedule-toolbar-right">
+                    <!-- Publisher filter -->
+                    <div class="dropdown-wrapper">
+                        <button class="custom-select-btn" id="schedule-publisher-btn" onclick="app.toggleCustomDropdown('schedule-publisher-dropdown')">
+                            <i data-feather="package" style="color:var(--text-muted);width:16px;height:16px;"></i>
+                            <span id="schedule-publisher-label" style="font-size:0.85rem;font-weight:500;">Chọn nhà xuất bản</span>
+                            <i data-feather="chevron-right" style="width:14px;height:14px;color:var(--text-muted);"></i>
+                        </button>
+                        <div id="schedule-publisher-dropdown" class="user-dropdown custom-select-menu hidden" style="min-width:200px;"></div>
+                    </div>
+                </div>
+                <!-- Loading bar -->
+                <div class="schedule-loading-bar" id="schedule-loading-bar"></div>
+            </div>
+
+            <!-- Calendar body -->
+            <div id="schedule-body" class="schedule-body">
+                <!-- Groups by date rendered by JS -->
+            </div>
+
+            <!-- Quick navigation (fixed bottom) -->
+            <div class="schedule-quick-nav" id="schedule-quick-nav" style="display:none;">
+                <button class="btn btn-sm btn-icon" id="schedule-qnav-prev" onclick="app.scheduleScrollPrev()" title="Ngày trước">
+                    <i data-feather="chevron-up"></i>
+                </button>
+                <button class="btn btn-sm" onclick="app.scheduleScrollTop()">
+                    <i data-feather="arrow-up"></i> Top
+                </button>
+                <button class="btn btn-sm" id="schedule-qnav-nearest" onclick="app.scheduleScrollNearest()" style="display:none;">
+                    <i data-feather="target"></i> Gần nhất
+                </button>
+                <button class="btn btn-sm btn-icon" id="schedule-qnav-next" onclick="app.scheduleScrollNext()" title="Ngày sau">
+                    <i data-feather="chevron-down"></i>
+                </button>
+            </div>
+        </section>

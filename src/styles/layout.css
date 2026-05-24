@@ -1,0 +1,115 @@
+/* Navbar */
+.navbar {
+    position: sticky;
+    top: 0;
+    background: rgba(240, 253, 244, 0.92);
+    /* #f0fdf4 = light green bg */
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--border);
+    z-index: 100;
+}
+
+[data-theme="dark"] .navbar {
+    background: rgba(17, 28, 23, 0.94);
+}
+
+.nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    position: relative;  /* cần cho tabs absolute center */
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 700;
+    font-size: 1.25rem;
+    cursor: pointer;
+    color: var(--primary);
+    transition: var(--transition);
+}
+
+.brand:hover {
+    opacity: 0.8;
+}
+
+.nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-shrink: 0;
+}
+
+/* ── Nav Tabs ──────────────────────────────────────────────────────── */
+.nav-tabs {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    /* Căn giữa tuyệt đối so với .nav-container */
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    /* Tránh overlap với brand/actions khi viewport nhỏ */
+    white-space: nowrap;
+}
+
+.nav-tab {
+    background: transparent;
+    border: none;
+    padding: 0.45rem 0.9rem;
+    border-radius: 99px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    font-family: inherit;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: var(--transition);
+    white-space: nowrap;
+}
+
+.nav-tab:hover {
+    background: var(--border);
+    color: var(--text-main);
+}
+
+.nav-tab--active {
+    background: var(--primary-light);
+    color: var(--primary);
+    font-weight: 600;
+}
+
+[data-theme="dark"] .nav-tab--active {
+    background: var(--primary-light);
+    color: var(--primary);
+}
+
+/* ── Search Row (dưới navbar) ─────────────────────────────────── */
+.nav-search-row {
+    background: rgba(240, 253, 244, 0.95);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--border);
+    padding: 0.5rem 1.5rem 0.65rem;
+    display: flex;
+    justify-content: center;
+    position: sticky;
+    top: 57px;   /* chiều cao navbar ≈ 57px */
+    z-index: 99;
+}
+
+[data-theme="dark"] .nav-search-row {
+    background: rgba(17, 28, 23, 0.95);
+}
+
+.nav-search-row .search-bar {
+    flex: none;
+    width: 100%;
+    max-width: 640px;
+}

@@ -1,0 +1,101 @@
+/* ─── SKELETON LOADING ─────────────────────────────────────────────────── */
+.skeleton {
+    background: linear-gradient(90deg, var(--surface) 25%, var(--border) 50%, var(--surface) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 2.5s infinite linear;
+    border-radius: var(--radius-sm);
+}
+
+[data-theme='dark'] .skeleton {
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.05) 25%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0.05) 75%);
+    background-size: 200% 100%;
+}
+
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+.skeleton-text {
+    height: 1rem;
+    margin-bottom: 0.5rem;
+    width: 100%;
+}
+
+.skeleton-text.short { width: 50%; }
+.skeleton-text.medium { width: 75%; }
+.skeleton-text.large { width: 90%; }
+.skeleton-title { height: 1.25rem; margin-bottom: 0.75rem; }
+
+/* Skeleton cho Series Card */
+.skeleton-series-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+.skeleton-series-cover {
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    border-radius: 0;
+}
+.skeleton-series-info {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+/* Skeleton cho Series Card (List View) */
+.series-grid.list-view .skeleton-series-card {
+    flex-direction: row;
+    height: auto;
+}
+.series-grid.list-view .skeleton-series-cover {
+    width: 60px;
+    height: 90px;
+    border-right: 1px solid var(--border);
+}
+@media (max-width: 768px) {
+    .series-grid.list-view .skeleton-series-cover {
+        width: 52px;
+        height: 78px;
+    }
+}
+
+/* Skeleton cho Volume Card */
+.skeleton-volume-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: transparent;
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    overflow: hidden;
+}
+.skeleton-volume-cover {
+    width: 100%;
+    aspect-ratio: 1 / 1.45;
+    border-radius: 0;
+}
+.skeleton-volume-info {
+    padding: 0.75rem 1rem;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+/* Skeleton cho Volume Card (List View) */
+.detail-grid.list-view .skeleton-volume-card {
+    flex-direction: row;
+    height: auto;
+    margin-bottom: 0.75rem;
+}
+.detail-grid.list-view .skeleton-volume-cover {
+    width: 48px;
+    height: 72px;
+    border-right: 1px solid var(--border);
+}

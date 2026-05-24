@@ -1,0 +1,176 @@
+/* Admin Panel */
+.feedback-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 1.25rem;
+    transition: var(--transition);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.feedback-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
+.fb-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.fb-user-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.fb-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--primary-light);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.fb-meta {
+    display: flex;
+    flex-direction: column;
+}
+
+.fb-name {
+    font-weight: 700;
+    color: var(--text-main);
+    font-size: 0.95rem;
+}
+
+.fb-email {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.fb-content-bubble {
+    background: var(--background);
+    padding: 1rem 1.25rem;
+    border-radius: 12px;
+    border-top-left-radius: 4px;
+    color: var(--text-main);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    border-left: 3px solid var(--primary);
+}
+
+.fb-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.fb-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.fb-delete-btn {
+    color: var(--danger);
+    opacity: 0.6;
+    transition: 0.2s;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.fb-delete-btn:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+/* Admin Tabs Styling */
+.admin-tabs {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid var(--border);
+}
+
+.admin-tab-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    font-weight: 600;
+    padding: 0.5rem 0.25rem 0.75rem;
+    cursor: pointer;
+    position: relative;
+    transition: color 0.2s;
+    font-family: inherit;
+}
+
+.admin-tab-btn:hover {
+    color: var(--text-main);
+}
+
+.admin-tab-btn.active {
+    color: var(--primary);
+}
+
+.admin-tab-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: var(--primary);
+    border-radius: 2px 2px 0 0;
+}
+
+/* =========================================================
+   RESPONSIVE & MOBILE OPTIMIZATIONS
+   ========================================================= */
+@media (max-width: 1024px) {
+    .series-grid, .detail-grid {
+        grid-template-columns: repeat(4, 1fr) !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .series-grid, .detail-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .series-grid, .detail-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.8rem;
+    }
+    
+    .series-title {
+        font-size: 0.95rem; /* Giảm nhẹ font size trên mobile */
+    }
+    
+    /* Ghi đè các style inline white-space nowrap trên các thẻ khác nếu có */
+    .vol-title {
+        white-space: normal !important;
+        display: -webkit-box !important;
+        -webkit-line-clamp: 2 !important;
+        -webkit-box-orient: vertical !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        line-height: 1.3 !important;
+    }
+}

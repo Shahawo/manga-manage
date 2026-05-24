@@ -1,5 +1,5 @@
-import { store } from '../store.js';
-import { supabase } from '../supabase-client.js';
+import { store } from '../../store.js';
+import { supabase } from '../../supabase-client.js';
 
 export async function startBarcodeScanner() {
         window.app.navigateTo('/add'); // hide other views

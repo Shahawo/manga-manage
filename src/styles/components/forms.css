@@ -1,0 +1,318 @@
+/* Form Elements */
+.form-container {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 2rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.form-grid {
+    display: flex;
+    gap: 3rem;
+}
+
+.form-cols {
+    flex: 2;
+}
+
+.cover-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-row {
+    display: flex;
+    gap: 1rem;
+}
+
+.form-row .form-group {
+    flex: 1;
+}
+
+label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--text-main);
+}
+
+.input-ctrl {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: rgba(0, 0, 0, 0.02);
+    color: var(--text-main);
+    font-size: 0.95rem;
+    font-family: inherit;
+    transition: var(--transition);
+}
+
+[data-theme='dark'] .input-ctrl {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.input-ctrl:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: var(--surface);
+    box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.help-text {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+}
+
+.cover-preview-box {
+    flex: 1;
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    color: var(--text-muted);
+    overflow: hidden;
+    background: var(--background);
+    min-height: 250px;
+    position: relative;
+}
+
+.cover-preview-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* Image Tabs */
+.image-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 0.5rem;
+}
+
+.img-tab-btn {
+    background: transparent;
+    border: none;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    transition: var(--transition);
+}
+
+.img-tab-btn:hover {
+    background: var(--background);
+}
+
+.img-tab-btn.active {
+    background: var(--primary);
+    color: white;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .nav-container {
+        flex-wrap: nowrap;
+        gap: 0.5rem;
+    }
+
+    .search-bar {
+        order: 2;
+        flex: 1;
+    }
+
+    .nav-actions {
+        order: 3;
+    }
+
+    .form-grid {
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .form-row {
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .cover-col {
+        order: -1;
+    }
+
+    .cover-preview-box {
+        min-height: 200px;
+    }
+
+    .volume-item {
+        flex-direction: column;
+    }
+
+    .vol-cover-mini {
+        width: 120px;
+    }
+
+    .series-grid,
+    .detail-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+    }
+
+    /* List view tablet: thu nhỏ card */
+    .series-grid.list-view {
+        gap: 0.5rem;
+    }
+
+    .series-grid.list-view .series-cover {
+        width: 52px;
+        height: 78px;
+    }
+
+    .series-grid.list-view .series-info {
+        padding: 0.35rem 0.6rem;
+    }
+
+    .series-grid.list-view .series-title {
+        font-size: 0.82rem;
+    }
+
+    .series-grid.list-view .series-meta {
+        font-size: 0.72rem;
+        gap: 0.4rem;
+    }
+}
+
+@media (max-width: 480px) {
+
+    .series-grid,
+    .detail-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    /* Điện thoại: list view đổi về 1 cột, mỗi series 1 hàng rõ ràng */
+    .series-grid.list-view {
+        grid-template-columns: 1fr;
+        gap: 0.4rem;
+    }
+
+    .series-grid.list-view .series-cover {
+        width: 56px;
+        height: 84px;
+    }
+
+    .series-grid.list-view .series-title {
+        font-size: 0.9rem;
+    }
+
+    /* Detail list view trên điện thoại: 1 cột để mỗi tập có đủ không gian */
+    .detail-grid.list-view {
+        columns: 1;
+    }
+}
+
+.delete-gift-btn {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: rgba(239, 68, 68, 0.9);
+    color: white;
+    border: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.delete-gift-btn:hover {
+    background: rgb(220, 38, 38);
+    transform: scale(1.1);
+}
+
+/* Edition Badges */
+.edition-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 2px 7px;
+    border-radius: 99px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    pointer-events: none;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    z-index: 5;
+}
+
+.badge-special {
+    background: #16a34a;
+    color: #fff;
+}
+
+.badge-limited {
+    background: #2563eb;
+    color: #fff;
+}
+
+.badge-collector {
+    background: #7c3aed;
+    color: #fff;
+}
+
+.pending-badge-stack {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    z-index: 5;
+    pointer-events: none;
+}
+
+.pending-badge-stack .edition-badge {
+    position: static;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+.pending-isbn-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 7px;
+    border-radius: 99px;
+    background: #f59e0b;
+    color: #fff;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}

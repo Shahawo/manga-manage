@@ -7,7 +7,7 @@
  * Cả hai đều có preview + checkbox chọn từng dòng trước khi import.
  */
 
-import { supabase } from '../supabase-client.js';
+import { supabase } from '../../supabase-client.js';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 const TANA_API = 'https://pb.tana.moe/api/collections/books/records';

@@ -1,0 +1,71 @@
+:root,
+[data-theme="light"] {
+    /* Primary */
+    --primary: #16a34a;
+    --primary-hover: #15803d;
+    --primary-light: #dcfce7;
+
+    /* Backgrounds - xanh la nhat goc */
+    --surface: #ffffff;
+    --background: #f0fdf4;
+    --border: #bbf7d0;
+
+    /* Text - xanh la dam */
+    --text-main: #064e3b;
+    --text-muted: #166534;
+
+    --danger: #ef4444;
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 12px 28px rgba(0, 0, 0, 0.12);
+    --radius: 12px;
+    --radius-sm: 8px;
+    --transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* Card & Modal - dark green goc */
+    --card-bg: #14532d;
+    --card-border: #166534;
+    --card-text: #f0fdf4;
+    --card-note: #bbf7d0;
+    --modal-bg: #064e3b;
+    --modal-border: #14532d;
+    --dots-bg: #064e3b;
+    --dots-hover: #166534;
+    --minfo-label: #86efac;
+    --modal-overlay: rgba(0, 0, 0, 0.5);
+
+    --fs-base: 1rem;
+}
+
+[data-theme="dark"] {
+    --primary: #34d399;
+    --primary-hover: #10b981;
+    --primary-light: #064e3b;
+
+    --surface: #1a2e24;
+    /* xanh lá tối vừa — nhẹ mắt */
+    --background: #111c17;
+    /* nền tái xanh lá */
+    --border: #2a4233;
+    /* viền xanh lá tối */
+    --text-main: #ecfdf5;
+    --text-muted: #6ee7b7;
+    --danger: #f87171;
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35);
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 12px 28px rgba(0, 0, 0, 0.55);
+
+    /* Card/Modal — xanh lá đậm nhưng không trường */
+    --card-bg: #0f1f17;
+    --card-border: #1e3829;
+    --card-text: #ecfdf5;
+    --card-note: #6ee7b7;
+    --modal-bg: #142a1d;
+    --modal-border: #1e3829;
+    --dots-bg: #1a2e24;
+    --dots-hover: #2a4233;
+    --minfo-label: #6ee7b7;
+    --modal-overlay: rgba(0, 0, 0, 0.65);
+
+    --fs-base: 1rem;
+}

@@ -1,0 +1,31 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--background);
+    color: var(--text-main);
+    line-height: 1.5;
+    overflow-y: scroll;
+    font-size: var(--fs-base);
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Typography */
+h1,
+h2,
+h3 {
+    color: var(--text-main);
+    font-weight: 600;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}

@@ -1,0 +1,37 @@
+        <!-- Add Method View -->
+        <section id="view-add-method" class="view hidden">
+            <div class="view-header">
+                <button class="btn btn-icon" onclick="app.navigateTo('/')">
+                    <i data-feather="arrow-left"></i>
+                </button>
+                <h2>Chọn phương thức Thêm sách</h2>
+            </div>
+            <div class="add-method-grid"
+                style="display:flex; flex-direction:column; gap:1.5rem; max-width:600px; margin: 2rem auto;">
+                <div class="method-card" role="button" tabindex="0" onclick="app.startBarcodeScanner()"
+                    onkeydown="if(event.key==='Enter'||event.key===' ') app.startBarcodeScanner()">
+                    <i data-feather="camera"
+                        style="width:48px; height:48px; color:var(--primary); margin-bottom:1rem;"></i>
+                    <h3 style="margin-bottom:0.5rem;">Quét Barcode (Khuyên dùng)</h3>
+                    <p style="color:var(--text-muted); font-size:0.9rem;">Quét mã vạch (ISBN) trên bìa sách để nhập
+                        nhanh.</p>
+                </div>
+                <div class="method-card" role="button" tabindex="0" onclick="app.startCoverScan()"
+                    onkeydown="if(event.key==='Enter'||event.key===' ') app.startCoverScan()">
+                    <i data-feather="cpu" style="width:48px; height:48px; color:#7c3aed; margin-bottom:1rem;"></i>
+                    <h3 style="margin-bottom:0.5rem;">Quét Ảnh Bìa <span
+                            style="font-size:0.75rem; background:#7c3aed; color:#fff; padding:2px 8px; border-radius:99px; vertical-align:middle;">AI</span>
+                    </h3>
+                    <p style="color:var(--text-muted); font-size:0.9rem;">Chụp ảnh bìa truyện - AI sẽ đọc chữ và tự tìm
+                        sách trong kho. Dùng khi mã vạch bị hỏng hoặc sách cũ.</p>
+                </div>
+                <div class="method-card" role="button" tabindex="0" onclick="app.navigateTo('/form')"
+                    onkeydown="if(event.key==='Enter'||event.key===' ') app.navigateTo('/form')">
+                    <i data-feather="edit-2"
+                        style="width:48px; height:48px; color:var(--text-main); margin-bottom:1rem;"></i>
+                    <h3 style="margin-bottom:0.5rem;">Nhập thủ công</h3>
+                    <p style="color:var(--text-muted); font-size:0.9rem;">Điền đầy đủ thông tin theo form giúp mình nhé!
+                    </p>
+                </div>
+            </div>
+        </section>

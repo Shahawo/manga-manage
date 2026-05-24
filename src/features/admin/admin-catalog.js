@@ -1,5 +1,5 @@
-import { store } from '../store.js';
-import { supabase } from '../supabase-client.js';
+import { store } from '../../store.js';
+import { supabase } from '../../supabase-client.js';
 
 export function onAdminCatalogSearchInput(value) {
     clearTimeout(window.app._adminSearchTimeout);
