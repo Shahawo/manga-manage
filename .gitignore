@@ -34,11 +34,9 @@ coverage
 # Temporary files from refactoring
 markers.txt
 
-# Ignore all Markdown files except README.md and version docs
+# Ignore all Markdown files except README.md
 *.md
 !README.md
-!WALKTHROUGH*.md
-!VERSIONING_RULES.md
 /.agent-skills
 # Kikuri reference clone
 .kikuri-ref/
