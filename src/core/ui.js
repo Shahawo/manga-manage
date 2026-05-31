@@ -1,5 +1,4 @@
 import { store } from '../store.js';
-import { supabase } from '../supabase-client.js';
 import { escapeHTML } from '../utils/security.js';
 
 
@@ -10,39 +9,38 @@ import { escapeHTML } from '../utils/security.js';
         window.app.loadTheme();
         window.app.applySettings();
 
-        // Khôi phục session từ localStorage ngay khi khởi động (tránh phải đăng nhập lại sau F5)
-        const { data: { session: existingSession } } = await supabase.auth.getSession();
-        if (existingSession?.user) {
-            store.user = existingSession.user;
-            try {
-                const { data } = await supabase.rpc('is_admin');
-                store.isAdmin = !!data;
-            } catch (e) { store.isAdmin = false; }
-            window.app.updateAuthUI();
-            await window.app.loadData();
-        }
-
-        // Lắng nghe thay đổi auth (đăng nhập mới, đăng xuất, refresh token)
-        supabase.auth.onAuthStateChange(async (event, session) => {
-            const newUser = session?.user || null;
-            // Bỏ qua INITIAL_SESSION nếu đã xử lý ở trên
-            if (event === 'INITIAL_SESSION') return;
-            store.user = newUser;
-            if (store.user) {
+        // Fetch session from Cloudflare Worker API
+        try {
+            const data = await window.app.apiFetch('/api/me');
+            if (data && data.user) {
+                store.user = data.user;
+                // Fetch admin status
                 try {
-                    const { data } = await supabase.rpc('is_admin');
-                    store.isAdmin = !!data;
+                    const adminData = await window.app.apiFetch('/api/admin/check');
+                    store.isAdmin = adminData.isAdmin;
                 } catch (e) { store.isAdmin = false; }
+                
                 window.app.updateAuthUI();
                 await window.app.loadData();
-                window.app.router();
             } else {
+                store.user = null;
                 store.isAdmin = false;
                 window.app.updateAuthUI();
                 store.data = [];
                 window.app.navigateTo('/about', true);
             }
-        });
+        } catch (err) {
+            console.error('Auth error:', err);
+            if (localStorage.getItem('authToken')) {
+                alert('Lỗi xác thực: ' + err.message);
+                localStorage.removeItem('authToken');
+            }
+            store.user = null;
+            store.isAdmin = false;
+            window.app.updateAuthUI();
+            store.data = [];
+            window.app.navigateTo('/about', true);
+        }
 
         // ─── PAGE VISIBILITY API ─────
         document.addEventListener('visibilitychange', () => {

@@ -7,7 +7,7 @@
  * Cả hai đều có preview + checkbox chọn từng dòng trước khi import.
  */
 
-import { supabase } from '../../supabase-client.js';
+import { store } from '../../store.js';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 const TANA_API = 'https://pb.tana.moe/api/collections/books/records';
@@ -329,9 +329,8 @@ async function _batchInsert(rows, source) {
     // Insert in batches of 20 using admin_upsert_release RPC
     for (const row of rows) {
         try {
-            const { data, error } = await supabase.rpc('admin_upsert_release', { entry_data: row });
-            if (error) throw error;
-            if (data?.error === 'duplicate') {
+            const res = await window.app.apiFetch('/api/schedule/admin/import', { method: 'POST', body: JSON.stringify(row) });
+            if (res.error === 'duplicate') {
                 skipCount++;
             } else {
                 successCount++;

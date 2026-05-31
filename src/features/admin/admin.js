@@ -1,5 +1,4 @@
 import { store } from '../../store.js';
-import { supabase } from '../../supabase-client.js';
 import { escapeHTML } from '../../utils/security.js';
 
 export function loadAdminPanel() {
@@ -15,14 +14,24 @@ export function switchAdminTab(tabId) {
         btn.classList.toggle('active', btn.getAttribute('onclick')?.includes(tabId));
     });
     
+    document.querySelectorAll('.admin-tab-content').forEach(container => {
+        if (container.id === `admin-${tabId}-container`) {
+            container.classList.remove('hidden');
+            container.classList.add('active');
+        } else {
+            container.classList.add('hidden');
+            container.classList.remove('active');
+        }
+    });
+    
     if (tabId === 'pending') {
-        window.app.navigateTo('/admin/pending');
+        if (window.app.fetchPendingBooks) window.app.fetchPendingBooks();
     } else if (tabId === 'catalog') {
-        window.app.navigateTo('/admin/catalog');
+        // catalog doesn't have an initial fetch here
     } else if (tabId === 'feedback') {
-        window.app.navigateTo('/admin/feedback');
+        if (window.app.fetchAdminFeedback) window.app.fetchAdminFeedback();
     } else if (tabId === 'schedule') {
-        window.app.navigateTo('/admin/schedule');
+        if (window.app.adminScheduleLoad) window.app.adminScheduleLoad();
     }
 }
 
@@ -71,11 +80,13 @@ export function submitFeedback() {
 
 export async function fetchAdminFeedback() {
     try {
-        const { data, error } = await window.app.executeWithAbort(
-            () => supabase.rpc('get_all_feedback'),
-            15000,
-            'Lỗi kết nối khi tải góp ý'
+        const res = await window.app.withTimeout(
+            () => window.app.apiFetch('/api/admin/feedback'),
+            5000,
+            'Quá hạn tải feedback'
         );
+        const data = res.data;
+        const error = res.error;
         if (error) throw error;
         const list = (data || []).map(fb => ({
             ...fb,
@@ -134,11 +145,12 @@ export function renderFeedbackList(list) {
 export async function deleteFeedback(id) {
     if (!confirm('Xóa góp ý này?')) return;
     try {
-        const { error } = await window.app.executeWithAbort(
-            () => supabase.rpc('admin_delete_feedback', { feedback_id: id }),
-            15000,
-            'Lỗi kết nối khi xóa góp ý'
+        const res = await window.app.withTimeout(
+            () => window.app.apiFetch(`/api/admin/feedback/${id}`, { method: 'DELETE' }),
+            5000,
+            'Yêu cầu xoá quá hạn'
         );
+        const error = res.error;
         if (!error) {
             window.app.fetchAdminFeedback();
         } else {

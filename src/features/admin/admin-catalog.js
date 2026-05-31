@@ -1,5 +1,4 @@
 import { store } from '../../store.js';
-import { supabase } from '../../supabase-client.js';
 
 export function onAdminCatalogSearchInput(value) {
     clearTimeout(window.app._adminSearchTimeout);
@@ -29,14 +28,15 @@ export async function searchAdminCatalog(page = 1) {
         window.app._catalogFetchController = controller;
 
         try {
-            const { data, error } = await window.app.executeWithAbort(
-                () => supabase.from('catalog').select('*')
-                    .limit(10000).order('series', { ascending: true }).order('volume', { ascending: true }),
+            const res = await window.app.executeWithAbort(
+                () => window.app.apiFetch('/api/admin/catalog?limit=10000'),
                 15000,
                 'Timeout',
                 3,
                 controller
             );
+            const data = res.data;
+            const error = res.error;
 
             if (controller.signal.aborted && window.app._catalogFetchController !== controller) {
                 return;
@@ -262,12 +262,13 @@ export async function renderAdminSeriesDetail(seriesName, page = 1) {
     if (!store.fullCatalogCache) {
         if (window.feather) { try { feather.replace(); } catch (e) { } }
         try {
-            const { data, error } = await window.app.executeWithAbort(
-                () => supabase.from('catalog').select('*')
-                    .limit(10000).order('series', { ascending: true }).order('volume', { ascending: true }),
+            const res = await window.app.executeWithAbort(
+                () => window.app.apiFetch('/api/admin/catalog?limit=10000'),
                 15000,
                 'Timeout'
             );
+            const data = res.data;
+            const error = res.error;
             if (error) throw error;
             store.fullCatalogCache = data;
         } catch (e) {
@@ -308,9 +309,9 @@ export async function renderAdminSeriesDetail(seriesName, page = 1) {
             return;
         }
 
-        supabase.from('series_metadata').select('total_volumes').eq('series', seriesName).maybeSingle()
-            .then(({ data }) => {
-                if (data && data.total_volumes) totalInput.value = data.total_volumes;
+        window.app.apiFetch(`/api/admin/series-metadata?series=${encodeURIComponent(seriesName)}`)
+            .then((res) => {
+                if (res.data && res.data.total_volumes) totalInput.value = res.data.total_volumes;
             }).catch(() => { });
 
         pagedVolumes.forEach(c => {
@@ -389,16 +390,18 @@ export async function saveAdminSeriesMetadata() {
 
     window.app.showLoading('Đang lưu thông tin...');
     try {
-        const { error } = await window.app.executeWithAbort(
-            () => supabase.from('series_metadata').upsert({
-                series: window.app._adminCurrentSeries,
-                total_volumes: num,
-                status: 'ongoing',
-                updated_at: new Date().toISOString()
+        const res = await window.app.executeWithAbort(
+            () => window.app.apiFetch('/api/admin/series-metadata', { 
+                method: 'PUT', 
+                body: JSON.stringify({
+                    series: window.app._adminCurrentSeries,
+                    total_volumes: num
+                })
             }),
             15000,
             'Lỗi kết nối khi lưu thông tin series'
         );
+        const error = res.error;
 
         if (error) throw error;
         window.app.showToast(`Đã lưu tổng số tập cho "${window.app._adminCurrentSeries}" thành công!`);

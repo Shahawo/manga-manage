@@ -1,5 +1,4 @@
 import { store } from '../../store.js';
-import { supabase } from '../../supabase-client.js';
 
 export function switchImgTab(tabId, prefix = 'main-') {
     // Find the tabs container related to this prefix
@@ -92,19 +91,21 @@ export async function handleFileUpload(inputElem, type, prefix = 'main-') {
         const fileName = `${Math.random()}.${fileExt}`;
         const filePath = `covers/${fileName}`;
 
+        const formData = new FormData();
+        formData.append('file', blob);
+        formData.append('path', filePath);
+
         const timeout = (ms) => new Promise((_, reject) => setTimeout(() => reject(new Error('Yêu cầu tải ảnh quá hạn (Timeout)')), ms));
-        const { error: uploadError } = await Promise.race([
-            supabase.storage.from(store.storageBucket).upload(filePath, blob, { 
-                contentType,
-                cacheControl: '31536000',
-                upsert: false
+        const res = await Promise.race([
+            window.app.apiFetch('/api/upload', { 
+                method: 'POST', 
+                body: formData 
             }),
             timeout(15000)
         ]);
 
-        if (uploadError) throw uploadError;
-
-        const { data } = supabase.storage.from(store.storageBucket).getPublicUrl(filePath);
+        if (!res.data || !res.data.publicUrl) throw new Error('Không nhận được URL ảnh sau khi upload');
+        const data = res.data;
 
         const targetInput = document.getElementById(`${prefix}coverUrl`);
         if (targetInput) targetInput.value = data.publicUrl;
@@ -159,18 +160,21 @@ export async function handleGiftFileUpload(inputElem, prefix = 'main-') {
             const fileName = `${Math.random()}.${fileExt}`;
             const filePath = `gifts/${fileName}`;
 
+            const formData = new FormData();
+            formData.append('file', blob);
+            formData.append('path', filePath);
+
             const timeout = (ms) => new Promise((_, reject) => setTimeout(() => reject(new Error('Yêu cầu tải ảnh quá hạn (Timeout)')), ms));
-            const { error: uploadError } = await Promise.race([
-                supabase.storage.from(store.storageBucket).upload(filePath, blob, { 
-                    contentType,
-                    cacheControl: '31536000',
-                    upsert: false
+            const res = await Promise.race([
+                window.app.apiFetch('/api/upload', { 
+                    method: 'POST', 
+                    body: formData 
                 }),
                 timeout(45000)
             ]);
-            if (uploadError) throw uploadError;
-
-            const { data } = supabase.storage.from(store.storageBucket).getPublicUrl(filePath);
+            
+            if (!res.data || !res.data.publicUrl) throw new Error('Không nhận được URL ảnh sau khi upload');
+            const data = res.data;
             lines.push(data.publicUrl);
             lastUrl = data.publicUrl;
             console.debug(`[Upload] Ảnh quà tặng đã upload dạng ${format.toUpperCase()}: ${filePath}`);
@@ -425,16 +429,17 @@ export async function autoFill() {
     document.getElementById('title').value = `${seriesName} - Tập `;
 
     try {
-        const { data, error } = await supabase.from('catalog').select('*').ilike('series', `%${seriesName}%`).limit(1);
+        const res = await window.app.apiFetch(`/api/catalog/search?q=${encodeURIComponent(seriesName)}`);
+        const data = res.data || [];
         if (data && data.length > 0) {
-            const res = data[0];
-            if (res.author) document.getElementById('author').value = res.author;
-            if (res.translator) document.getElementById('translator').value = res.translator;
-            if (res.publisher) document.getElementById('publisher').value = res.publisher;
-            if (res.distributor) document.getElementById('distributor').value = res.distributor;
-            if (res.size) document.getElementById('size').value = res.size;
-            if (res.price) {
-                document.getElementById('price').value = new Intl.NumberFormat('vi-VN').format(res.price);
+            const resData = data[0];
+            if (resData.author) document.getElementById('author').value = resData.author;
+            if (resData.translator) document.getElementById('translator').value = resData.translator;
+            if (resData.publisher) document.getElementById('publisher').value = resData.publisher;
+            if (resData.distributor) document.getElementById('distributor').value = resData.distributor;
+            if (resData.size) document.getElementById('size').value = resData.size;
+            if (resData.price) {
+                document.getElementById('price').value = new Intl.NumberFormat('vi-VN').format(resData.price);
             }
             // Không tự động điền "chú thích" (note) và "quà tặng" (gift_urls) vì chúng thường dành riêng cho từng tập
             window.app.showToast('Đã điền tự động dữ liệu chung của Series!');

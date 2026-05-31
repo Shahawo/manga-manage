@@ -34,9 +34,11 @@ coverage
 # Temporary files from refactoring
 markers.txt
 
-# Ignore all Markdown files except README.md
+# Ignore all Markdown files except README.md and version docs
 *.md
 !README.md
+!WALKTHROUGH*.md
+!VERSIONING_RULES.md
 /.agent-skills
 # Kikuri reference clone
 .kikuri-ref/
@@ -44,4 +46,5 @@ markers.txt
 .momoka-ref/
 .shinobu-ref/
 desktop.ini
-/cloudflare-worker
+/cloudflare-worker/.dev.vars
+/cloudflare-worker/.wrangler/

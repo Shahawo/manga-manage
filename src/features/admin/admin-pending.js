@@ -1,43 +1,42 @@
 import { store } from '../../store.js';
-import { supabase } from '../../supabase-client.js';
 import { escapeHTML } from '../../utils/security.js';
 
 export async function submitPendingBook(mangaData) {
     if (!store.user) return;
     try {
-        await supabase.from('pending_catalog').insert({
-            submitted_by: store.user.id,
-            submitted_name: store.user.user_metadata?.name || store.user.email,
-            submitted_email: store.user.email,
-            linked_manga_id: mangaData.linked_manga_id,
-            scanned_isbn: mangaData.scanned_isbn,
-            series: mangaData.series,
-            title: mangaData.title,
-            volume: mangaData.volume,
-            isbn: mangaData.isbn,
-            author: mangaData.author,
-            translator: mangaData.translator,
-            publisher: mangaData.publisher,
-            distributor: mangaData.distributor,
-            publish_date: mangaData.publish_date,
-            pages: mangaData.pages,
-            size: mangaData.size,
-            price: mangaData.price,
-            cover_url: mangaData.cover_url,
-            note: mangaData.note,
-            gift_urls: mangaData.gift_urls
+        await window.app.apiFetch('/api/admin/pending', {
+            method: 'POST',
+            body: JSON.stringify({
+                submitted_by: store.user.id,
+                submitted_name: store.user.user_metadata?.name || store.user.email,
+                submitted_email: store.user.email,
+                linked_manga_id: mangaData.linked_manga_id,
+                scanned_isbn: mangaData.scanned_isbn,
+                series: mangaData.series,
+                title: mangaData.title,
+                volume: mangaData.volume,
+                isbn: mangaData.isbn,
+                author: mangaData.author,
+                translator: mangaData.translator,
+                publisher: mangaData.publisher,
+                distributor: mangaData.distributor,
+                publish_date: mangaData.publish_date,
+                pages: mangaData.pages,
+                size: mangaData.size,
+                price: mangaData.price,
+                cover_url: mangaData.cover_url,
+                note: mangaData.note,
+                gift_urls: mangaData.gift_urls
+            })
         });
     } catch (e) { console.error('Failed to submit pending', e); }
 }
 
 export async function fetchPendingBooks() {
     try {
-        const { data, error } = await window.app.executeWithAbort(
-            () => supabase.rpc('get_all_pending'),
-            15000,
-            'Timeout'
-        );
-        if (error) throw error;
+        const res = await window.app.apiFetch('/api/admin/pending');
+        if (res.error) throw res.error;
+        const data = res.data;
         const rejectedIds = new Set(store.pendingRejectedIds || []);
         const list = data.filter(p => !rejectedIds.has(p.id)).map(p => ({
             ...p,
@@ -63,15 +62,13 @@ export async function fetchPendingBooks() {
 
 export async function checkDuplicate(pendingBook) {
     try {
-        const { data, error } = await window.app.executeWithAbort(
-            () => supabase.from('catalog').select('*')
-                .ilike('series', pendingBook.series)
-                .ilike('title', pendingBook.title)
-                .eq('volume', pendingBook.volume || 0),
-            10000,
-            'Timeout'
+        const res = await window.app.apiFetch('/api/admin/catalog?limit=1000');
+        if (res.error) throw res.error;
+        const data = res.data.filter(b => 
+            b.series?.toLowerCase() === pendingBook.series?.toLowerCase() &&
+            b.title?.toLowerCase() === pendingBook.title?.toLowerCase() &&
+            (b.volume || 0) === (pendingBook.volume || 0)
         );
-        if (error) throw error;
         return data || [];
     } catch (e) {
         return [];
@@ -165,7 +162,7 @@ export async function openPendingModal(id) {
                         <input type="number" id="edit-volume-${p.id}" class="input-ctrl" value="${p.volume || ''}" min="0" max="10000" step="0.5" onkeydown="if(event.key==='-') event.preventDefault();" oninvalid="window.app.setCustomValidity('Vui lòng nhập Tập số hợp lệ')" oninput="window.app.setCustomValidity('')">
                     </div>
                     <div class="form-group">
-                        <label>ISBN <span style="font-size:0.8rem; color:var(--primary); font-weight:600;">\${p.scannedIsbn ? '(Quét: ' + p.scannedIsbn + ')' : ''}</span></label>
+                        <label>ISBN <span style="font-size:0.8rem; color:var(--primary); font-weight:600;">${p.scannedIsbn ? '(Quét: ' + p.scannedIsbn + ')' : ''}</span></label>
                         <textarea id="edit-isbn-${p.id}" class="input-ctrl" rows="2">${p.isbn || p.scannedIsbn || ''}</textarea>
                     </div>
                 </div>
@@ -383,11 +380,8 @@ export async function _updatePendingDataBeforeAction(id) {
         note: document.getElementById(`edit-note-${id}`).value,
         gift_urls: giftUrls
     };
-    await window.app.executeWithAbort(
-        () => supabase.from('pending_catalog').update(payload).eq('id', id),
-        15000,
-        'Lỗi kết nối khi cập nhật thông tin'
-    );
+    const res = await window.app.apiFetch(`/api/admin/pending/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
+    if (res.error) throw res.error;
     return payload;
 }
 
@@ -396,15 +390,8 @@ export async function adminApprove(id) {
     window.app.showLoading('Đang xử lý...');
     try {
         const payload = await window.app._updatePendingDataBeforeAction(id);
-        const { error: rpcErr } = await window.app.executeWithAbort(
-            () => supabase.rpc('admin_approve_pending', {
-                pending_id: id,
-                updated_data: payload
-            }),
-            15000,
-            'Lỗi kết nối khi duyệt sách'
-        );
-        if (rpcErr) throw rpcErr;
+        const res = await window.app.apiFetch(`/api/admin/pending/${id}/approve`, { method: 'POST' });
+        if (res.error) throw res.error;
 
         window.app.showToast('Đã duyệt và thêm vào kho!');
         window.app.closePendingModal();
@@ -433,15 +420,11 @@ export async function quickMerge(pendingId, catalogId) {
     if (!confirm('Gộp ISBN vào bản ghi có sẵn này?')) return;
     window.app.showLoading('Đang gộp...');
     try {
-        const { error: rpcErr } = await window.app.executeWithAbort(
-            () => supabase.rpc('admin_merge_isbn', {
-                pending_id: pendingId,
-                target_catalog_id: catalogId
-            }),
-            15000,
-            'Lỗi kết nối khi gộp ISBN'
-        );
-        if (rpcErr) throw rpcErr;
+        const res = await window.app.apiFetch('/api/admin/pending/merge', { 
+            method: 'POST', 
+            body: JSON.stringify({ pending_id: pendingId, catalog_id: catalogId }) 
+        });
+        if (res.error) throw res.error;
 
         window.app.showToast('Đã gộp ISBN thành công!');
         window.app.closePendingModal();

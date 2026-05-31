@@ -1,6 +1,6 @@
 {
   "name": "manga-supabase",
-  "version": "2.3.2",
+  "version": "3.0.0",
   "description": "Static manga and light novel collection manager powered by Vite and Supabase.",
   "main": "src/main.js",
   "scripts": {

@@ -4,7 +4,6 @@
  * Data source: Supabase public.release_calendar (anon read, no auth required)
  */
 
-import { supabase } from '../../supabase-client.js';
 import { store } from '../../store.js';
 
 // ─── Internal state ──────────────────────────────────────────────────────────
@@ -59,18 +58,13 @@ async function _fetchAndRender(retryCount = 0) {
     const lastDay = _getLastDay(calendarState.year, calendarState.month);
 
     try {
-        const { data, error } = await window.app.withTimeout(
-            supabase
-                .from('release_calendar')
-                .select('*')
-                .gte('release_date', firstDay)
-                .lte('release_date', lastDay)
-                .order('release_date', { ascending: true })
-                .order('title', { ascending: true })
-                .abortSignal(calendarState.fetchController.signal),
+        const res = await window.app.withTimeout(
+            window.app.apiFetch(`/api/schedule?from=${firstDay}&to=${lastDay}`, { signal: calendarState.fetchController.signal }),
             8000,
             'Yêu cầu quá hạn do mạng gián đoạn'
         );
+        const data = res.data;
+        const error = res.error;
 
         _setLoading(false);
 

@@ -1,4 +1,3 @@
-import { supabase } from '../supabase-client.js';
 import { store } from '../store.js';
     // ─── HELPER: Background Sync Queue (Optimistic UI) ────────────────────────
 
@@ -60,84 +59,31 @@ import { store } from '../store.js';
             const task = store.syncQueue[0]; // Lấy task đầu tiên đã sẵn sàng
             try {
                 if (task.type === 'INSERT_MANGA') {
-                    const { error } = await withTimeout(
-                        supabase.from('manga').insert(task.payload),
-                        15000,
-                        'Đồng bộ thêm sách quá hạn'
-                    );
-                    if (error) throw error;
+                    await window.app.withTimeout(window.app.apiFetch('/api/library', { method: 'POST', body: JSON.stringify(task.payload) }), 15000, 'Đồng bộ thêm sách quá hạn');
                 }
                 else if (task.type === 'UPDATE_MANGA') {
-                    const { error } = await withTimeout(
-                        supabase.from('manga').update(task.payload).eq('id', task.payload.id),
-                        15000,
-                        'Đồng bộ cập nhật sách quá hạn'
-                    );
-                    if (error) throw error;
+                    await window.app.withTimeout(window.app.apiFetch(`/api/library/${task.payload.id}`, { method: 'PUT', body: JSON.stringify(task.payload) }), 15000, 'Đồng bộ cập nhật sách quá hạn');
                 }
                 else if (task.type === 'DELETE_MANGA') {
-                    const { error } = await withTimeout(
-                        supabase.from('manga').delete().eq('id', task.payload.id),
-                        15000,
-                        'Đồng bộ xoá sách quá hạn'
-                    );
-                    if (error) throw error;
+                    await window.app.withTimeout(window.app.apiFetch(`/api/library/${task.payload.id}`, { method: 'DELETE' }), 15000, 'Đồng bộ xoá sách quá hạn');
                 }
                 else if (task.type === 'UPSERT_TARGET') {
-                    const { error } = await withTimeout(
-                        supabase.from('user_series_settings').upsert(task.payload, { onConflict: 'user_id, series' }),
-                        15000,
-                        'Đồng bộ mục tiêu quá hạn'
-                    );
-                    if (error) throw error;
+                    await window.app.withTimeout(window.app.apiFetch('/api/library/settings', { method: 'POST', body: JSON.stringify(task.payload) }), 15000, 'Đồng bộ mục tiêu quá hạn');
                 }
                 else if (task.type === 'INSERT_PENDING') {
-                    const { error } = await withTimeout(
-                        supabase.from('pending_catalog').insert(task.payload),
-                        15000,
-                        'Đồng bộ đóng góp kho chung quá hạn'
-                    );
-                    if (error) throw error;
+                    await window.app.withTimeout(window.app.apiFetch('/api/admin/pending', { method: 'POST', body: JSON.stringify(task.payload) }), 15000, 'Đồng bộ đóng góp kho chung quá hạn');
                 }
                 else if (task.type === 'ADMIN_REJECT_PENDING') {
-                    const { error } = await withTimeout(
-                        supabase.rpc('admin_reject_pending', {
-                            pending_id: task.payload.id,
-                            reason: task.payload.reason || null
-                        }),
-                        15000,
-                        'Đồng bộ từ chối sách quá hạn'
-                    );
-                    if (error) throw error;
+                    await window.app.withTimeout(window.app.apiFetch(`/api/admin/pending/${task.payload.id}/reject`, { method: 'POST', body: JSON.stringify({ reason: task.payload.reason || null }) }), 15000, 'Đồng bộ từ chối sách quá hạn');
                 }
                 else if (task.type === 'INSERT_FEEDBACK') {
-                    const { error } = await withTimeout(
-                        supabase.from('feedback').insert(task.payload),
-                        15000,
-                        'Đồng bộ gửi góp ý quá hạn'
-                    );
-                    if (error) throw error;
+                    await window.app.withTimeout(window.app.apiFetch('/api/feedback', { method: 'POST', body: JSON.stringify(task.payload) }), 15000, 'Đồng bộ gửi góp ý quá hạn');
                 }
                 else if (task.type === 'ADMIN_UPDATE_CATALOG') {
-                    const { error } = await withTimeout(
-                        supabase.rpc('admin_update_catalog', {
-                            catalog_id: task.payload.id,
-                            updated_data: task.payload.data
-                        }),
-                        15000,
-                        'Đồng bộ cập nhật Kho chung quá hạn'
-                    );
-                    if (error) throw error;
+                    await window.app.withTimeout(window.app.apiFetch(`/api/admin/catalog/${task.payload.id}`, { method: 'PUT', body: JSON.stringify(task.payload.data) }), 15000, 'Đồng bộ cập nhật Kho chung quá hạn');
                 }
                 else if (task.type === 'ADMIN_DELETE_CATALOG') {
-                    const { error } = await withTimeout(
-                        supabase.rpc('admin_delete_catalog', {
-                            catalog_id: task.payload.id
-                        }),
-                        15000,
-                        'Đồng bộ xóa Kho chung quá hạn'
-                    );
-                    if (error) throw error;
+                    await window.app.withTimeout(window.app.apiFetch(`/api/admin/catalog/${task.payload.id}`, { method: 'DELETE' }), 15000, 'Đồng bộ xóa Kho chung quá hạn');
                 }
 
                 // Xử lý xong -> xóa khỏi queue
@@ -318,13 +264,12 @@ import { store } from '../store.js';
             const timeoutId = setTimeout(() => controller.abort(), 15000);
             
             // Execute all queries in parallel to avoid network waterfall
-            const mangaPromise = supabase.from('manga').select('*').order('added_at', { ascending: false }).abortSignal(controller.signal);
-            const metaPromise = supabase.from('series_metadata').select('*').abortSignal(controller.signal);
-            const userPromise = supabase.from('user_series_settings').select('*').abortSignal(controller.signal);
+            const mangaPromise = window.app.apiFetch('/api/library', { signal: controller.signal });
+            const metaPromise = window.app.apiFetch('/api/library/meta', { signal: controller.signal }).catch(() => ({ data: [] }));
+            const userPromise = window.app.apiFetch('/api/library/settings', { signal: controller.signal }).catch(() => ({ data: [] }));
 
-            const [{ data, error }, metaRes, userRes] = await Promise.all([mangaPromise, metaPromise, userPromise]);            
-            if (error) throw error;
-            let fetchedData = data.map(m => ({
+            const [mangaRes, metaRes, userRes] = await Promise.all([mangaPromise, metaPromise, userPromise]);            
+            let fetchedData = mangaRes.data.map(m => ({
                 id: m.id,
                 series: m.series,
                 title: m.title,
@@ -439,9 +384,7 @@ import { store } from '../store.js';
             if (!store.data) store.data = [];
             window.app.renderDashboard();
             if (store.user) {
-                const msg = err?.code === '42P01'
-                    ? 'Chưa tạo bảng dữ liệu! Vui lòng chạy file sql/schema.sql trong Supabase.'
-                    : 'Không thể kết nối server! (' + (err?.message || 'unknown') + ')';
+                const msg = 'Không thể kết nối server! (' + (err?.message || 'unknown') + ')';
                 window.app.showToast(msg, 'error');
             }
         }
@@ -456,14 +399,10 @@ import { store } from '../store.js';
         try {
             const controller = new AbortController();
             window.app._catalogFetchController = controller;
-            const { data, error } = await supabase.from('catalog').select('*')
-                .limit(10000)
-                .order('series', { ascending: true })
-                .order('volume', { ascending: true })
-                .abortSignal(controller.signal);
-            if (!error && data) {
-                store.fullCatalogCache = data;
-                console.debug(`[Prefetch] Catalog cache đã tải xong ngầm: ${data.length} mục`);
+            const res = await window.app.apiFetch('/api/catalog', { signal: controller.signal });
+            if (res.data) {
+                store.fullCatalogCache = res.data;
+                console.debug(`[Prefetch] Catalog cache đã tải xong ngầm: ${res.data.length} mục`);
             }
         } catch (e) {
             // Silent failure — sẽ fetch lại khi user vào tab Kho chung
@@ -539,11 +478,8 @@ import { store } from '../store.js';
                     return record;
                 });
 
-                const { error: deleteErr } = await supabase.from('manga').delete().eq('user_id', store.user.id);
-                if (deleteErr) throw deleteErr;
-
-                const { error: insertErr } = await supabase.from('manga').insert(cleanData);
-                if (insertErr) throw insertErr;
+                // Import via Worker API
+                await window.app.apiFetch('/api/library/import', { method: 'POST', body: JSON.stringify(cleanData) });
 
                 const result = { success: true, imported: cleanData.length };
                 if (result.success) {
@@ -555,7 +491,8 @@ import { store } from '../store.js';
                     window.app.showToast('Lỗi khi nhập dữ liệu: ' + result.error, 'error');
                 }
             } catch (err) {
-                window.app.showToast('Có lỗi khi đọc file JSON.', 'error');
+                console.error(err);
+                window.app.showToast('Lỗi phục hồi: ' + (err.message || 'Lỗi không xác định'), 'error');
             } finally {
                 window.app.hideLoading();
             }

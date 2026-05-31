@@ -1,0 +1,16 @@
+name = "manga-cloudflare-worker"
+main = "src/index.js"
+compatibility_date = "2024-04-05"
+
+# [vars]
+# MY_VARIABLE = "production_value"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "manga_db"
+database_id = "3c132c2e-bd5e-419e-be0a-12aa105e4c0e" # Replace with real ID later
+migrations_dir = "migrations"
+
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "manga-covers"

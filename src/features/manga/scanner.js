@@ -1,5 +1,4 @@
 import { store } from '../../store.js';
-import { supabase } from '../../supabase-client.js';
 
 export async function startBarcodeScanner() {
         window.app.navigateTo('/add'); // hide other views
@@ -124,7 +123,8 @@ export function captureBarcode() {
 export async function onBarcodeDetected(isbn) {
         window.app.stopBarcodeScanner();
         try {
-            const { data, error } = await supabase.from('catalog').select('*').contains('isbns', [isbn]);
+            const res = await window.app.apiFetch(`/api/catalog/search?isbn=${encodeURIComponent(isbn)}`);
+            const data = res.data;
             if (data && data.length > 0) {
                 // map to old format
                 const book = data[0];
@@ -335,11 +335,9 @@ export async function searchCatalogByOcrText(rawText) {
                 searchPhrases.push(words.slice(i, i + 2).join(' '));
             }
 
-            // Gọi Supabase catalog với các cụm tìm kiếm song song
+            // Gọi API catalog search với các cụm tìm kiếm song song
             const searchPromises = searchPhrases.slice(0, 6).map(phrase =>
-                supabase.from('catalog').select('*')
-                    .or(`series.ilike.%${phrase}%,title.ilike.%${phrase}%`)
-                    .limit(5)
+                window.app.apiFetch(`/api/catalog/search?q=${encodeURIComponent(phrase)}`)
             );
 
             const searchResults = await Promise.all(searchPromises);

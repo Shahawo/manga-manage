@@ -1,10 +1,11 @@
-import { supabase } from './supabase-client.js';
+import { store } from './store.js';
 import * as settings from './core/settings.js';
 import * as router from './core/router.js';
 import * as ui from './core/ui.js';
 
 import * as auth from './core/auth.js';
 import * as api from './core/api.js';
+import * as apiClient from './utils/api-client.js';
 import * as manga from './features/manga/manga.js';
 import * as dashboard from './features/manga/dashboard.js';
 import * as ui_modal from './core/uiModal.js';
@@ -54,6 +55,7 @@ const app = {
     ...ui,
     ...auth,
     ...api,
+    ...apiClient,
     ...manga,
     ...dashboard,
     ...ui_modal,
@@ -71,4 +73,5 @@ window.app = app;
 
 // We must extract init manually to be called after all mixins
 app.init();
+app.initGoogleAuth();
 

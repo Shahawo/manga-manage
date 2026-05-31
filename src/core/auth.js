@@ -1,18 +1,76 @@
 import { store } from '../store.js';
-import { supabase } from '../supabase-client.js';
+import { apiFetch } from '../utils/api-client.js';
+
+let tokenClient;
+
+export function initGoogleAuth() {
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    if (!clientId) {
+        console.warn('VITE_GOOGLE_CLIENT_ID is not set in .env');
+        return;
+    }
+
+    if (!window.google) {
+        const script = document.createElement('script');
+        script.src = 'https://accounts.google.com/gsi/client';
+        script.async = true;
+        script.defer = true;
+        script.onload = () => setupTokenClient(clientId);
+        document.head.appendChild(script);
+    } else {
+        setupTokenClient(clientId);
+    }
+}
+
+function setupTokenClient(clientId) {
+    tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: clientId,
+        scope: 'email profile openid',
+        callback: async (tokenResponse) => {
+            if (tokenResponse && tokenResponse.access_token) {
+                try {
+                    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8787';
+                    const res = await fetch(`${API_URL}/api/auth/google`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ access_token: tokenResponse.access_token })
+                    });
+                    if (!res.ok) throw new Error('Backend authentication failed');
+                    
+                    const data = await res.json();
+                    localStorage.setItem('authToken', data.token);
+                    window.location.reload();
+                } catch (e) {
+                    console.error(e);
+                    alert('Lỗi đăng nhập: ' + e.message);
+                }
+            }
+        },
+    });
+}
 
 export async function signInWithGoogle() {
-    const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-            redirectTo: window.location.origin,
-        }
-    });
-    if (error) window.app.showToast('Lỗi đăng nhập: ' + error.message, 'error');
+    if (import.meta.env.DEV && !import.meta.env.VITE_GOOGLE_CLIENT_ID) {
+        // Mock Login for local development if no client id
+        const mockUser = { id: 'test-user-123', email: 'test@example.com', name: 'Dev User' };
+        localStorage.setItem('mockUser', JSON.stringify(mockUser));
+        window.location.reload();
+        return;
+    }
+
+    if (tokenClient) {
+        tokenClient.requestAccessToken();
+    } else {
+        alert('Google Auth chưa sẵn sàng hoặc thiếu cấu hình VITE_GOOGLE_CLIENT_ID.');
+    }
 }
 
 export async function logout() {
-    await supabase.auth.signOut();
+    if (import.meta.env.DEV && !import.meta.env.VITE_GOOGLE_CLIENT_ID) {
+        localStorage.removeItem('mockUser');
+    }
+    localStorage.removeItem('authToken');
+    window.location.reload();
 }
 
 export function updateAuthUI() {

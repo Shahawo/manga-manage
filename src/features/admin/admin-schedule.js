@@ -1,5 +1,4 @@
 import { store } from '../../store.js';
-import { supabase } from '../../supabase-client.js';
 
 /** Internal state cho Admin schedule tab */
 const _adminScheduleState = {
@@ -38,15 +37,13 @@ export async function adminScheduleLoad() {
     if (list) list.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:2rem;">Đang tải...</p>';
 
     try {
-        const { data, error } = await window.app.executeWithAbort(
-            () => supabase.from('release_calendar').select('*')
-                .gte('release_date', firstDay)
-                .lte('release_date', lastDay)
-                .order('release_date', { ascending: true })
-                .order('title', { ascending: true }),
-            10000,
-            'Yêu cầu tải lịch quá hạn, vui lòng thử lại!'
+        const res = await window.app.executeWithAbort(
+            () => window.app.apiFetch(`/api/admin/schedule?start=${firstDay}&end=${lastDay}`),
+            5000,
+            'Quá hạn tải lịch phát hành'
         );
+        const data = res.data;
+        const error = res.error;
 
         if (error) throw error;
         window.app.renderAdminReleaseList(data ?? []);
@@ -75,7 +72,7 @@ export function renderAdminReleaseList(entries) {
                 const priceText = e.price ? ` · ${e.price.toLocaleString('vi-VN')}đ` : '';
                 return `
                 <div style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem;border:1px solid var(--border);border-radius:8px;background:var(--surface);">
-                    ${e.cover_url ? `<img src="${e.cover_url}" alt="" style="width:36px;height:52px;object-fit:cover;border-radius:4px;flex-shrink:0;border:1px solid var(--border);">` : '<div style="width:36px;height:52px;border-radius:4px;background:var(--border);flex-shrink:0;"></div>'}
+                    ${e.cover_url ? `<img src="${e.cover_url}" alt="" style="width:36px;height:52px;object-fit:cover;border-radius:4px;flex-shrink:0;border:1px solid var(--border);" onerror="this.outerHTML='<div style=\\'width:36px;height:52px;border-radius:4px;background:var(--border);flex-shrink:0;\\'></div>'">` : '<div style="width:36px;height:52px;border-radius:4px;background:var(--border);flex-shrink:0;"></div>'}
                     <div style="flex:1;min-width:0;">
                         <div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${e.series ? `[${e.series}] ` : ''}${e.title}${volText}</div>
                         <div style="font-size:0.8rem;color:var(--text-muted);margin-top:2px;">
@@ -118,10 +115,12 @@ export function openAdminReleaseForm(id = null) {
         // Populate from existing data
         titleEl.textContent = 'Sửa entry';
         window.app.executeWithAbort(
-            () => supabase.from('release_calendar').select('*').eq('id', id).single(),
-            10000,
-            'Lỗi khi tải thông tin entry'
-        ).then(({ data, error }) => {
+            () => window.app.apiFetch(`/api/admin/schedule/${id}`),
+            5000,
+            'Quá hạn tải thông tin'
+        ).then((res) => {
+            const data = res.data;
+            const error = res.error;
             if (error || !data) return;
             document.getElementById('admin-release-date').value = data.release_date ?? '';
             document.getElementById('admin-release-title').value = data.title ?? '';
@@ -171,14 +170,15 @@ export async function saveAdminRelease() {
 
     try {
         window.app.showLoading('Đang lưu...');
-        const { data, error } = await window.app.executeWithAbort(
-            () => supabase.rpc('admin_upsert_release', { entry_data: entryData }),
-            15000,
-            'Lỗi khi lưu lịch phát hành'
+        const res = await window.app.executeWithAbort(
+            () => window.app.apiFetch('/api/admin/import', { method: 'POST', body: JSON.stringify(entryData) }),
+            8000,
+            'Quá hạn lưu thông tin'
         );
+        const error = res.error;
         if (error) throw error;
 
-        const result = data;
+        const result = res.data;
         if (result?.error === 'duplicate') {
             window.app.showToast('Entry trùng lặp (title + ngày đã tồn tại)!', 'error');
             return;
@@ -199,11 +199,12 @@ export async function deleteAdminRelease(id) {
     if (!confirm('Xóa entry này khỏi lịch phát hành?')) return;
     try {
         window.app.showLoading('Đang xóa...');
-        const { error } = await window.app.executeWithAbort(
-            () => supabase.rpc('admin_delete_release', { release_id: id }),
-            15000,
-            'Lỗi khi xóa lịch phát hành'
+        const res = await window.app.executeWithAbort(
+            () => window.app.apiFetch(`/api/admin/schedule/${id}`, { method: 'DELETE' }),
+            5000,
+            'Yêu cầu xoá quá hạn'
         );
+        const error = res.error;
         if (error) throw error;
         window.app.showToast('Đã xóa entry!');
         window.app.adminScheduleLoad();
