@@ -1,6 +1,6 @@
 -- ============================================================
--- Manga-Supabase complete schema
--- Run this file once in Supabase SQL Editor for a fresh project.
+-- Manga-Cloudflare complete schema
+-- Run this file via wrangler d1 execute manga_db --file=sql/schema.sql
 -- ============================================================
 
 -- ============================================================
