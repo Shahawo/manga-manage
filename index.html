@@ -1,161 +1,387 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Kho Truyện</title>
     <!-- SPA GitHub Pages Redirect -->
     <script type="text/javascript">
-        (function (l) {
-            if (l.search[1] === '/') {
-                var decoded = l.search.slice(1).split('&').map(function (s) {
-                    return s.replace(/~and~/g, '&')
-                }).join('?');
-                window.history.replaceState(null, null,
-                    l.pathname.slice(0, -1) + decoded + l.hash
-                );
-            }
-        }(window.location))
+      (function (l) {
+        if (l.search[1] === "/") {
+          var decoded = l.search
+            .slice(1)
+            .split("&")
+            .map(function (s) {
+              return s.replace(/~and~/g, "&");
+            })
+            .join("?");
+          window.history.replaceState(
+            null,
+            null,
+            l.pathname.slice(0, -1) + decoded + l.hash,
+          );
+        }
+      })(window.location);
     </script>
     <!-- Google Fonts: Inter -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preconnect" href="https://unpkg.com" crossorigin>
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://unpkg.com" crossorigin />
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap"
+      rel="stylesheet"
+    />
     <script src="https://unpkg.com/feather-icons" defer></script>
     <!-- Flatpickr for Date formatting -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"
+    />
     <script src="https://cdn.jsdelivr.net/npm/flatpickr" defer></script>
-    <link rel="stylesheet" href="/styles.css?v=3.0.0">
-</head>
+    <link rel="stylesheet" href="/styles.css?v=3.1.0" />
+  </head>
 
-<body>
+  <body>
     <header class="navbar">
-        <div class="nav-container">
-            <div class="brand" role="button" tabindex="0" onclick="app.navigateTo('/about')"
-                onkeydown="if(event.key==='Enter'||event.key===' ') app.navigateTo('/about')">
-                <i data-feather="book-open"></i>
-                <span>Kho Truyện</span>
-            </div>
-
-            <!-- Nav Tabs (căn giữa tuyệt đối) -->
-            <nav class="nav-tabs" aria-label="Menu chính">
-                <button class="nav-tab" id="tab-about" onclick="app.navigateTo('/about')" aria-label="Giới thiệu">Giới
-                    thiệu</button>
-                <button class="nav-tab" id="tab-dashboard" onclick="app.navigateTo('/library')"
-                    aria-label="Kho truyện">Kho truyện</button>
-                <button class="nav-tab" id="tab-schedule" onclick="app.navigateTo('/schedule')"
-                    aria-label="Lịch phát hành">Lịch phát hành</button>
-                <button class="nav-tab" id="tab-stats" onclick="app.navigateTo('/stats')" aria-label="Thống kê">Thống
-                    kê</button>
-            </nav>
-
-            <div class="nav-actions">
-                <!-- GS Identity placeholder -->
-                <input type="file" id="import-file" style="display:none" accept=".json"
-                    onchange="app.importData(event)">
-
-                <!-- Nút Thêm sách -->
-                <button class="btn btn-primary auth-only hidden" onclick="app.showAddMethod()" id="btn-add-book">
-                    <i data-feather="plus"></i>
-                    <span class="btn-label">Thêm sách</span>
-                </button>
-
-                <!-- Avatar / Đăng nhập -->
-                <div id="google-btn-wrapper" style="display:flex; align-items:center;">
-                    <button id="btn-google-signin" onclick="app.signInWithGoogle()"
-                        style="display:flex;align-items:center;gap:0.5rem;padding:0.5rem 1.25rem;border:1px solid #dadce0;border-radius:99px;background:#fff;cursor:pointer;font-size:0.9rem;font-weight:500;font-family:inherit;color:#3c4043;transition:all 0.2s;">
-                        <svg width="18" height="18" viewBox="0 0 48 48">
-                            <path fill="#EA4335"
-                                d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
-                            <path fill="#4285F4"
-                                d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
-                            <path fill="#FBBC05"
-                                d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
-                            <path fill="#34A853"
-                                d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.36-8.16 2.36-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
-                        </svg>
-                        Đăng nhập
-                    </button>
-                </div>
-
-                <div id="user-info" class="hidden dropdown-wrapper" style="position:relative;">
-                    <button id="avatar-trigger" onclick="app.toggleUserMenu()" class="avatar-btn"
-                        aria-label="Menu tài khoản">
-                        <img id="user-avatar" src="" alt="Avatar" loading="lazy" decoding="async">
-                        <i data-feather="chevron-down" class="avatar-chevron"></i>
-                    </button>
-                    <div id="user-menu" class="user-dropdown hidden">
-                        <!-- User info -->
-                        <div class="udrop-header">
-                            <img id="user-avatar-menu" src="" alt="" loading="lazy" decoding="async">
-                            <div>
-                                <div id="user-name" class="udrop-name"></div>
-                                <div id="user-email" class="udrop-email"></div>
-                            </div>
-                        </div>
-                        <div class="udrop-divider"></div>
-                        <!-- Theme -->
-                        <button class="udrop-item" onclick="app.toggleTheme(); app.toggleUserMenu()">
-                            <i data-feather="moon" id="theme-icon-menu"></i>
-                            <span id="theme-label-menu">Giao diện Tối</span>
-                            <div class="udrop-toggle" id="theme-toggle-dot"></div>
-                        </button>
-                        <!-- Admin Panel (Chỉ admin thấy) -->
-                        <button class="udrop-item auth-only" id="admin-panel-btn"
-                            onclick="app.loadAdminPanel(); app.toggleUserMenu()" style="display:none;">
-                            <i data-feather="shield"></i>
-                            <span>Admin Panel</span>
-                            <span id="nav-admin-badge" class="admin-badge" style="display:none;">0</span>
-                        </button>
-                        <!-- Settings -->
-                        <button class="udrop-item" onclick="app.showSettings(); app.toggleUserMenu()">
-                            <i data-feather="settings"></i>
-                            <span>Cài đặt</span>
-                        </button>
-                        <!-- Feedback -->
-                        <button class="udrop-item" onclick="app.showFeedbackModal(); app.toggleUserMenu()">
-                            <i data-feather="message-square"></i>
-                            <span>Góp ý</span>
-                        </button>
-                        <div class="udrop-divider"></div>
-                        <!-- Export / Import -->
-                        <button class="udrop-item auth-only" onclick="app.exportData(); app.toggleUserMenu()">
-                            <i data-feather="download"></i>
-                            <span>Sao lưu dữ liệu</span>
-                        </button>
-                        <button class="udrop-item auth-only"
-                            onclick="document.getElementById('import-file').click(); app.toggleUserMenu()">
-                            <i data-feather="upload"></i>
-                            <span>Phục hồi dữ liệu</span>
-                        </button>
-                        <div class="udrop-divider"></div>
-                        <!-- Logout -->
-                        <button class="udrop-item udrop-danger" onclick="app.logout()">
-                            <i data-feather="log-out"></i>
-                            <span>Đăng xuất</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
+      <div class="nav-container">
+        <div
+          class="brand"
+          role="button"
+          tabindex="0"
+          onclick="app.navigateTo('/about')"
+          onkeydown="
+            if (event.key === 'Enter' || event.key === ' ')
+              app.navigateTo('/about');
+          "
+        >
+          <i data-feather="book-open"></i>
+          <span>Kho Truyện</span>
         </div>
+
+        <!-- Nav Tabs (căn giữa tuyệt đối) -->
+        <nav class="nav-tabs" aria-label="Menu chính">
+          <button
+            class="nav-tab"
+            id="tab-about"
+            onclick="app.navigateTo('/about')"
+            aria-label="Giới thiệu"
+          >
+            Giới thiệu
+          </button>
+          <button
+            class="nav-tab"
+            id="tab-dashboard"
+            onclick="app.navigateTo('/library')"
+            aria-label="Kho truyện"
+          >
+            Kho truyện
+          </button>
+          <button
+            class="nav-tab"
+            id="tab-schedule"
+            onclick="app.navigateTo('/schedule')"
+            aria-label="Lịch phát hành"
+          >
+            Lịch phát hành
+          </button>
+          <button
+            class="nav-tab"
+            id="tab-stats"
+            onclick="app.navigateTo('/stats')"
+            aria-label="Thống kê"
+          >
+            Thống kê
+          </button>
+        </nav>
+
+        <div class="nav-actions">
+          <!-- GS Identity placeholder -->
+          <input
+            type="file"
+            id="import-file"
+            style="display: none"
+            accept=".json"
+            onchange="app.importData(event)"
+          />
+
+          <!-- Nút Thêm sách -->
+          <button
+            class="btn btn-primary hidden"
+            onclick="app.showAddMethod()"
+            id="btn-add-book"
+          >
+            <i data-feather="plus"></i>
+            <span class="btn-label">Thêm sách</span>
+          </button>
+
+          <!-- Avatar / Đăng nhập -->
+          <div
+            id="google-btn-wrapper"
+            style="display: flex; align-items: center"
+          >
+            <button
+              id="btn-google-signin"
+              onclick="app.signInWithGoogle()"
+              style="
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                padding: 0.5rem 1.25rem;
+                border: 1px solid #dadce0;
+                border-radius: 99px;
+                background: #fff;
+                cursor: pointer;
+                font-size: 0.9rem;
+                font-weight: 500;
+                font-family: inherit;
+                color: #3c4043;
+                transition: all 0.2s;
+              "
+            >
+              <svg width="18" height="18" viewBox="0 0 48 48">
+                <path
+                  fill="#EA4335"
+                  d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"
+                />
+                <path
+                  fill="#4285F4"
+                  d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.36-8.16 2.36-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"
+                />
+              </svg>
+              Đăng nhập
+            </button>
+          </div>
+
+          <div
+            id="user-info"
+            class="hidden dropdown-wrapper"
+            style="position: relative"
+          >
+            <button
+              id="avatar-trigger"
+              onclick="app.toggleUserMenu()"
+              class="avatar-btn"
+              aria-label="Menu tài khoản"
+            >
+              <img
+                id="user-avatar"
+                src=""
+                alt="Avatar"
+                loading="lazy"
+                decoding="async"
+              />
+              <i data-feather="chevron-down" class="avatar-chevron"></i>
+            </button>
+            <div id="user-menu" class="user-dropdown hidden">
+              <!-- User info -->
+              <div class="udrop-header">
+                <img
+                  id="user-avatar-menu"
+                  src=""
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                />
+                <div>
+                  <div id="user-name" class="udrop-name"></div>
+                  <div id="user-email" class="udrop-email"></div>
+                </div>
+              </div>
+              <div class="udrop-divider"></div>
+              <!-- Theme -->
+              <button
+                class="udrop-item"
+                onclick="
+                  app.toggleTheme();
+                  app.toggleUserMenu();
+                "
+              >
+                <i data-feather="moon" id="theme-icon-menu"></i>
+                <span id="theme-label-menu">Giao diện Tối</span>
+                <div class="udrop-toggle" id="theme-toggle-dot"></div>
+              </button>
+              <!-- Admin Panel (Chỉ admin thấy) -->
+              <button
+                class="udrop-item auth-only"
+                id="admin-panel-btn"
+                onclick="
+                  app.loadAdminPanel();
+                  app.toggleUserMenu();
+                "
+                style="display: none"
+              >
+                <i data-feather="shield"></i>
+                <span>Admin Panel</span>
+                <span
+                  id="nav-admin-badge"
+                  class="admin-badge"
+                  style="display: none"
+                  >0</span
+                >
+              </button>
+              <!-- Settings -->
+              <button
+                class="udrop-item"
+                onclick="
+                  app.showSettings();
+                  app.toggleUserMenu();
+                "
+              >
+                <i data-feather="settings"></i>
+                <span>Cài đặt</span>
+              </button>
+              <!-- Feedback -->
+              <button
+                class="udrop-item"
+                onclick="
+                  app.showFeedbackModal();
+                  app.toggleUserMenu();
+                "
+              >
+                <i data-feather="message-square"></i>
+                <span>Góp ý</span>
+              </button>
+              <div class="udrop-divider"></div>
+              <!-- Export / Import -->
+              <button
+                class="udrop-item auth-only"
+                onclick="
+                  app.exportData();
+                  app.toggleUserMenu();
+                "
+              >
+                <i data-feather="download"></i>
+                <span>Sao lưu dữ liệu</span>
+              </button>
+              <button
+                class="udrop-item auth-only"
+                onclick="
+                  document.getElementById('import-file').click();
+                  app.toggleUserMenu();
+                "
+              >
+                <i data-feather="upload"></i>
+                <span>Phục hồi dữ liệu</span>
+              </button>
+              <div class="udrop-divider"></div>
+              <!-- Logout -->
+              <button class="udrop-item udrop-danger" onclick="app.logout()">
+                <i data-feather="log-out"></i>
+                <span>Đăng xuất</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Search Row — hiện dưới navbar, chỉ khi ở Kho truyện -->
+      <div class="nav-search-row" id="nav-search-row" style="display: none">
+        <div class="search-bar" id="nav-search-bar">
+          <i data-feather="search"></i>
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Tìm kiếm theo tên sách, ISBN, tác giả..."
+          />
+        </div>
+      </div>
+
+      <!-- Toolbar: Month picker + Publisher filter -->
+      <div class="schedule-toolbar" id="schedule-toolbar" style="display: none">
+        <div class="schedule-toolbar-left">
+          <button
+            class="btn btn-icon schedule-nav-btn"
+            id="schedule-prev-btn"
+            onclick="app.scheduleChangeMonth(-1)"
+            title="Tháng trước"
+          >
+            <i data-feather="chevron-left"></i>
+          </button>
+          <button
+            class="schedule-month-btn"
+            id="schedule-month-btn"
+            onclick="app.scheduleToggleMonthPicker()"
+          >
+            <span id="schedule-month-label">Tháng 5/2026</span>
+            <i
+              data-feather="chevron-down"
+              style="width: 14px; height: 14px"
+            ></i>
+          </button>
+          <button
+            class="btn btn-icon schedule-nav-btn"
+            id="schedule-next-btn"
+            onclick="app.scheduleChangeMonth(1)"
+            title="Tháng sau"
+          >
+            <i data-feather="chevron-right"></i>
+          </button>
+          <!-- Month picker popup -->
+          <div id="schedule-month-picker" class="schedule-month-picker hidden">
+            <select
+              id="schedule-year-select"
+              class="schedule-year-select"
+              onchange="app.scheduleUpdatePickerYear()"
+            ></select>
+            <div class="schedule-month-grid" id="schedule-month-grid"></div>
+            <div class="schedule-picker-actions">
+              <button class="btn btn-sm" onclick="app.scheduleResetToday()">
+                Hiện tại
+              </button>
+              <button
+                class="btn btn-sm btn-primary"
+                onclick="app.scheduleApplyPicker()"
+              >
+                Chọn
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="schedule-toolbar-right">
+          <!-- Publisher filter -->
+          <div class="dropdown-wrapper">
+            <button
+              class="custom-select-btn"
+              id="schedule-publisher-btn"
+              onclick="app.toggleCustomDropdown('schedule-publisher-dropdown')"
+            >
+              <i
+                data-feather="package"
+                style="color: var(--text-muted); width: 16px; height: 16px"
+              ></i>
+              <span
+                id="schedule-publisher-label"
+                style="font-size: 0.85rem; font-weight: 500"
+                >Chọn nhà xuất bản</span
+              >
+              <i
+                data-feather="chevron-right"
+                style="width: 14px; height: 14px; color: var(--text-muted)"
+              ></i>
+            </button>
+            <div
+              id="schedule-publisher-dropdown"
+              class="user-dropdown custom-select-menu hidden"
+              style="min-width: 200px"
+            ></div>
+          </div>
+        </div>
+        <!-- Loading bar -->
+        <div class="schedule-loading-bar" id="schedule-loading-bar"></div>
+      </div>
     </header>
 
-    <!-- Search Row — hiện dưới navbar, chỉ khi ở Kho truyện -->
-    <div class="nav-search-row" id="nav-search-row" style="display:none;">
-        <div class="search-bar" id="nav-search-bar">
-            <i data-feather="search"></i>
-            <input type="text" id="searchInput" placeholder="Tìm kiếm theo tên sách, ISBN, tác giả...">
-        </div>
-    </div>
-
-    <main class="container">
-    </main>
+    <main class="container"></main>
 
     <script type="module" src="/src/main.js"></script>
-
-</body>
-
+  </body>
 </html>
