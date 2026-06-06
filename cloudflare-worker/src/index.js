@@ -27,6 +27,24 @@ app.route('/api/schedule', scheduleApp);
 app.route('/api/admin', adminApp);
 app.route('/api/feedback', feedbackApp);
 
+// R2 Storage file server
+app.get('/api/storage/:path{.*}', async (c) => {
+  const path = c.req.param('path');
+  try {
+    const object = await c.env.BUCKET.get(path);
+    if (!object) return c.json({ error: 'File not found' }, 404);
+    
+    const headers = new Headers();
+    object.writeHttpMetadata(headers);
+    headers.set('etag', object.httpEtag);
+    headers.set('Cache-Control', 'public, max-age=31536000, immutable');
+    
+    return new Response(object.body, { headers });
+  } catch (err) {
+    return c.json({ error: String(err) }, 500);
+  }
+});
+
 // Setup routes
 app.get('/api', (c) => {
   return c.json({ message: 'Hello from Manga Cloudflare Worker API' });
