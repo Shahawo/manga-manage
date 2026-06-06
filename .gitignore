@@ -46,3 +46,4 @@ markers.txt
 desktop.ini
 /cloudflare-worker/.dev.vars
 /cloudflare-worker/.wrangler/
+note.txt
