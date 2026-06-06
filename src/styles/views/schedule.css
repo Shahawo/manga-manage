@@ -206,13 +206,13 @@
     gap: 1.5rem;
     margin-bottom: 3rem;
     align-items: flex-start;
-    scroll-margin-top: 120px;   /* sticky toolbar height + buffer */
+    scroll-margin-top: 150px;   /* sticky toolbar height + buffer */
 }
 
 /* Date column — left sticky */
 .schedule-date-col {
     position: sticky;
-    top: 120px;
+    top: 150px;
     flex-shrink: 0;
     width: 64px;
     text-align: center;
