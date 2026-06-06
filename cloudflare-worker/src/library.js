@@ -37,8 +37,8 @@ app.post('/', async (c) => {
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(
       id, user.id, data.series, data.title, data.volume || null, data.isbn, data.author, data.translator,
-      data.publisher, data.distributor, data.publish_date, data.pages, data.size, data.price,
-      data.note, data.cover_url, JSON.stringify(data.gift_urls || []), data.catalog_id
+      data.publisher || null, data.distributor || null, data.publish_date || null, data.pages || null, data.size || null, data.price || null,
+      data.note || null, data.cover_url || null, JSON.stringify(data.gift_urls || []), data.catalog_id || null
     ).run();
 
     return c.json({ success: true, id });
@@ -61,8 +61,8 @@ app.put('/:id', async (c) => {
       WHERE id=? AND user_id=?
     `).bind(
       data.series, data.title, data.volume || null, data.isbn, data.author, data.translator,
-      data.publisher, data.distributor, data.publish_date, data.pages, data.size, data.price,
-      data.note, data.cover_url, JSON.stringify(data.gift_urls || []), data.catalog_id,
+      data.publisher || null, data.distributor || null, data.publish_date || null, data.pages || null, data.size || null, data.price || null,
+      data.note || null, data.cover_url || null, JSON.stringify(data.gift_urls || []), data.catalog_id || null,
       id, user.id
     ).run();
 
