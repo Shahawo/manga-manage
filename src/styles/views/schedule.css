@@ -5,23 +5,19 @@
 }
 
 .schedule-toolbar {
-    position: sticky;
-    top: 57px;            /* chiều cao navbar */
-    z-index: 50;
-    background: rgba(240, 253, 244, 0.96);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border-bottom: 1px solid var(--border);
+    position: relative;
+    border-top: 1px solid var(--border);
     padding: 0.65rem 1.5rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
     flex-wrap: wrap;
+    background: transparent;
 }
 
 [data-theme="dark"] .schedule-toolbar {
-    background: rgba(17, 28, 23, 0.96);
+    background: transparent;
 }
 
 .schedule-toolbar-left {
@@ -459,7 +455,6 @@
 
 @media (max-width: 768px) {
     .schedule-toolbar {
-        top: 97px;    /* mobile: navbar cao hơn do tabs xuống hàng 2 */
         padding: 0.5rem 1rem;
         gap: 0.5rem;
     }
