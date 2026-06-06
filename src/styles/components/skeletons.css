@@ -16,6 +16,17 @@
     100% { background-position: 200% 0; }
 }
 
+/* Skeleton shimmer when inside volume card (which has dark background) */
+.skeleton-volume-card .skeleton {
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.05) 25%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.05) 75%);
+    background-size: 200% 100%;
+}
+
+[data-theme='dark'] .skeleton-volume-card .skeleton {
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.02) 25%, rgba(255, 255, 255, 0.08) 50%, rgba(255, 255, 255, 0.02) 75%);
+    background-size: 200% 100%;
+}
+
 .skeleton-text {
     height: 1rem;
     margin-bottom: 0.5rem;
@@ -32,10 +43,11 @@
     display: flex;
     flex-direction: column;
     height: 100%;
-    background: transparent;
+    background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius);
     overflow: hidden;
+    box-shadow: var(--shadow-sm);
 }
 .skeleton-series-cover {
     width: 100%;
@@ -55,14 +67,16 @@
     height: auto;
 }
 .series-grid.list-view .skeleton-series-cover {
-    width: 60px;
-    height: 90px;
+    width: 64px;
+    height: 96px;
+    flex-shrink: 0;
     border-right: 1px solid var(--border);
 }
 @media (max-width: 768px) {
     .series-grid.list-view .skeleton-series-cover {
-        width: 52px;
-        height: 78px;
+        /* No override needed if actual CSS doesn't override */
+        width: 64px;
+        height: 96px;
     }
 }
 
@@ -71,10 +85,11 @@
     display: flex;
     flex-direction: column;
     height: 100%;
-    background: transparent;
+    background: var(--card-bg);
     border: 1px solid var(--card-border);
     border-radius: 12px;
     overflow: hidden;
+    box-shadow: var(--shadow-sm);
 }
 .skeleton-volume-cover {
     width: 100%;
@@ -97,5 +112,6 @@
 .detail-grid.list-view .skeleton-volume-cover {
     width: 48px;
     height: 72px;
+    flex-shrink: 0;
     border-right: 1px solid var(--border);
 }
