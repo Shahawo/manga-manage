@@ -19,7 +19,9 @@ app.post('/', async (c) => {
       httpMetadata: { contentType: file.type }
     });
 
-    const publicUrl = `${c.env.R2_PUBLIC_URL}/${path}`;
+    const reqUrl = new URL(c.req.url);
+    const baseUrl = c.env.R2_PUBLIC_URL ? c.env.R2_PUBLIC_URL : `${reqUrl.protocol}//${reqUrl.host}/api/storage`;
+    const publicUrl = `${baseUrl}/${path}`;
     return c.json({ data: { publicUrl } });
   } catch (err) {
     return c.json({ error: String(err) }, 500);
