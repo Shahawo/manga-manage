@@ -251,4 +251,63 @@ app.put('/series-metadata', requireAdmin, async (c) => {
   }
 });
 
+// --- STORAGE CLEANUP ---
+app.post('/storage/cleanup', requireAdmin, async (c) => {
+  try {
+    const usedKeys = new Set();
+    const extractKey = (url) => {
+      if (url && typeof url === 'string' && url.includes('/api/storage/')) {
+        usedKeys.add(url.split('/api/storage/')[1]);
+      }
+    };
+
+    const tables = [
+      { name: 'manga', cols: ['cover_url', 'gift_urls'] },
+      { name: 'catalog', cols: ['cover_url', 'gift_urls'] },
+      { name: 'pending_catalog', cols: ['cover_url', 'gift_urls'] },
+      { name: 'release_calendar', cols: ['cover_url'] }
+    ];
+
+    for (const table of tables) {
+      const res = await c.env.DB.prepare(`SELECT ${table.cols.join(', ')} FROM ${table.name}`).all();
+      for (const row of res.results) {
+        extractKey(row.cover_url);
+        if (table.cols.includes('gift_urls')) {
+          try {
+            const gifts = JSON.parse(row.gift_urls || '[]');
+            for (const g of gifts) extractKey(g);
+          } catch(e) {}
+        }
+      }
+    }
+
+    let cursor;
+    const r2Objects = [];
+    do {
+      const listed = await c.env.BUCKET.list({ cursor });
+      for (const object of listed.objects) {
+        r2Objects.push(object);
+      }
+      cursor = listed.truncated ? listed.cursor : undefined;
+    } while (cursor);
+
+    const now = new Date();
+    const deleted = [];
+    for (const object of r2Objects) {
+      if (!usedKeys.has(object.key)) {
+        // Only delete if older than 1 hour (3600000ms) to avoid race conditions with ongoing uploads
+        const ageMs = now - new Date(object.uploaded);
+        if (ageMs > 3600000) {
+          await c.env.BUCKET.delete(object.key);
+          deleted.push(object.key);
+        }
+      }
+    }
+
+    return c.json({ success: true, deleted_count: deleted.length, deleted_keys: deleted, total_objects: r2Objects.length });
+  } catch (err) {
+    return c.json({ error: String(err) }, 500);
+  }
+});
+
 export default app;
