@@ -1,7 +1,7 @@
 {
-  "name": "manga-supabase",
-  "version": "3.0.0",
-  "description": "Static manga and light novel collection manager powered by Vite and Supabase.",
+  "name": "manga-cloudflare",
+  "version": "3.1.0",
+  "description": "Static manga and light novel collection manager powered by Vite and Cloudflare (D1 & R2).",
   "main": "src/main.js",
   "scripts": {
     "dev": "vite",
