@@ -2,16 +2,16 @@
 .navbar {
     position: sticky;
     top: 0;
-    background: rgba(240, 253, 244, 0.92);
+    background: rgba(240, 253, 244, 0.75);
     /* #f0fdf4 = light green bg */
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
-    border-bottom: 1px solid var(--border);
     z-index: 100;
+    border-bottom: 1px solid var(--border);
 }
 
 [data-theme="dark"] .navbar {
-    background: rgba(17, 28, 23, 0.94);
+    background: rgba(17, 28, 23, 0.75);
 }
 
 .nav-container {
@@ -90,22 +90,15 @@
     color: var(--primary);
 }
 
-/* ── Search Row (dưới navbar) ─────────────────────────────────── */
+/* ── Search Row (nằm trong navbar) ─────────────────────────────────── */
 .nav-search-row {
-    background: rgba(240, 253, 244, 0.95);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border-bottom: 1px solid var(--border);
     padding: 0.5rem 1.5rem 0.65rem;
     display: flex;
     justify-content: center;
-    position: sticky;
-    top: 57px;   /* chiều cao navbar ≈ 57px */
-    z-index: 99;
+    border-top: 1px solid var(--border);
 }
 
 [data-theme="dark"] .nav-search-row {
-    background: rgba(17, 28, 23, 0.95);
 }
 
 .nav-search-row .search-bar {
