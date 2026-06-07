@@ -43,7 +43,7 @@ function setupTokenClient(clientId) {
           window.location.reload();
         } catch (e) {
           console.error(e);
-          alert("Lỗi đăng nhập: " + e.message);
+          await window.app.customAlert("Lỗi đăng nhập: " + e.message);
         }
       }
     },
@@ -66,7 +66,7 @@ export async function signInWithGoogle() {
   if (tokenClient) {
     tokenClient.requestAccessToken();
   } else {
-    alert(
+    await window.app.customAlert(
       "Google Auth chưa sẵn sàng hoặc thiếu cấu hình VITE_GOOGLE_CLIENT_ID.",
     );
   }
