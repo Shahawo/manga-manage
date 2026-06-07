@@ -31,7 +31,7 @@ export async function init() {
   } catch (err) {
     console.error("Auth error:", err);
     if (localStorage.getItem("authToken")) {
-      alert("Lỗi xác thực: " + err.message);
+      await window.app.customAlert("Lỗi xác thực: " + err.message);
       localStorage.removeItem("authToken");
     }
     store.user = null;
