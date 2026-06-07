@@ -142,3 +142,27 @@
     color: var(--text-muted);
     margin-bottom: 1.5rem;
 }
+
+/* Status Badge */
+.status-badge {
+    position: absolute;
+    padding: 2px 7px;
+    border-radius: 99px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    z-index: 10;
+    pointer-events: none;
+    white-space: nowrap;
+    display: inline-block;
+}
+
+.status-collecting { background: rgba(59, 130, 246, 0.85); color: #fff; -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+.status-completed { background: rgba(16, 185, 129, 0.85); color: #fff; -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+.status-dropped { background: rgba(239, 68, 68, 0.85); color: #fff; -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+
+[data-theme="dark"] .status-collecting { background: rgba(37, 99, 235, 0.85); color: #e0e7ff; }
+[data-theme="dark"] .status-completed { background: rgba(5, 150, 105, 0.85); color: #d1fae5; }
+[data-theme="dark"] .status-dropped { background: rgba(220, 38, 38, 0.85); color: #fee2e2; }
