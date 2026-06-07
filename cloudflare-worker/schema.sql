@@ -123,6 +123,7 @@ CREATE TABLE IF NOT EXISTS user_series_settings (
   user_id TEXT NOT NULL,
   series TEXT NOT NULL,
   target_volumes REAL NOT NULL DEFAULT 0,
+  status TEXT DEFAULT 'collecting',
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (user_id, series)
 );
