@@ -696,11 +696,11 @@ export function closeCatalogModal() {
   }
 }
 
-export function adminUpdateCatalog() {
+export async function adminUpdateCatalog() {
   if (
-    !confirm(
+    !(await window.app.customConfirm(
       "Lưu thay đổi vào Kho chung? Dữ liệu này sẽ áp dụng cho tất cả người dùng dùng tính năng Tự động điền.",
-    )
+    ))
   )
     return;
   const id = document.getElementById("edit-cat-id").value;
@@ -756,11 +756,11 @@ export function adminUpdateCatalog() {
   });
 }
 
-export function adminDeleteCatalog() {
+export async function adminDeleteCatalog() {
   if (
-    !confirm(
+    !(await window.app.customConfirm(
       "Xóa vĩnh viễn sách này khỏi Kho chung? Các sách của người dùng đã thêm sẽ không bị ảnh hưởng, nhưng họ không thể dùng Tự động điền sách này nữa.",
-    )
+    ))
   )
     return;
   const id = document.getElementById("edit-cat-id").value;
