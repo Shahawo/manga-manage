@@ -459,7 +459,7 @@ export async function _updatePendingDataBeforeAction(id) {
 }
 
 export async function adminApprove(id) {
-  if (!confirm("Duyệt và thêm sách này vào kho chung?")) return;
+  if (!(await window.app.customConfirm("Duyệt và thêm sách này vào kho chung?"))) return;
   window.app.showLoading("Đang xử lý...");
   try {
     const payload = await window.app._updatePendingDataBeforeAction(id);
@@ -481,7 +481,7 @@ export async function adminApprove(id) {
 }
 
 export async function adminReject(id) {
-  if (!confirm("Từ chối và xóa bản ghi này?")) return;
+  if (!(await window.app.customConfirm("Từ chối và xóa bản ghi này?"))) return;
   window.app._rememberPendingRejectedId(id);
   window.app.closePendingModal();
   window.app._removePendingFromUI(id);
@@ -492,7 +492,7 @@ export async function adminReject(id) {
 }
 
 export async function quickMerge(pendingId, catalogId) {
-  if (!confirm("Gộp ISBN vào bản ghi có sẵn này?")) return;
+  if (!(await window.app.customConfirm("Gộp ISBN vào bản ghi có sẵn này?"))) return;
   window.app.showLoading("Đang gộp...");
   try {
     const res = await window.app.apiFetch("/api/admin/pending/merge", {
