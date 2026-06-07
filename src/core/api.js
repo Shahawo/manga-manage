@@ -577,9 +577,9 @@ export function importData(event) {
         return;
       }
       if (
-        !confirm(
+        !(await window.app.customConfirm(
           `Chuẩn bị phục hồi ${importedData.length} cuốn.\n\n⚠️ Dữ liệu hiện tại sẽ bị GHI ĐÈ. Tiếp tục?`,
-        )
+        ))
       )
         return;
 
