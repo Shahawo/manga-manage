@@ -149,9 +149,9 @@ export async function deleteVolume(id) {
   const manga = store.data.find((m) => m.id === id);
   if (!manga) return;
   if (
-    !confirm(
+    !(await window.app.customConfirm(
       `Xóa "${manga.title} - Tập ${manga.volume}"?\nHành động này không thể hoàn tác.`,
-    )
+    ))
   )
     return;
 
@@ -179,3 +179,120 @@ export async function deleteVolume(id) {
     message: "Đã xóa khỏi kho. Đang đồng bộ với database...",
   });
 }
+
+// Custom Dialogs
+export function customAlert(message) {
+  return new Promise((resolve) => {
+    const modal = document.getElementById("system-dialog-modal");
+    const msgEl = document.getElementById("dialog-message");
+    const inputEl = document.getElementById("dialog-input");
+    const btnCancel = document.getElementById("dialog-btn-cancel");
+    const btnOk = document.getElementById("dialog-btn-ok");
+
+    msgEl.textContent = message;
+    inputEl.style.display = "none";
+    btnCancel.style.display = "none";
+
+    const handleOk = () => {
+      cleanup();
+      resolve();
+    };
+
+    const cleanup = () => {
+      modal.classList.add("hidden");
+      modal.classList.remove("show");
+      btnOk.removeEventListener("click", handleOk);
+    };
+
+    btnOk.addEventListener("click", handleOk);
+    modal.classList.remove("hidden");
+    modal.classList.add("show");
+    btnOk.focus();
+  });
+}
+
+export function customConfirm(message) {
+  return new Promise((resolve) => {
+    const modal = document.getElementById("system-dialog-modal");
+    const msgEl = document.getElementById("dialog-message");
+    const inputEl = document.getElementById("dialog-input");
+    const btnCancel = document.getElementById("dialog-btn-cancel");
+    const btnOk = document.getElementById("dialog-btn-ok");
+
+    msgEl.textContent = message;
+    inputEl.style.display = "none";
+    btnCancel.style.display = "flex";
+
+    const handleOk = () => {
+      cleanup();
+      resolve(true);
+    };
+    const handleCancel = () => {
+      cleanup();
+      resolve(false);
+    };
+
+    const cleanup = () => {
+      modal.classList.add("hidden");
+      modal.classList.remove("show");
+      btnOk.removeEventListener("click", handleOk);
+      btnCancel.removeEventListener("click", handleCancel);
+    };
+
+    btnOk.addEventListener("click", handleOk);
+    btnCancel.addEventListener("click", handleCancel);
+    modal.classList.remove("hidden");
+    modal.classList.add("show");
+    btnOk.focus();
+  });
+}
+
+export function customPrompt(message, defaultValue = "") {
+  return new Promise((resolve) => {
+    const modal = document.getElementById("system-dialog-modal");
+    const msgEl = document.getElementById("dialog-message");
+    const inputEl = document.getElementById("dialog-input");
+    const btnCancel = document.getElementById("dialog-btn-cancel");
+    const btnOk = document.getElementById("dialog-btn-ok");
+
+    msgEl.textContent = message;
+    inputEl.style.display = "block";
+    inputEl.value = defaultValue;
+    btnCancel.style.display = "flex";
+
+    const handleOk = () => {
+      const val = inputEl.value;
+      cleanup();
+      resolve(val);
+    };
+    const handleCancel = () => {
+      cleanup();
+      resolve(null);
+    };
+
+    const handleKeydown = (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        handleOk();
+      }
+    };
+
+    const cleanup = () => {
+      modal.classList.add("hidden");
+      modal.classList.remove("show");
+      btnOk.removeEventListener("click", handleOk);
+      btnCancel.removeEventListener("click", handleCancel);
+      inputEl.removeEventListener("keydown", handleKeydown);
+    };
+
+    btnOk.addEventListener("click", handleOk);
+    btnCancel.addEventListener("click", handleCancel);
+    inputEl.addEventListener("keydown", handleKeydown);
+    
+    modal.classList.remove("hidden");
+    modal.classList.add("show");
+    inputEl.focus();
+    inputEl.select();
+  });
+}
+
