@@ -164,7 +164,7 @@ export function renderFeedbackList(list) {
 }
 
 export async function deleteFeedback(id) {
-  if (!confirm("Xóa góp ý này?")) return;
+  if (!(await window.app.customConfirm("Xóa góp ý này?"))) return;
   try {
     const res = await window.app.withTimeout(
       () =>
@@ -186,9 +186,9 @@ export async function deleteFeedback(id) {
 
 export async function runStorageCleanup() {
   if (
-    !confirm(
+    !(await window.app.customConfirm(
       "Bạn có chắc chắn muốn dọn rác R2 không? Thao tác này sẽ quét toàn bộ ảnh trên R2 và xóa vĩnh viễn các ảnh không còn được sử dụng trong CSDL (chỉ xóa ảnh đã tải lên quá 1 giờ để tránh lỗi).",
-    )
+    ))
   )
     return;
 
