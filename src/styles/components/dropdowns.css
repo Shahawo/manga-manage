@@ -227,6 +227,38 @@
     background: rgba(248, 113, 113, 0.12) !important;
 }
 
+.udrop-info {
+    color: #3b82f6 !important;
+}
+
+.udrop-info svg {
+    color: #3b82f6 !important;
+}
+
+.udrop-info:hover {
+    background: #eff6ff !important;
+}
+
+[data-theme='dark'] .udrop-info:hover {
+    background: rgba(59, 130, 246, 0.12) !important;
+}
+
+.udrop-success {
+    color: #10b981 !important;
+}
+
+.udrop-success svg {
+    color: #10b981 !important;
+}
+
+.udrop-success:hover {
+    background: #ecfdf5 !important;
+}
+
+[data-theme='dark'] .udrop-success:hover {
+    background: rgba(16, 185, 129, 0.12) !important;
+}
+
 .udrop-toggle {
     width: 32px;
     height: 17px;
