@@ -7,6 +7,29 @@
                 <h2 id="detail-series-title">Tên Series</h2>
                 <div class="view-actions" style="display:flex; align-items:center; gap:0.5rem;">
                     <span id="detail-volume-count" class="badge">0 tập</span>
+                    <div class="custom-select-container" style="position: relative;">
+                        <button class="custom-select-btn" id="btn-edit-status" onclick="app.toggleCustomDropdown('status-dropdown')" title="Đổi trạng thái cá nhân" style="display: flex;">
+                            <i data-feather="activity" style="color:var(--text-muted); width: 16px; height: 16px;"></i>
+                            <span id="btn-status-text" style="font-size:0.85rem; font-weight: 500;">Trạng thái</span>
+                        </button>
+                        <ul class="user-dropdown custom-select-menu hidden" id="status-dropdown" style="min-width: 140px;">
+                            <li>
+                                <button class="udrop-item udrop-info" onclick="app.setSeriesStatus('collecting')" style="white-space: nowrap; border-left: 4px solid #3b82f6; border-radius: 0 6px 6px 0; margin-bottom: 2px;">
+                                    <span style="font-weight: 500;">On-going</span>
+                                </button>
+                            </li>
+                            <li>
+                                <button class="udrop-item udrop-success" onclick="app.setSeriesStatus('completed')" style="white-space: nowrap; border-left: 4px solid #10b981; border-radius: 0 6px 6px 0; margin-bottom: 2px;">
+                                    <span style="font-weight: 500;">Completed</span>
+                                </button>
+                            </li>
+                            <li>
+                                <button class="udrop-item udrop-danger" onclick="app.setSeriesStatus('dropped')" style="white-space: nowrap; border-left: 4px solid #ef4444; border-radius: 0 6px 6px 0;">
+                                    <span style="font-weight: 500;">Dropped</span>
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
                     <button class="custom-select-btn" id="btn-edit-target" title="Sửa mục tiêu cá nhân"
                         style="display: flex;">
                         <i data-feather="target" style="color:var(--text-muted); width: 16px; height: 16px;"></i>
