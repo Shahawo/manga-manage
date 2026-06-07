@@ -116,11 +116,15 @@ app.post('/settings', async (c) => {
   const user = c.get('user');
   const data = await c.req.json();
   try {
+    const statusVal = data.status !== undefined ? data.status : null;
     await c.env.DB.prepare(`
-      INSERT INTO user_series_settings (user_id, series, target_volumes, updated_at) 
-      VALUES (?, ?, ?, CURRENT_TIMESTAMP)
-      ON CONFLICT(user_id, series) DO UPDATE SET target_volumes=excluded.target_volumes, updated_at=CURRENT_TIMESTAMP
-    `).bind(user.id, data.series, data.target_volumes || 0).run();
+      INSERT INTO user_series_settings (user_id, series, target_volumes, status, updated_at) 
+      VALUES (?, ?, ?, COALESCE(?, 'collecting'), CURRENT_TIMESTAMP)
+      ON CONFLICT(user_id, series) DO UPDATE SET 
+        target_volumes = CASE WHEN ? IS NOT NULL THEN excluded.target_volumes ELSE user_series_settings.target_volumes END,
+        status = CASE WHEN ? IS NOT NULL THEN excluded.status ELSE user_series_settings.status END,
+        updated_at=CURRENT_TIMESTAMP
+    `).bind(user.id, data.series, data.target_volumes, statusVal, data.target_volumes, statusVal).run();
     return c.json({ success: true });
   } catch (err) {
     return c.json({ error: String(err) }, 500);
