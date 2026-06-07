@@ -4,8 +4,8 @@
     top: 0;
     background: rgba(240, 253, 244, 0.75);
     /* #f0fdf4 = light green bg */
-    backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
     z-index: 100;
     border-bottom: 1px solid var(--border);
 }
