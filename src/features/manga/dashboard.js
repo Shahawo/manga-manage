@@ -207,12 +207,20 @@ export function renderDashboard() {
 
     const percentColor = sg.percent < 100 ? "#ea580c" : "var(--primary)";
     const percentBg = sg.percent < 100 ? "#ffedd5" : "var(--border)";
+    const statusMap = {
+      'collecting': 'On-going',
+      'completed': 'Completed',
+      'dropped': 'Dropped'
+    };
+    const statusText = statusMap[sg.status] || 'On-going';
+    
     const card = document.createElement("div");
     card.className = "series-card";
     card.onclick = () => window.app.openSeriesDetail(sg.title);
     card.innerHTML = `
                 <div class="series-cover">
                     ${coverHtml}
+                    <span class="status-badge status-${sg.status || 'collecting'}" style="position: absolute; top: 8px; right: 8px; z-index: 10; display: inline-block;">${statusText}</span>
                 </div>
                 <div class="series-info">
                     <h3 class="series-title" title="${escapeHTML(sg.title)}">${escapeHTML(sg.title)}</h3>
@@ -357,6 +365,17 @@ export function renderSeriesDetail(seriesName, page = 1) {
     btnEditTarget.onclick = () => app.editSeriesTarget(seriesName);
   }
 
+  const btnStatusText = document.getElementById("btn-status-text");
+  if (btnStatusText) {
+    const currentStatus = (store.userSeriesSettings && store.userSeriesSettings[seriesName] && store.userSeriesSettings[seriesName].status) || 'collecting';
+    const statusMap = {
+      'collecting': 'On-going',
+      'completed': 'Completed',
+      'dropped': 'Dropped'
+    };
+    btnStatusText.textContent = statusMap[currentStatus] || 'Trạng thái';
+  }
+
   if (!store.detailViewMode)
     store.detailViewMode = localStorage.getItem("detailViewMode") || "grid";
 
@@ -461,7 +480,7 @@ export async function editSeriesTarget(seriesName) {
     currentTarget = store.userSeriesSettings[seriesName].target_volumes || 0;
   }
 
-  const input = prompt(
+  const input = await window.app.customPrompt(
     `Thiết lập tổng số tập mục tiêu cá nhân cho bộ "${seriesName}"\n\n(Nhập 0 để sử dụng số tập mặc định của Kho hệ thống)`,
     currentTarget,
   );
@@ -498,6 +517,40 @@ export async function editSeriesTarget(seriesName) {
     target_volumes: targetVol,
     updated_at: new Date().toISOString(),
   });
+}
+
+export async function setSeriesStatus(status) {
+  const seriesName = store.currentSeries;
+  if (!store.user) {
+    window.app.showToast("Bạn cần đăng nhập để đổi trạng thái!", "error");
+    return;
+  }
+  
+  let currentTarget = 0;
+  if (store.userSeriesSettings && store.userSeriesSettings[seriesName]) {
+    currentTarget = store.userSeriesSettings[seriesName].target_volumes || 0;
+  }
+
+  // Optimistic Update
+  if (!store.userSeriesSettings) store.userSeriesSettings = {};
+  if (!store.userSeriesSettings[seriesName]) {
+    store.userSeriesSettings[seriesName] = { user_id: store.user.id, series: seriesName, target_volumes: 0 };
+  }
+  store.userSeriesSettings[seriesName].status = status;
+
+  const dropdown = document.getElementById("status-dropdown");
+  if (dropdown) dropdown.classList.add("hidden");
+  
+  window.app.renderSeriesDetail(seriesName);
+
+  window.app.queueTask("UPSERT_TARGET", {
+    user_id: store.user.id,
+    series: seriesName,
+    target_volumes: currentTarget,
+    status: status,
+    updated_at: new Date().toISOString()
+  });
+  window.app.showToast("Đã cập nhật trạng thái");
 }
 
 export function getEditionBadge(title) {
