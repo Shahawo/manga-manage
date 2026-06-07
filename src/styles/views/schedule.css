@@ -419,6 +419,7 @@
     border-radius: 99px;
     padding: 0.4rem;
     box-shadow: var(--shadow-md);
+    -webkit-backdrop-filter: blur(8px);
     backdrop-filter: blur(8px);
 }
 
