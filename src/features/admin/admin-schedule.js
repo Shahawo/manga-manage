@@ -297,7 +297,7 @@ export async function saveAdminRelease() {
 }
 
 export async function deleteAdminRelease(id) {
-  if (!confirm("Xóa entry này khỏi lịch phát hành?")) return;
+  if (!(await window.app.customConfirm("Xóa entry này khỏi lịch phát hành?"))) return;
   try {
     window.app.showLoading("Đang xóa...");
     const res = await window.app.executeWithAbort(
