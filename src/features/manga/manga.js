@@ -136,6 +136,7 @@ export function getSeriesGroups() {
       }
 
       const percent = total > 0 ? Math.round((count / total) * 100) : 0;
+      const statusValue = (store.userSeriesSettings && store.userSeriesSettings[g.title] && store.userSeriesSettings[g.title].status) || 'collecting';
       return {
         title: g.title || "Không có tên Series",
         latestVolume: g.latestVolume,
@@ -143,6 +144,7 @@ export function getSeriesGroups() {
         maxVolume: g.maxVolume,
         total: total,
         percent: percent,
+        status: statusValue
       };
     })
     .sort((a, b) => {
