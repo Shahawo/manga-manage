@@ -139,6 +139,24 @@ export async function processSyncQueue() {
           15000,
           "Đồng bộ xóa Kho chung quá hạn",
         );
+      } else if (task.type === "TOGGLE_TRACK_SCHEDULE") {
+        await window.app.withTimeout(
+          window.app.apiFetch('/api/schedule/track', {
+            method: "POST",
+            body: JSON.stringify({ schedule_id: task.payload.schedule_id }),
+          }),
+          15000,
+          "Đồng bộ theo dõi lịch phát hành quá hạn",
+        );
+      } else if (task.type === "MARK_NOTIFICATION_READ") {
+        await window.app.withTimeout(
+          window.app.apiFetch('/api/notifications/read', {
+            method: "POST",
+            body: JSON.stringify({ schedule_id: task.payload.schedule_id, event_type: task.payload.event_type }),
+          }),
+          15000,
+          "Đồng bộ đọc thông báo quá hạn",
+        );
       }
 
       // Xử lý xong -> xóa khỏi queue
@@ -372,11 +390,19 @@ export async function loadData(forceSkeleton = false, retryCount = 0) {
     const userPromise = window.app
       .apiFetch("/api/library/settings", { signal: controller.signal })
       .catch(() => ({ data: [] }));
+    const trackPromise = store.user
+      ? window.app.apiFetch("/api/schedule/tracked", { signal: controller.signal }).catch(() => ({ data: [] }))
+      : Promise.resolve({ data: [] });
+    const notifPromise = store.user
+      ? window.app.apiFetch("/api/notifications", { signal: controller.signal }).catch(() => ({ data: [] }))
+      : Promise.resolve({ data: [] });
 
-    const [mangaRes, metaRes, userRes] = await Promise.all([
+    const [mangaRes, metaRes, userRes, trackRes, notifRes] = await Promise.all([
       mangaPromise,
       metaPromise,
       userPromise,
+      trackPromise,
+      notifPromise,
     ]);
     let fetchedData = mangaRes.data.map((m) => ({
       id: m.id,
@@ -398,6 +424,21 @@ export async function loadData(forceSkeleton = false, retryCount = 0) {
       catalogId: m.catalog_id,
       addedAt: m.added_at,
     }));
+
+    // Process extra tracking data
+    try {
+      store.seriesMetadata = {};
+      if (metaRes && metaRes.data)
+        metaRes.data.forEach((x) => (store.seriesMetadata[x.series] = x));
+      store.userSeriesSettings = {};
+      if (userRes && userRes.data)
+        userRes.data.forEach((x) => (store.userSeriesSettings[x.series] = x));
+      store.trackedSchedule = trackRes?.data || [];
+      store.notifications = notifRes?.data || [];
+      store.unreadCount = store.notifications.filter(n => !n.is_read).length;
+    } catch (err) {
+      console.warn("Không thể tải metadata tracking:", err);
+    }
 
     // ─── QUEUE-AWARE MERGE ────────────────────────────────────────────
     // Sau khi fetch từ server, áp dụng ngay các pending task còn trong
@@ -458,25 +499,37 @@ export async function loadData(forceSkeleton = false, retryCount = 0) {
           }
         } else if (task.type === "DELETE_MANGA") {
           fetchedData = fetchedData.filter((m) => m.id !== task.payload.id);
+        } else if (task.type === "TOGGLE_TRACK_SCHEDULE") {
+          // Initialize store.trackedSchedule if undefined to avoid errors
+          if (!store.trackedSchedule) store.trackedSchedule = [];
+          
+          const schedId = task.payload.schedule_id;
+          const isTracked = store.trackedSchedule.includes(schedId);
+          if (isTracked) {
+             store.trackedSchedule = store.trackedSchedule.filter(id => id !== schedId);
+          } else {
+             store.trackedSchedule.push(schedId);
+          }
+        } else if (task.type === "MARK_NOTIFICATION_READ") {
+          if (store.notifications) {
+            const notif = store.notifications.find(n => n.schedule_id === task.payload.schedule_id && n.event_type === task.payload.event_type);
+            if (notif && !notif.is_read) {
+              notif.is_read = 1;
+              store.unreadCount = Math.max(0, store.unreadCount - 1);
+            }
+          }
         }
       });
     }
     store.data = fetchedData;
 
-    // Process extra tracking data
-    try {
-      store.seriesMetadata = {};
-      if (metaRes && metaRes.data)
-        metaRes.data.forEach((x) => (store.seriesMetadata[x.series] = x));
-      store.userSeriesSettings = {};
-      if (userRes && userRes.data)
-        userRes.data.forEach((x) => (store.userSeriesSettings[x.series] = x));
-    } catch (err) {
-      console.warn("Không thể tải metadata tracking:", err);
-    }
-
     clearTimeout(timeoutId);
     window.app.renderDashboard();
+    
+    // Render notifications badge
+    if (window.app.updateNotificationBadge) {
+      window.app.updateNotificationBadge();
+    }
 
     // Nếu là admin, prefetch catalog ngầm để khi vào tab "Quản lý Kho" không phải chờ "Đang tải..."
     if (store.isAdmin && !store.fullCatalogCache && !store.isFetchingCatalog) {
