@@ -21,13 +21,21 @@ app.get('/', async (c) => {
 app.post('/admin/import', async (c) => {
   const data = await c.req.json();
   const id = crypto.randomUUID();
+  console.log('Incoming import data:', data.title, data.cover_url);
   try {
-    // Check for duplicate title, volume, and release date
+    // Check for duplicate title, volume, release date, and edition
     const { results } = await c.env.DB.prepare(
-      'SELECT id FROM release_calendar WHERE title = ? AND volume = ? AND release_date = ? LIMIT 1'
-    ).bind(data.title, data.volume || null, data.release_date).all();
+      'SELECT id, cover_url FROM release_calendar WHERE title = ? AND volume = ? AND release_date = ? AND edition = ? LIMIT 1'
+    ).bind(data.title, data.volume || null, data.release_date, data.edition || 'standard').all();
     
     if (results.length > 0) {
+      const existing = results[0];
+      // If the existing record doesn't have a cover, but new data does, update it!
+      if (data.cover_url && (!existing.cover_url || existing.cover_url.trim() === '')) {
+        await c.env.DB.prepare(
+          'UPDATE release_calendar SET cover_url = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
+        ).bind(data.cover_url, existing.id).run();
+      }
       return c.json({ error: 'duplicate' });
     }
 
