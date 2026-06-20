@@ -115,6 +115,25 @@
             <span class="btn-label">Thêm sách</span>
           </button>
 
+          <!-- Nút Thông báo -->
+          <div class="nav-notifications hidden" id="nav-notifications-wrapper" style="position: relative;">
+            <button class="btn btn-icon" id="btn-notifications" onclick="app.toggleNotifications()" aria-label="Thông báo">
+              <div style="position: relative; display: inline-flex;">
+                <i data-feather="bell" style="width: 28px; height: 28px;"></i>
+                <span id="notification-badge" class="badge-count hidden">0</span>
+              </div>
+            </button>
+            
+            <div id="notifications-dropdown" class="user-dropdown hidden" style="width: 380px; padding: 0;">
+              <div class="udrop-header" style="padding: 0.5rem 1rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0; font-size: 1.1rem; font-weight: 700;">Thông báo</h3>
+              </div>
+              <div id="notifications-list" class="notifications-list">
+                <!-- Notifications will be rendered here -->
+              </div>
+            </div>
+          </div>
+
           <!-- Avatar / Đăng nhập -->
           <div
             id="google-btn-wrapper"
