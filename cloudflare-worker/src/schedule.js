@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { requireAuth } from './auth.js';
 
 const app = new Hono();
 
@@ -13,6 +14,52 @@ app.get('/', async (c) => {
     
     const { results } = await stmt.all();
     return c.json({ data: results });
+  } catch (err) {
+    return c.json({ error: String(err) }, 500);
+  }
+});
+
+app.get('/tracked', requireAuth, async (c) => {
+  const user = c.get('user');
+  try {
+    const { results } = await c.env.DB.prepare(
+      'SELECT schedule_id FROM user_tracked_schedule WHERE user_id = ?'
+    ).bind(user.id).all();
+    const trackedIds = results.map(r => r.schedule_id);
+    return c.json({ data: trackedIds });
+  } catch (err) {
+    return c.json({ error: String(err) }, 500);
+  }
+});
+
+app.post('/track', requireAuth, async (c) => {
+  const user = c.get('user');
+  const body = await c.req.json();
+  const scheduleId = body.schedule_id;
+  
+  if (!scheduleId) return c.json({ error: 'Missing schedule_id' }, 400);
+
+  try {
+    // Check if currently tracked
+    const { results } = await c.env.DB.prepare(
+      'SELECT 1 FROM user_tracked_schedule WHERE user_id = ? AND schedule_id = ? LIMIT 1'
+    ).bind(user.id, scheduleId).all();
+
+    let isTracked = false;
+    if (results.length > 0) {
+      // Untrack
+      await c.env.DB.prepare(
+        'DELETE FROM user_tracked_schedule WHERE user_id = ? AND schedule_id = ?'
+      ).bind(user.id, scheduleId).run();
+    } else {
+      // Track
+      await c.env.DB.prepare(
+        'INSERT INTO user_tracked_schedule (user_id, schedule_id) VALUES (?, ?)'
+      ).bind(user.id, scheduleId).run();
+      isTracked = true;
+    }
+
+    return c.json({ success: true, isTracked });
   } catch (err) {
     return c.json({ error: String(err) }, 500);
   }
