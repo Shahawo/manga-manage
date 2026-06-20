@@ -35,7 +35,7 @@
     top: calc(100% + 8px);
     right: 0;
     min-width: 220px;
-    background: #f0fdf4;
+    background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 14px;
     box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
@@ -68,7 +68,7 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    background: #bbf7d0;
+    background: #f0fdf4;
 }
 
 [data-theme='dark'] .udrop-header {
@@ -338,4 +338,125 @@
 
 .toggle-switch.active .toggle-thumb {
     transform: translateX(20px);
+}
+
+/* --- NOTIFICATIONS DROPDOWN --- */
+.notifications-list {
+    max-height: 380px; /* Hiển thị khoảng 5 thông báo */
+    overflow-y: auto;
+    overflow-y: overlay; /* Cho phép scrollbar đè lên content, không làm giật layout */
+    overflow-x: hidden; /* Ẩn thanh cuộn ngang nếu có */
+    padding: 0;
+}
+
+/* Ẩn scrollbar mặc định, chỉ hiện khi hover */
+.notifications-list::-webkit-scrollbar {
+    width: 0px;
+    background: transparent;
+}
+.notifications-list:hover::-webkit-scrollbar {
+    width: 6px;
+}
+.notifications-list::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}
+[data-theme='dark'] .notifications-list::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.notif-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.2s;
+    width: 380px; /* Cố định width bằng đúng width của popup */
+    box-sizing: border-box; /* Đảm bảo padding không làm tràn width */
+}
+
+.notif-item img {
+    width: 44px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 4px;
+    background: var(--surface);
+    flex-shrink: 0;
+    border: 1px solid var(--border);
+}
+
+.notif-content {
+    flex: 1;
+    font-size: 0.85rem;
+    color: var(--text-main);
+    line-height: 1.4;
+}
+
+.notif-content p {
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.notif-item:hover {
+    background: rgba(0, 0, 0, 0.03);
+}
+
+[data-theme='dark'] .notif-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.notif-item.unread {
+    background: #eff6ff; /* Màu xanh nhạt nhẹ cho thông báo chưa đọc */
+}
+
+[data-theme='dark'] .notif-item.unread {
+    background: rgba(59, 130, 246, 0.1);
+}
+
+.notif-item.unread:hover {
+    background: #dbeafe;
+}
+
+[data-theme='dark'] .notif-item.unread:hover {
+    background: rgba(59, 130, 246, 0.15);
+}
+
+.notif-dot {
+    width: 10px;
+    height: 10px;
+    background: var(--primary);
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 0.25rem;
+}
+
+.badge-count {
+    position: absolute;
+    top: 0;
+    right: 0;
+    transform: translate(30%, -30%);
+    background: #e41e3f; /* Facebook red */
+    color: white;
+    font-size: 0.6rem;
+    font-weight: 700;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 4px;
+    border-radius: 99px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--surface);
+    pointer-events: none;
+    box-sizing: border-box;
+}
+
+[data-theme='dark'] .badge-count {
+    border-color: var(--surface);
 }
