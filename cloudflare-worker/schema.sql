@@ -148,3 +148,22 @@ CREATE TABLE IF NOT EXISTS release_calendar (
 CREATE INDEX IF NOT EXISTS idx_release_calendar_date ON release_calendar(release_date);
 CREATE INDEX IF NOT EXISTS idx_release_calendar_series ON release_calendar(series);
 CREATE INDEX IF NOT EXISTS idx_release_calendar_publisher ON release_calendar(publisher);
+
+-- 9. Tracked Schedule Items
+CREATE TABLE IF NOT EXISTS user_tracked_schedule (
+  user_id TEXT NOT NULL,
+  schedule_id TEXT NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (user_id, schedule_id)
+);
+
+-- 10. User Notification Reads
+CREATE TABLE IF NOT EXISTS user_notification_reads (
+  user_id TEXT NOT NULL,
+  schedule_id TEXT NOT NULL,
+  event_type TEXT NOT NULL, -- 'tomorrow', 'today', 'released'
+  read_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (user_id, schedule_id, event_type)
+);
+
+
