@@ -18,6 +18,7 @@ import * as adminSchedule from "./features/admin/admin-schedule.js";
 import * as stats from "./features/stats/stats.js";
 import * as schedule from "./features/schedule/schedule.js";
 import * as scheduleImport from "./features/schedule/schedule-import.js";
+import * as notifications from "./features/notifications/notifications.js";
 
 // Nạp HTML bằng Vite
 import adminHtml from "./views/admin.html?raw";
@@ -148,6 +149,7 @@ const app = {
   ...stats,
   ...schedule,
   ...scheduleImport,
+  ...notifications,
 };
 window.app = app;
 
