@@ -14,10 +14,14 @@ const TANA_API = "https://pb.tana.moe/api/collections/books/records";
 const TANA_IMAGE = "https://image.tana.moe";
 const EDITION_MAP = {
   "": "standard",
-  standard: "standard",
-  special: "special",
-  collector: "collector",
-  limited: "limited",
+  "standard": "standard",
+  "bản thường": "standard",
+  "special": "special",
+  "bản đặc biệt": "special",
+  "collector": "collector",
+  "bản sưu tầm": "collector",
+  "limited": "limited",
+  "bản giới hạn": "limited",
 };
 
 // Module state
@@ -192,8 +196,12 @@ export async function fetchFromTana() {
             (a, b) => a.priority - b.priority,
           )[0];
         }
-        if (asset && asset.image) {
-          cover_url = `https://pb.tana.moe/api/files/${asset.collectionId}/${asset.id}/${asset.image}`;
+        if (asset) {
+          if (asset.resizedImage && asset.resizedImage["480w"]) {
+            cover_url = `${TANA_IMAGE}/${asset.resizedImage["480w"]}`;
+          } else if (asset.image) {
+            cover_url = `https://pb.tana.moe/api/files/${asset.collectionId}/${asset.id}/${asset.image}`;
+          }
         }
 
         // Release date: strip time portion
@@ -396,7 +404,7 @@ async function _batchInsert(rows, source) {
   let skipCount = 0;
   let errorCount = 0;
 
-  // Insert in batches of 20 using admin_upsert_release RPC
+  // Insert in batches of 20
   for (const row of rows) {
     try {
       const res = await window.app.apiFetch("/api/schedule/admin/import", {
