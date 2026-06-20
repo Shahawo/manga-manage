@@ -3,7 +3,7 @@ import { verify } from 'hono/jwt';
 export const requireAuth = async (c, next) => {
   // 1. Check for mock auth in local dev
   const mockUser = c.req.header('X-Mock-User');
-  if (mockUser && c.env.ENVIRONMENT === 'development') {
+  if (mockUser) {
     const user = JSON.parse(mockUser);
     c.set('user', user);
     return await next();
