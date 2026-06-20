@@ -239,12 +239,26 @@ function _renderCard(book, userSeriesMap) {
     }
   }
 
+  // Tracking logic
+  let trackBtnHtml = "";
+  let cardClass = "schedule-card";
+  if (store.user && book.id) {
+    const isTracked = store.trackedSchedule && store.trackedSchedule.includes(book.id);
+    if (isTracked) cardClass += " schedule-card-tracked";
+    trackBtnHtml = `
+      <button class="schedule-track-btn ${isTracked ? 'active' : ''}" onclick="app.scheduleToggleTrack('${book.id}', this)" aria-label="Theo dõi" title="Theo dõi truyện này">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="${isTracked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-heart"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+      </button>
+    `;
+  }
+
   const imgPlaceholder = `data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7`;
 
   return `
-        <div class="schedule-card">
+        <div class="${cardClass}">
             <div class="schedule-card-cover-wrap">
                 ${badge}
+                ${trackBtnHtml}
                 <img class="schedule-card-cover lazy-img"
                      data-src="${_esc(coverSrc)}"
                      src="${imgPlaceholder}"
@@ -260,6 +274,38 @@ function _renderCard(book, userSeriesMap) {
                 ${buyNextBadge}
             </div>
         </div>`;
+}
+
+export function scheduleToggleTrack(scheduleId, btnEl) {
+  if (!store.user) return;
+  
+  const isCurrentlyTracked = btnEl.classList.contains('active');
+  const cardEl = btnEl.closest('.schedule-card');
+  
+  // Optimistic UI updates
+  if (isCurrentlyTracked) {
+    btnEl.classList.remove('active');
+    btnEl.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-heart"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>';
+    if (cardEl) cardEl.classList.remove('schedule-card-tracked');
+    
+    if (store.trackedSchedule) {
+      store.trackedSchedule = store.trackedSchedule.filter(id => id !== scheduleId);
+    }
+  } else {
+    btnEl.classList.add('active');
+    btnEl.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-heart"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>';
+    if (cardEl) cardEl.classList.add('schedule-card-tracked');
+    
+    if (!store.trackedSchedule) store.trackedSchedule = [];
+    store.trackedSchedule.push(scheduleId);
+    
+    // Add micro-animation effect
+    btnEl.classList.add('heart-bounce');
+    setTimeout(() => btnEl.classList.remove('heart-bounce'), 300);
+  }
+  
+  // Queue background sync
+  window.app.queueTask('TOGGLE_TRACK_SCHEDULE', { schedule_id: scheduleId }, null, { silent: true });
 }
 
 function _groupByDate(releases) {
