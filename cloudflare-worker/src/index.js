@@ -8,6 +8,7 @@ import uploadApp from './upload.js';
 import scheduleApp from './schedule.js';
 import adminApp from './admin.js';
 import feedbackApp from './feedback.js';
+import notificationsApp from './notifications.js';
 
 const app = new Hono();
 
@@ -26,6 +27,7 @@ app.route('/api/upload', uploadApp);
 app.route('/api/schedule', scheduleApp);
 app.route('/api/admin', adminApp);
 app.route('/api/feedback', feedbackApp);
+app.route('/api/notifications', notificationsApp);
 
 // R2 Storage file server
 app.get('/api/storage/:path{.*}', async (c) => {
