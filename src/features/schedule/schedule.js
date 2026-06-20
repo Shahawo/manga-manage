@@ -212,6 +212,15 @@ function _renderCard(book, userSeriesMap) {
     badge = `<span class="schedule-badge schedule-badge-edition">${editionLabel}</span>`;
   }
 
+  // Remove volume number from title
+  let displayTitle = book.series || book.title;
+  if (book.volume) {
+    const volStr = book.volume % 1 === 0 ? parseInt(book.volume) : book.volume;
+    const volRegex = new RegExp(`\\s*-?\\s*Tập\\s*${volStr}\\b.*$`, 'i');
+    displayTitle = displayTitle.replace(volRegex, '').trim();
+  }
+  if (!displayTitle) displayTitle = book.title;
+
   // Check if this is the "next volume" for logged-in user
   let buyNextBadge = "";
   if (
@@ -245,7 +254,7 @@ function _renderCard(book, userSeriesMap) {
                 ${!coverSrc ? `<div class="schedule-card-no-cover"><i data-feather="book" style="width:32px;height:32px;color:var(--text-muted);"></i><span>${_esc(book.title)}</span></div>` : ""}
             </div>
             <div class="schedule-card-info">
-                <div class="schedule-card-title" title="${_esc(book.title)}">${_esc(book.title)}</div>
+                <div class="schedule-card-title" title="${_esc(displayTitle)}">${_esc(displayTitle)}</div>
                 ${volText ? `<div class="schedule-card-vol">${volText}</div>` : ""}
                 ${priceText ? `<div class="schedule-card-price">${priceText}</div>` : ""}
                 ${buyNextBadge}
