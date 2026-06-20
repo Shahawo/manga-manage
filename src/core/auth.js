@@ -114,6 +114,9 @@ export function updateAuthUI() {
     if (window.app && window.app.updateNavTabs) {
         window.app.updateNavTabs(window.location.pathname);
     }
+    
+    const notifBtn = document.getElementById("nav-notifications-wrapper");
+    if (notifBtn) notifBtn.classList.remove("hidden");
 
     // Xử lý nút Admin
     const adminBtn = document.getElementById("admin-panel-btn");
@@ -130,6 +133,10 @@ export function updateAuthUI() {
     if (btnSignIn) btnSignIn.style.display = "block";
     if (userInfo) userInfo.classList.add("hidden");
     authElements.forEach((el) => el.classList.add("hidden"));
+    
+    const notifBtn = document.getElementById("nav-notifications-wrapper");
+    if (notifBtn) notifBtn.classList.add("hidden");
+    
     // Đăng xuất → về trang giới thiệu
     if (window.app && window.app.navigateTo) window.app.navigateTo("/about");
   }
