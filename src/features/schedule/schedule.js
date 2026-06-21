@@ -46,9 +46,9 @@ const WEEKDAYS_VI = [
 
 const EDITION_LABELS = {
   standard: null,
-  special: "Bản Đặc Biệt",
-  collector: "Bản Sưu Tầm",
-  limited: "Bản Giới Hạn",
+  special: { text: "Đặc Biệt", class: "badge-special" },
+  collector: { text: "Sưu Tầm", class: "badge-collector" },
+  limited: { text: "Giới Hạn", class: "badge-limited" },
 };
 
 // ─── Entry point ─────────────────────────────────────────────────────────────
@@ -98,7 +98,23 @@ async function _fetchAndRender(retryCount = 0) {
       return;
     }
 
-    calendarState.allReleases = data ?? [];
+    const rawData = data ?? [];
+    const dedupMap = new Map();
+    for (const r of rawData) {
+      // Use display title without "Tập NaN" for deduplication
+      let cleanTitle = r.title;
+      cleanTitle = cleanTitle.replace(/\s*-?\s*Tập\s*NaN\b/i, '').trim();
+      const key = `${r.release_date}|${cleanTitle}|${r.edition}`;
+      if (!dedupMap.has(key)) {
+        dedupMap.set(key, r);
+      } else {
+        const existing = dedupMap.get(key);
+        if (!existing.cover_url && r.cover_url) existing.cover_url = r.cover_url;
+        if (!existing.price && r.price) existing.price = r.price;
+        if (!existing.note && r.note) existing.note = r.note;
+      }
+    }
+    calendarState.allReleases = Array.from(dedupMap.values());
     calendarState.selectedPublishers = [];
 
     _buildPublisherFilter(calendarState.allReleases);
@@ -201,25 +217,26 @@ function _render(releases) {
 function _renderCard(book, userSeriesMap) {
   const coverSrc = book.cover_url || "";
   const priceText = book.price ? book.price.toLocaleString("vi-VN") + " đ" : "";
-  const volText = book.volume
+  const volText = (book.volume && !isNaN(book.volume))
     ? `Tập ${book.volume % 1 === 0 ? parseInt(book.volume) : book.volume}`
     : "";
   const editionLabel = EDITION_LABELS[book.edition] ?? null;
 
-  // "Mua tiếp" badge logic (only for logged-in users)
   let badge = "";
   if (editionLabel) {
-    badge = `<span class="schedule-badge schedule-badge-edition">${editionLabel}</span>`;
+    badge = `<span class="edition-badge ${editionLabel.class}">${editionLabel.text}</span>`;
   }
 
   // Remove volume number from title
   let displayTitle = book.series || book.title;
-  if (book.volume) {
+  if (book.volume && !isNaN(book.volume)) {
     const volStr = book.volume % 1 === 0 ? parseInt(book.volume) : book.volume;
     const volRegex = new RegExp(`\\s*-?\\s*Tập\\s*${volStr}\\b.*$`, 'i');
     displayTitle = displayTitle.replace(volRegex, '').trim();
   }
   if (!displayTitle) displayTitle = book.title;
+  // Fallback cleanup for old dirty data
+  displayTitle = displayTitle.replace(/\s*-?\s*Tập\s*NaN\b/i, '').trim();
 
   // Check if this is the "next volume" for logged-in user
   let buyNextBadge = "";
