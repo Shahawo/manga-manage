@@ -18,10 +18,13 @@ const EDITION_MAP = {
   "bản thường": "standard",
   "special": "special",
   "bản đặc biệt": "special",
+  "bản special": "special",
   "collector": "collector",
   "bản sưu tầm": "collector",
+  "bản collector": "collector",
   "limited": "limited",
   "bản giới hạn": "limited",
+  "bản limited": "limited",
 };
 
 // Module state
@@ -216,10 +219,15 @@ export async function fetchFromTana() {
         // Volume mapping (Tana stores volume as vol * 10000 to handle decimals)
         const volume = pub?.volume ? pub.volume / 10000 : null;
 
+        let tName = pub?.name ?? title?.name ?? "(Không có tên)";
+        tName = tName.replace(/\s*-?\s*Tập\s*NaN\b/i, '').trim();
+        let sName = title?.name ?? null;
+        if (sName) sName = sName.replace(/\s*-?\s*Tập\s*NaN\b/i, '').trim();
+
         return {
           release_date,
-          title: pub?.name ?? title?.name ?? "(Không có tên)",
-          series: title?.name ?? null,
+          title: tName,
+          series: sName,
           volume: volume,
           publisher: publisher?.name ?? release?.publisher ?? null,
           price: item.price ?? null,
@@ -230,6 +238,22 @@ export async function fetchFromTana() {
         };
       })
       .filter((r) => r.release_date); // drop rows without date
+
+    // Deduplicate identical releases
+    const dedupMap = new Map();
+    for (const r of _tanaRows) {
+      const key = `${r.release_date}|${r.title}|${r.edition}`;
+      if (!dedupMap.has(key)) {
+        dedupMap.set(key, r);
+      } else {
+        const existing = dedupMap.get(key);
+        // Prefer the one with cover_url or price
+        if (!existing.cover_url && r.cover_url) existing.cover_url = r.cover_url;
+        if (!existing.price && r.price) existing.price = r.price;
+        if (!existing.note && r.note) existing.note = r.note;
+      }
+    }
+    _tanaRows = Array.from(dedupMap.values());
 
     // Render preview
     previewTable.innerHTML = _tanaRows
