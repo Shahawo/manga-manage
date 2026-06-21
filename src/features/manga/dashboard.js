@@ -220,8 +220,8 @@ export function renderDashboard() {
     card.innerHTML = `
                 <div class="series-cover">
                     ${coverHtml}
-                    <span class="status-badge status-${sg.status || 'collecting'}" style="position: absolute; top: 8px; right: 8px; z-index: 10; display: inline-block;">${statusText}</span>
                 </div>
+                <span class="status-badge status-${sg.status || 'collecting'}">${statusText}</span>
                 <div class="series-info">
                     <h3 class="series-title" title="${escapeHTML(sg.title)}">${escapeHTML(sg.title)}</h3>
                     <div class="series-meta">
