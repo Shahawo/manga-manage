@@ -345,16 +345,7 @@
     margin-top: 0.3rem;
 }
 
-/* Edition badge — overlaid on card cover (top-right) */
-.schedule-card-cover-wrap .schedule-badge-edition {
-    position: absolute;
-    top: 6px;
-    right: 6px;
-    z-index: 2;
-    background: var(--primary);
-    color: white;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.25);
-}
+/* Removed .schedule-badge-edition as it is replaced by .edition-badge from forms.css */
 
 /* "Mua tiếp" badge — below card info */
 .schedule-badge-buynext {
