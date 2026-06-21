@@ -1,6 +1,6 @@
-# Kho Truyện (Manga-Supabase) 📚
+# Kho Truyện (Manga-Cloudflare) 📚
 
-**Kho Truyện** là ứng dụng web quản lý bộ sưu tập manga và light novel cá nhân (SPA - Single Page Application). Dự án được thiết kế với giao diện hiện đại, tốc độ cao nhờ sử dụng **Vite + Vanilla JavaScript**, kết hợp với sức mạnh của **Supabase** cho Authentication, Database, Storage và tính năng bảo mật Row Level Security (RLS).
+**Kho Truyện** là ứng dụng web quản lý bộ sưu tập manga và light novel cá nhân (SPA - Single Page Application). Dự án được thiết kế với giao diện hiện đại, tốc độ cao nhờ sử dụng **Vite + Vanilla JavaScript**, kết hợp với sức mạnh của hệ sinh thái **Cloudflare (Workers, D1, R2)** cho API, Database, và Storage.
 
 Đặc biệt, hệ thống đã được tái cấu trúc theo kiến trúc **Feature-driven**, đảm bảo khả năng mở rộng mạnh mẽ trong tương lai.
 
@@ -12,12 +12,12 @@
 - **Bảng Thống Kê (Dashboard Stats)**: Trực quan hóa dữ liệu qua biểu đồ `Chart.js`, cho biết số lượng sách đã mua, tổng chi tiêu theo tháng và tỷ lệ các nhà xuất bản.
 - **Kho Sách Chung (Catalog)**: Dữ liệu đám đông được người dùng đóng góp (`pending_catalog`) và phê duyệt bởi Admin, giúp mọi người không cần nhập liệu lại các cuốn sách đã có trên hệ thống.
 - **Chế độ Ngoại tuyến (Offline Queue)**: Trải nghiệm mượt mà không độ trễ nhờ cơ chế Optimistic UI kết hợp hàng đợi đồng bộ ngầm (Background Sync Queue) khi có mạng trở lại.
-- **Tối ưu Băng thông với CDN**: Tích hợp Cloudflare Worker Proxy để tải ảnh trực tiếp từ CDN, giảm tối đa Egress cost trên Supabase Storage.
+- **Tối ưu Băng thông với CDN**: Tải ảnh trực tiếp từ Cloudflare R2 qua Worker, đảm bảo tốc độ cực nhanh và chi phí bằng 0.
 
 ## 🛠 Công nghệ sử dụng
 
 - **Frontend**: Vite, Vanilla JavaScript (ES Modules), HTML5, CSS3 (Modular).
-- **Backend & Database**: Supabase (Auth, PostgreSQL, Storage, Edge Functions).
+- **Backend & Database**: Cloudflare Workers, D1 (SQLite), R2 (Object Storage).
 - **Thư viện bên thứ ba**:
   - Giao diện: `Feather Icons`, `Flatpickr`, `Chart.js`.
   - Xử lý Ảnh & Camera: `ZXing` (Barcode), `Tesseract.js` (OCR).
@@ -31,12 +31,11 @@ src/
  ├── features/             # Logic nghiệp vụ phân tách theo Domain (admin, manga, schedule, stats)
  ├── styles/               # CSS Modular được chia nhỏ (base, layout, components, views, variables)
  ├── views/                # Các HTML partials độc lập (dashboard.html, detail.html, admin.html, ...)
- ├── utils/                # Tiện ích chung (như escapeHTML chống XSS)
- ├── main.js               # Entry point - Kết nối và khởi tạo ứng dụng (`window.app`)
- └── supabase-client.js    # Khởi tạo Supabase client
-sql/
- ├── schema.sql            # Schema tổng hợp để thiết lập database Supabase
- └── ...                   # Các file migration
+ ├── utils/                # Tiện ích chung (như api-client.js, escapeHTML)
+ └── main.js               # Entry point - Kết nối và khởi tạo ứng dụng (`window.app`)
+cloudflare-worker/
+ ├── src/                  # Mã nguồn của Cloudflare Worker API
+ └── schema.sql            # Schema của D1 Database
 ```
 
 ## 🚀 Hướng dẫn Cài đặt & Chạy Local
@@ -51,8 +50,8 @@ pnpm install
 **2. Thiết lập Biến môi trường:**
 Tạo file `.env` dựa trên `.env.example`:
 ```env
-VITE_SUPABASE_URL=your_supabase_url_here
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key_here
+VITE_API_URL=your_cloudflare_worker_api_url_here
+VITE_GOOGLE_CLIENT_ID=your_google_client_id_here
 ```
 
 **3. Khởi động môi trường Dev:**
@@ -65,11 +64,11 @@ pnpm run dev
 pnpm run build
 ```
 
-## 🔒 Ghi chú Bảo mật & RLS
+## 🔒 Ghi chú Bảo mật
 
-- Toàn bộ thao tác CRUD tới Supabase từ client chỉ sử dụng khóa `ANON_KEY`. Hệ thống tuân thủ nghiêm ngặt **Row Level Security (RLS)** trên toàn bộ các bảng trong lược đồ `public`.
-- Các dữ liệu nhạy cảm hoặc mang tính cá nhân (thư viện người dùng) bị khóa chặt bằng định danh `auth.uid()`.
-- Quyền Admin được phân giải hoàn toàn qua hàm RPC `public.is_admin()`, chặn đứng khả năng lạm quyền từ phía Client.
+- Hệ thống xác thực bằng Google OAuth JWT token. Toàn bộ API gọi đến Worker đều phải kèm theo Bearer Token.
+- Dữ liệu người dùng được cách ly thông qua user_id.
+- Quyền Admin được xác thực trực tiếp trên Worker để chặn đứng khả năng lạm quyền từ phía Client.
 - Dữ liệu xuất ra màn hình (Render) luôn đi qua hàm chống XSS `escapeHTML()`.
 
 ---

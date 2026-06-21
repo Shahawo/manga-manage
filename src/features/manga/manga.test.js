@@ -10,9 +10,7 @@ vi.mock("../store.js", () => ({
   },
 }));
 
-vi.mock("../supabase-client.js", () => ({
-  supabase: {},
-}));
+
 
 import { store } from "../../store.js";
 
