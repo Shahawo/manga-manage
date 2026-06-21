@@ -342,7 +342,7 @@
 
 /* --- NOTIFICATIONS DROPDOWN --- */
 .notifications-list {
-    max-height: 380px; /* Hiển thị khoảng 5 thông báo */
+    max-height: 340px; /* Hiển thị khoảng 4 thông báo */
     overflow-y: auto;
     overflow-y: overlay; /* Cho phép scrollbar đè lên content, không làm giật layout */
     overflow-x: hidden; /* Ẩn thanh cuộn ngang nếu có */
