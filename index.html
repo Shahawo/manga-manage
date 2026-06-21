@@ -39,7 +39,7 @@
       href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"
     />
     <script src="https://cdn.jsdelivr.net/npm/flatpickr" defer></script>
-    <link rel="stylesheet" href="/styles.css?v=3.3.0" />
+    <link rel="stylesheet" href="/styles.css?v=3.4.0" />
   </head>
 
   <body>
@@ -127,6 +127,7 @@
             <div id="notifications-dropdown" class="user-dropdown hidden" style="width: 380px; padding: 0;">
               <div class="udrop-header" style="padding: 0.5rem 1rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
                 <h3 style="margin: 0; font-size: 1.1rem; font-weight: 700;">Thông báo</h3>
+                <button onclick="app.markAllNotificationsRead()" style="background:transparent;border:none;color:var(--primary);cursor:pointer;font-size:0.85rem;font-weight:500;padding:0;">Đọc tất cả</button>
               </div>
               <div id="notifications-list" class="notifications-list">
                 <!-- Notifications will be rendered here -->
