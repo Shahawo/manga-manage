@@ -103,3 +103,17 @@ export function markNotificationRead(schedule_id, event_type, el) {
   // Gửi vào hàng đợi đồng bộ ngầm
   queueTask("MARK_NOTIFICATION_READ", { schedule_id, event_type }, null, { silent: true });
 }
+
+export function markAllNotificationsRead() {
+  const unreadNotifs = (store.notifications || []).filter(n => !n.is_read);
+  if (unreadNotifs.length === 0) return;
+
+  unreadNotifs.forEach(n => {
+    n.is_read = 1;
+    queueTask("MARK_NOTIFICATION_READ", { schedule_id: n.schedule_id, event_type: n.event_type }, null, { silent: true });
+  });
+
+  store.unreadCount = 0;
+  updateNotificationBadge();
+  renderNotifications();
+}
