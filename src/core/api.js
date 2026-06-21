@@ -9,6 +9,16 @@ export function generateUUID() {
   });
 }
 
+export function getFullImageUrl(url) {
+  if (!url) return url;
+  // Xử lý các link tương đối từ worker trả về để hiển thị đúng trên mọi môi trường
+  if (url.startsWith('/api/storage/')) {
+    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8787';
+    return `${API_BASE_URL}${url}`;
+  }
+  return url;
+}
+
 export function queueTask(type, payload, optimisticId = null, options = {}) {
   const task = {
     id: window.app.generateUUID(), // ID của task
@@ -419,7 +429,7 @@ export async function loadData(forceSkeleton = false, retryCount = 0) {
       size: m.size,
       price: m.price,
       note: m.note,
-      coverUrl: m.cover_url,
+      coverUrl: getFullImageUrl(m.cover_url),
       giftUrls: m.gift_urls || [],
       catalogId: m.catalog_id,
       addedAt: m.added_at,
@@ -468,7 +478,7 @@ export async function loadData(forceSkeleton = false, retryCount = 0) {
               size: task.payload.size,
               price: task.payload.price,
               note: task.payload.note,
-              coverUrl: task.payload.cover_url,
+              coverUrl: getFullImageUrl(task.payload.cover_url),
               giftUrls: task.payload.gift_urls || [],
               catalogId: task.payload.catalog_id,
               addedAt: task.payload.added_at || new Date().toISOString(),
@@ -493,7 +503,7 @@ export async function loadData(forceSkeleton = false, retryCount = 0) {
               size: task.payload.size,
               price: task.payload.price,
               note: task.payload.note,
-              coverUrl: task.payload.cover_url,
+              coverUrl: getFullImageUrl(task.payload.cover_url),
               giftUrls: task.payload.gift_urls || [],
             };
           }
