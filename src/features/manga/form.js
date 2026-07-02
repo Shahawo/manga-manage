@@ -609,6 +609,24 @@ export async function autoFill() {
   }
 }
 
+export function updateTitleFromEditionAndVolume() {
+  const series = document.getElementById("series") ? document.getElementById("series").value.trim() : "";
+  const volume = document.getElementById("volume") ? document.getElementById("volume").value.trim() : "";
+  const edition = document.getElementById("edition") ? document.getElementById("edition").value : "Bản Thường";
+  
+  if (!series) return;
+  
+  let newTitle = series;
+  if (volume) {
+    newTitle += ` - Tập ${volume}`;
+  }
+  if (edition && edition !== "Bản Thường") {
+    newTitle += ` - ${edition}`;
+  }
+  
+  document.getElementById("title").value = newTitle;
+}
+
 export function setupSearch() {
   const input = document.getElementById("searchInput");
   input.addEventListener("input", (e) => {
