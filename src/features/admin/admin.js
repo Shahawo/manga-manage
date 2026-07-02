@@ -10,6 +10,9 @@ export function loadAdminPanel() {
 }
 
 export function switchAdminTab(tabId) {
+  const adminTabs = document.querySelector(".admin-tabs");
+  if (adminTabs) adminTabs.style.display = "flex";
+
   document.querySelectorAll(".admin-tab-btn").forEach((btn) => {
     btn.classList.toggle(
       "active",
