@@ -59,14 +59,19 @@ export async function fetchPendingBooks() {
     const rejectedIds = new Set(store.pendingRejectedIds || []);
     const list = data
       .filter((p) => !rejectedIds.has(p.id))
-      .map((p) => ({
-        ...p,
-        coverUrl: p.cover_url,
-        giftUrls: p.gift_urls,
-        publishDate: p.publish_date,
-        scannedIsbn: p.scanned_isbn,
-        submittedName: p.submitted_name,
-      }));
+      .map((p) => {
+        let parsedGifts = [];
+        try { parsedGifts = JSON.parse(p.gift_urls || '[]'); } catch(e) {}
+        if (!Array.isArray(parsedGifts)) parsedGifts = [];
+        return {
+          ...p,
+          coverUrl: p.cover_url,
+          giftUrls: parsedGifts,
+          publishDate: p.publish_date,
+          scannedIsbn: p.scanned_isbn,
+          submittedName: p.submitted_name,
+        };
+      });
     store.adminCache = list;
     window.app.renderPendingList(list);
 
@@ -182,7 +187,8 @@ export async function openPendingModal(id) {
   }
 
   const coverUrl = p.coverUrl || "";
-  const datalistOptions = store.data
+  const safeData = store.data || [];
+  const datalistOptions = safeData
     .map(
       (m) =>
         `<option value="${m.id}">${m.series} — ${m.title} (Tập ${m.volume || 0})</option>`,
@@ -448,7 +454,7 @@ export async function _updatePendingDataBeforeAction(id) {
     price: parseInt(document.getElementById(`edit-price-${id}`).value) || 0,
     cover_url: document.getElementById(`pending-coverUrl`).value,
     note: document.getElementById(`edit-note-${id}`).value,
-    gift_urls: giftUrls,
+    gift_urls: JSON.stringify(giftUrls),
   };
   const res = await window.app.apiFetch(`/api/admin/pending/${id}`, {
     method: "PUT",
