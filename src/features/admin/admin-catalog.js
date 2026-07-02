@@ -144,7 +144,12 @@ export async function searchAdminCatalog(page = 1) {
 export function _renderCatalogVolumeResults(list, count = 0, page = 1) {
   const container = document.getElementById("admin-catalog-list");
   const pagination = document.getElementById("admin-catalog-pagination");
+  const detailView = document.getElementById("admin-series-detail-view");
   if (!container) return;
+  
+  container.style.display = "block";
+  if (detailView) detailView.style.display = "none";
+
   container.innerHTML = "";
   if (pagination) pagination.innerHTML = "";
 
@@ -758,8 +763,10 @@ export async function adminUpdateCatalog() {
   window.app.queueTask("ADMIN_UPDATE_CATALOG", { id, data: payload }, null, {
     message: "Cập nhật Kho chung thành công!",
     nonBlocking: false,
-    silent: false,
+    silent: true,
   });
+  
+  window.app.showToast("Cập nhật Kho chung thành công!", "success");
 }
 
 export async function adminDeleteCatalog() {
@@ -783,6 +790,8 @@ export async function adminDeleteCatalog() {
   window.app.queueTask("ADMIN_DELETE_CATALOG", { id }, null, {
     message: "Đã xóa sách khỏi Kho chung!",
     nonBlocking: false,
-    silent: false,
+    silent: true,
   });
+  
+  window.app.showToast("Đã xóa sách khỏi Kho chung!", "success");
 }
