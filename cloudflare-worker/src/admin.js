@@ -105,6 +105,19 @@ app.put('/catalog/:id', requireAdmin, async (c) => {
   }
 });
 
+app.delete('/catalog/:id', requireAdmin, async (c) => {
+  const id = c.req.param('id');
+  try {
+    const result = await c.env.DB.prepare('DELETE FROM catalog WHERE id = ?').bind(id).run();
+    if (result.meta.changes === 0) {
+      return c.json({ error: 'Catalog not found' }, 404);
+    }
+    return c.json({ success: true });
+  } catch (err) {
+    return c.json({ error: String(err) }, 500);
+  }
+});
+
 // --- FEEDBACK ---
 app.get('/feedback', requireAdmin, async (c) => {
   try {
