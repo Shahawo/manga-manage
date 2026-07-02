@@ -19,21 +19,54 @@ app.get('/check', requireAdmin, (c) => {
   return c.json({ isAdmin: true });
 });
 
+// Auto migrate endpoint
+app.get('/migrate', async (c) => {
+  try {
+    // Attempt to add missing columns to pending_catalog
+    try { await c.env.DB.prepare('ALTER TABLE pending_catalog ADD COLUMN status TEXT DEFAULT "pending"').run(); } catch(e) {}
+    try { await c.env.DB.prepare('ALTER TABLE pending_catalog ADD COLUMN reject_note TEXT').run(); } catch(e) {}
+    return c.json({ success: true, message: 'Migration complete' });
+  } catch (err) {
+    return c.json({ error: String(err) }, 500);
+  }
+});
+
 // Create pending contribution
 app.post('/pending', async (c) => {
   const data = await c.req.json();
-  const id = crypto.randomUUID();
+  const id = data.id || crypto.randomUUID();
   try {
     await c.env.DB.prepare(`
       INSERT INTO pending_catalog (
         id, submitted_by, submitted_name, submitted_email, linked_manga_id, 
         catalog_id, scanned_isbn, series, title, volume, isbn, author, 
-        translator, publisher, distributor, publish_date, pages, size, price, cover_url, note, gift_urls
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        translator, publisher, distributor, publish_date, pages, size, price, cover_url, note, gift_urls, status, created_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(
-      id, data.submitted_by, data.submitted_name, data.submitted_email, data.linked_manga_id, 
-      data.catalog_id, data.scanned_isbn, data.series, data.title, data.volume || null, data.isbn, data.author, 
-      data.translator, data.publisher, data.distributor, data.publish_date, data.pages, data.size, data.price, data.cover_url, data.note, JSON.stringify(data.gift_urls || [])
+      id, 
+      data.submitted_by ?? null, 
+      data.submitted_name ?? null, 
+      data.submitted_email ?? null, 
+      data.linked_manga_id ?? null, 
+      data.catalog_id ?? null, 
+      data.scanned_isbn ?? null, 
+      data.series ?? null, 
+      data.title ?? null, 
+      data.volume ?? null, 
+      data.isbn ?? null, 
+      data.author ?? null, 
+      data.translator ?? null, 
+      data.publisher ?? null, 
+      data.distributor ?? null, 
+      data.publish_date ?? null, 
+      data.pages ?? null, 
+      data.size ?? null, 
+      data.price ?? null, 
+      data.cover_url ?? null, 
+      data.note ?? null, 
+      JSON.stringify(data.gift_urls || []),
+      'pending', 
+      data.created_at ?? null
     ).run();
     return c.json({ success: true, id });
   } catch (err) {
@@ -134,7 +167,7 @@ app.delete('/schedule/:id', requireAdmin, async (c) => {
 // --- PENDING ---
 app.get('/pending', requireAdmin, async (c) => {
   try {
-    const { results } = await c.env.DB.prepare('SELECT * FROM pending_catalog ORDER BY created_at DESC').all();
+    const { results } = await c.env.DB.prepare('SELECT * FROM pending_catalog WHERE status = "pending" OR status IS NULL ORDER BY created_at DESC').all();
     return c.json({ data: results });
   } catch (err) {
     return c.json({ error: String(err) }, 500);
