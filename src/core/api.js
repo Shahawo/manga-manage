@@ -34,13 +34,15 @@ export function queueTask(type, payload, optimisticId = null, options = {}) {
   store.syncQueue.push(task);
   localStorage.setItem("manga_sync_queue", JSON.stringify(store.syncQueue));
 
-  // Hiện thông báo non-blocking
+  // Ẩn thông báo lưu offline để tránh làm phiền UX (chỉ báo khi đồng bộ hoàn tất)
+  /*
   if (!options.silent) {
     window.app.showToast(
       options.message || "Đã lưu offline. Đang đồng bộ ngầm...",
       "success",
     );
   }
+  */
 
   // Kích hoạt tiến trình ngầm ngay lập tức
   setTimeout(() => window.app.processSyncQueue(), 500);
@@ -260,7 +262,7 @@ export async function processSyncQueue() {
     // vì user đã thấy sách rồi (queue-aware merge trong loadData đã hiển thị).
     // Chỉ hiện toast cho các sync do user thực hiện sau đó.
     if (!window.app._isPageLoad) {
-      window.app.showToast("Đồng bộ dữ liệu ngầm hoàn tất!", "success");
+      window.app.showToast("Đồng bộ dữ liệu hoàn tất!", "success");
     }
     window.app._isPageLoad = false; // Reset flag sau lần sync đầu
 
@@ -514,13 +516,13 @@ export async function loadData(forceSkeleton = false, retryCount = 0) {
         } else if (task.type === "TOGGLE_TRACK_SCHEDULE") {
           // Initialize store.trackedSchedule if undefined to avoid errors
           if (!store.trackedSchedule) store.trackedSchedule = [];
-          
+
           const schedId = task.payload.schedule_id;
           const isTracked = store.trackedSchedule.includes(schedId);
           if (isTracked) {
-             store.trackedSchedule = store.trackedSchedule.filter(id => id !== schedId);
+            store.trackedSchedule = store.trackedSchedule.filter(id => id !== schedId);
           } else {
-             store.trackedSchedule.push(schedId);
+            store.trackedSchedule.push(schedId);
           }
         } else if (task.type === "MARK_NOTIFICATION_READ") {
           if (store.notifications) {
@@ -537,7 +539,7 @@ export async function loadData(forceSkeleton = false, retryCount = 0) {
 
     clearTimeout(timeoutId);
     window.app.renderDashboard();
-    
+
     // Render notifications badge
     if (window.app.updateNotificationBadge) {
       window.app.updateNotificationBadge();
