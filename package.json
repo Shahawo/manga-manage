@@ -1,6 +1,6 @@
 {
   "name": "manga-cloudflare",
-  "version": "3.4.1",
+  "version": "3.5.0",
   "description": "Static manga and light novel collection manager powered by Vite and Cloudflare (D1 & R2).",
   "main": "src/main.js",
   "scripts": {
