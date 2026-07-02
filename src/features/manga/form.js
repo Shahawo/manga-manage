@@ -429,6 +429,11 @@ export async function handleFormSubmit(e) {
 
     // --- Optimistic UI Update ---
     let optimisticId = editId || window.app.generateUUID();
+    
+    // Generate local time for database
+    const now = new Date();
+    const tzOffset = now.getTimezoneOffset() * 60000;
+    const localTime = new Date(now - tzOffset).toISOString().slice(0, 19).replace('T', ' ');
 
     const localManga = {
       id: optimisticId,
@@ -448,7 +453,7 @@ export async function handleFormSubmit(e) {
       coverUrl: mangaData.cover_url,
       giftUrls: mangaData.gift_urls || [],
       catalogId: mangaData.catalog_id,
-      addedAt: new Date().toISOString(),
+      addedAt: localTime,
     };
 
     if (editId) {
@@ -458,17 +463,18 @@ export async function handleFormSubmit(e) {
         localManga.addedAt = store.data[idx].addedAt;
         store.data[idx] = localManga;
       }
-      window.app.queueTask("UPDATE_MANGA", { ...mangaData, id: editId });
+      window.app.queueTask("UPDATE_MANGA", { ...mangaData, id: editId, updated_at: localTime });
     } else {
       store.data.unshift(localManga);
       // Gán luôn ID thật (vì DB xài uuid default gen_random_uuid() nên gửi lên ID luôn)
-      const insertData = { ...mangaData, id: optimisticId };
+      const insertData = { ...mangaData, id: optimisticId, added_at: localTime, updated_at: localTime };
       window.app.queueTask("INSERT_MANGA", insertData, optimisticId);
 
       if (!mangaData.catalog_id) {
         window.app.queueTask(
           "INSERT_PENDING",
           {
+            id: window.app.generateUUID(),
             submitted_by: store.user.id,
             submitted_name:
               store.user.user_metadata?.full_name ||
@@ -492,6 +498,7 @@ export async function handleFormSubmit(e) {
             cover_url: mangaData.cover_url,
             note: mangaData.note,
             gift_urls: mangaData.gift_urls,
+            created_at: localTime,
           },
           null,
           { silent: true, nonBlocking: true },
