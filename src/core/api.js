@@ -182,10 +182,11 @@ export async function processSyncQueue() {
     } catch (err) {
       console.warn("[Sync Queue] Lỗi đồng bộ task:", task.id, err);
 
-      // Tránh kẹt hàng đợi (Head-of-Line Blocking):
-      if (err && err.code) {
+      // Tránh kẹt hàng đợi (Head-of-Line Blocking) với lỗi CSDL hoặc lỗi HTTP nghiêm trọng:
+      const isFatalHttpError = err && (err.status === 400 || err.status === 401 || err.status === 403 || err.status === 404);
+      if ((err && err.code) || isFatalHttpError) {
         console.error(
-          `[Sync Queue] Lỗi CSDL (${err.code}), loại bỏ task để giải phóng hàng đợi:`,
+          `[Sync Queue] Lỗi Fatal (${err.code || err.status}), loại bỏ task để giải phóng hàng đợi:`,
           err,
         );
         store.syncQueue.shift();
@@ -194,7 +195,7 @@ export async function processSyncQueue() {
           JSON.stringify(store.syncQueue),
         );
 
-        if (err.code === "23505") {
+        if (err && err.code === "23505") {
           hasSuccess = true;
         } else if (!task.silent) {
           window.app.showToast(`Lỗi dữ liệu: ${err.message}`, "error");
