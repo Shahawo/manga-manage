@@ -13,17 +13,15 @@ export async function apiFetch(endpoint, options = {}) {
     headers.set('Content-Type', 'application/json');
   }
 
-  // For local development mock auth
-  if (import.meta.env.DEV) {
+  const authToken = localStorage.getItem('authToken');
+  if (authToken) {
+    headers.set('Authorization', `Bearer ${authToken}`);
+  } else if (import.meta.env.DEV) {
+    // Chỉ sử dụng Mock Auth ở Local nếu người dùng chưa đăng nhập tài khoản thật
     const mockUser = localStorage.getItem('mockUser');
     if (mockUser) {
       headers.set('X-Mock-User', mockUser);
     }
-  }
-
-  const authToken = localStorage.getItem('authToken');
-  if (authToken) {
-    headers.set('Authorization', `Bearer ${authToken}`);
   }
 
   const fetchOptions = {
