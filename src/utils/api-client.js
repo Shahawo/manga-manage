@@ -29,7 +29,8 @@ export async function apiFetch(endpoint, options = {}) {
   const fetchOptions = {
     ...options,
     headers,
-    credentials: 'omit' // No longer need 'include' since we use Bearer token
+    credentials: 'omit', // No longer need 'include' since we use Bearer token
+    cache: 'no-store'
   };
 
   const response = await fetch(url, fetchOptions);
