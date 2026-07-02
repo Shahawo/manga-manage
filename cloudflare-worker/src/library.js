@@ -29,16 +29,16 @@ app.get('/', async (c) => {
 app.post('/', async (c) => {
   const user = c.get('user');
   const data = await c.req.json();
-  const id = crypto.randomUUID();
+  const id = data.id || crypto.randomUUID();
   
   try {
     await c.env.DB.prepare(`
-      INSERT INTO manga (id, user_id, series, title, volume, isbn, author, translator, publisher, distributor, publish_date, pages, size, price, note, cover_url, gift_urls, catalog_id)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO manga (id, user_id, series, title, volume, isbn, author, translator, publisher, distributor, publish_date, pages, size, price, note, cover_url, gift_urls, catalog_id, added_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, COALESCE(?, CURRENT_TIMESTAMP), COALESCE(?, CURRENT_TIMESTAMP))
     `).bind(
-      id, user.id, data.series, data.title, data.volume || null, data.isbn, data.author, data.translator,
-      data.publisher || null, data.distributor || null, data.publish_date || null, data.pages || null, data.size || null, data.price || null,
-      data.note || null, data.cover_url || null, JSON.stringify(data.gift_urls || []), data.catalog_id || null
+      id, user.id, data.series ?? null, data.title ?? null, data.volume ?? null, data.isbn ?? null, data.author ?? null, data.translator ?? null,
+      data.publisher ?? null, data.distributor ?? null, data.publish_date ?? null, data.pages ?? null, data.size ?? null, data.price ?? null,
+      data.note ?? null, data.cover_url ?? null, JSON.stringify(data.gift_urls || []), data.catalog_id ?? null, data.added_at ?? null, data.updated_at ?? null
     ).run();
 
     return c.json({ success: true, id });
@@ -57,12 +57,12 @@ app.put('/:id', async (c) => {
     const updateResult = await c.env.DB.prepare(`
       UPDATE manga SET 
         series=?, title=?, volume=?, isbn=?, author=?, translator=?, publisher=?, distributor=?, 
-        publish_date=?, pages=?, size=?, price=?, note=?, cover_url=?, gift_urls=?, catalog_id=?, updated_at=CURRENT_TIMESTAMP
+        publish_date=?, pages=?, size=?, price=?, note=?, cover_url=?, gift_urls=?, catalog_id=?, updated_at=COALESCE(?, CURRENT_TIMESTAMP)
       WHERE id=? AND user_id=?
     `).bind(
-      data.series, data.title, data.volume || null, data.isbn, data.author, data.translator,
-      data.publisher || null, data.distributor || null, data.publish_date || null, data.pages || null, data.size || null, data.price || null,
-      data.note || null, data.cover_url || null, JSON.stringify(data.gift_urls || []), data.catalog_id || null,
+      data.series ?? null, data.title ?? null, data.volume ?? null, data.isbn ?? null, data.author ?? null, data.translator ?? null,
+      data.publisher ?? null, data.distributor ?? null, data.publish_date ?? null, data.pages ?? null, data.size ?? null, data.price ?? null,
+      data.note ?? null, data.cover_url ?? null, JSON.stringify(data.gift_urls || []), data.catalog_id ?? null, data.updated_at ?? null,
       id, user.id
     ).run();
 
