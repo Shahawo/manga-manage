@@ -747,7 +747,13 @@ export async function adminUpdateCatalog() {
   }
 
   window.app.closeCatalogModal();
-  window.app.searchAdminCatalog();
+  
+  if (window.app._adminCurrentSeries) {
+    window.app.renderAdminSeriesDetail(window.app._adminCurrentSeries, 1);
+    window.app.searchAdminCatalog(1);
+  } else {
+    window.app.searchAdminCatalog();
+  }
 
   window.app.queueTask("ADMIN_UPDATE_CATALOG", { id, data: payload }, null, {
     message: "Cập nhật Kho chung thành công!",
