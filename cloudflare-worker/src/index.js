@@ -52,6 +52,18 @@ app.get('/api', (c) => {
   return c.json({ message: 'Hello from Manga Cloudflare Worker API' });
 });
 
+// Auto migrate endpoint (unprotected)
+app.get('/api/migrate', async (c) => {
+  try {
+    let msg = [];
+    try { await c.env.DB.prepare('ALTER TABLE pending_catalog ADD COLUMN status TEXT DEFAULT "pending"').run(); msg.push('added status'); } catch(e) {}
+    try { await c.env.DB.prepare('ALTER TABLE pending_catalog ADD COLUMN reject_note TEXT').run(); msg.push('added reject_note'); } catch(e) {}
+    return c.json({ success: true, message: 'Migration complete', actions: msg });
+  } catch (err) {
+    return c.json({ error: String(err) }, 500);
+  }
+});
+
 // Google Auth Endpoint
 app.post('/api/auth/google', async (c) => {
   try {
