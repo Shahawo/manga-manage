@@ -252,7 +252,22 @@ app.get('/catalog', requireAdmin, async (c) => {
   try {
     const { results } = await c.env.DB.prepare('SELECT * FROM catalog ORDER BY created_at DESC LIMIT ? OFFSET ?').bind(limit, offset).all();
     const { results: countRes } = await c.env.DB.prepare('SELECT COUNT(*) as c FROM catalog').all();
-    return c.json({ data: results, count: countRes[0].c });
+    
+    const parsedResults = results.map(row => {
+      let parsedIsbns = [];
+      let parsedGifts = [];
+      try { parsedIsbns = JSON.parse(row.isbns || '[]'); } catch (e) {}
+      try { parsedGifts = JSON.parse(row.gift_urls || '[]'); } catch (e) {}
+      if (!Array.isArray(parsedIsbns)) parsedIsbns = [];
+      if (!Array.isArray(parsedGifts)) parsedGifts = [];
+      return {
+        ...row,
+        isbns: parsedIsbns,
+        gift_urls: parsedGifts
+      };
+    });
+    
+    return c.json({ data: parsedResults, count: countRes[0].c });
   } catch (err) {
     return c.json({ error: String(err) }, 500);
   }
