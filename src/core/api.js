@@ -274,6 +274,8 @@ export async function processSyncQueue() {
           window.app.openSeriesDetail(savedSeries);
         } else if (savedView === "admin") {
           window.app.fetchPendingBooks();
+        } else if (store.isAdmin && window.app.fetchPendingBooks) {
+          window.app.fetchPendingBooks(); // Cập nhật badge cho admin
         }
       } catch (e) {
         console.warn("[Auto-reconcile] Không thể tải lại dữ liệu:", e);
