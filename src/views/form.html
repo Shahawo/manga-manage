@@ -17,7 +17,7 @@
                                 <label for="series">Tên Series *</label>
                                 <div style="display: flex; gap: 0.5rem; align-items: start;">
                                     <input type="text" id="series" list="series-suggestions" class="input-ctrl" required
-                                        placeholder="VD: One Piece, Conan..." style="flex:1;">
+                                        placeholder="VD: One Piece, Conan..." style="flex:1;" oninput="if(app.updateTitleFromEditionAndVolume) app.updateTitleFromEditionAndVolume();">
                                     <datalist id="series-suggestions"></datalist>
                                     <button type="button" class="btn btn-outline" onclick="app.autoFill()"
                                         style="white-space: nowrap; padding: 0.6rem 1rem;">Tự động điền</button>
@@ -38,7 +38,16 @@
                                     <input type="number" id="volume" class="input-ctrl" required min="0" max="10000"
                                         step="0.5" onkeydown="if(event.key==='-') event.preventDefault();"
                                         oninvalid="this.setCustomValidity('Vui lòng nhập Tập số hợp lệ')"
-                                        oninput="this.setCustomValidity('')" placeholder="Ví dụ: 1, 2, 1.5">
+                                        oninput="this.setCustomValidity(''); if(app.updateTitleFromEditionAndVolume) app.updateTitleFromEditionAndVolume();" placeholder="Ví dụ: 1, 2, 1.5">
+                                </div>
+                                <div class="form-group">
+                                    <label for="edition">Phân loại bản</label>
+                                    <select id="edition" class="input-ctrl" onchange="if(app.updateTitleFromEditionAndVolume) app.updateTitleFromEditionAndVolume();">
+                                        <option value="Bản Thường">Bản Thường</option>
+                                        <option value="Bản Đặc Biệt">Bản Đặc Biệt</option>
+                                        <option value="Bản Giới Hạn">Bản Giới Hạn</option>
+                                        <option value="Bản Sưu Tầm">Bản Sưu Tầm</option>
+                                    </select>
                                 </div>
                                 <div class="form-group">
                                     <label for="isbn">ISBN</label>
