@@ -109,6 +109,15 @@ export function populateEditForm(id) {
   setVal("series", manga.series);
   setVal("title", manga.title);
   setVal("volume", manga.volume);
+  
+  let edition = "Bản Thường";
+  if (manga.title && manga.title.toLowerCase().includes(" - bản ")) {
+    if (manga.title.toLowerCase().includes("bản đặc biệt")) edition = "Bản Đặc Biệt";
+    else if (manga.title.toLowerCase().includes("bản giới hạn")) edition = "Bản Giới Hạn";
+    else if (manga.title.toLowerCase().includes("bản sưu tầm")) edition = "Bản Sưu Tầm";
+  }
+  setVal("edition", edition);
+
   setVal("isbn", manga.isbn);
   setVal("author", manga.author);
   setVal("translator", manga.translator);
