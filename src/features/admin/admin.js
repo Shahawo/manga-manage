@@ -33,6 +33,11 @@ export function switchAdminTab(tabId) {
   if (tabId === "pending") {
     if (window.app.fetchPendingBooks) window.app.fetchPendingBooks();
   } else if (tabId === "catalog") {
+    const mainView = document.getElementById("admin-catalog-main-view");
+    const detailView = document.getElementById("admin-series-detail-view");
+    if (mainView) mainView.classList.remove("hidden");
+    if (detailView) detailView.classList.add("hidden");
+    window.app._adminCurrentSeries = null;
     if (window.app.searchAdminCatalog) window.app.searchAdminCatalog();
   } else if (tabId === "feedback") {
     if (window.app.fetchAdminFeedback) window.app.fetchAdminFeedback();
